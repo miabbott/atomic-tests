@@ -1,0 +1,35 @@
+---
+# vim: set ft=ansible:
+#
+# Playbook to collect /etc/machine-id contents and compare
+#
+- name: Fail if host1_name fact are not defined
+  fail:
+    msg: "The host1_name fact is not defined!"
+  when: host1_name is not defined
+  run_once: true
+
+- name: Fail if host2_name fact are not defined
+  fail:
+    msg: "The host2_name fact is not defined!"
+  when: host2_name is not defined
+  run_once: true
+
+- name: Fail if tmp_dir is not defined
+  fail:
+    msg: "The tmp_dir fact is not defined!"
+  when: tmp_dir is not defined
+  run_once: true
+
+- name: Retrieve contents of /etc/machine-id
+  fetch:
+    src: /etc/machine-id
+    dest: "{{ tmp_dir }}/machine-id-{{ inventory_hostname }}"
+    flat: yes
+
+- name: Compare machine-id contents for uniqueness
+  local_action: command diff "{{ tmp_dir }}/machine-id-{{ host1_name }}" "{{ tmp_dir }}/machine-id-{{ host2_name }}"
+  register: diff
+  run_once: true
+  sudo: false
+  failed_when: diff.rc != 1

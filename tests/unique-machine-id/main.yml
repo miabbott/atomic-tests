@@ -1,0 +1,58 @@
+---
+# vim: set ft=ansible:
+#
+# Playbook to verify that /etc/machine-id is unique across hosts
+#
+# Requires an inventory that has two hosts
+#
+- name: Verify that /etc/machine_id is unique across hosts
+  hosts: all
+  sudo: yes
+
+  pre_tasks:
+    - name: Fail if the inventory has more than 2 hosts
+      fail:
+        msg: "Inventory file must only contain 2 hosts!"
+      when: "{{ groups['all'] | length }} != 2"
+      run_once: true
+
+    - name: Set facts about distributions
+      set_fact:
+        host1_dist: "{{ hostvars[groups['all'][0]].ansible_distribution }}"
+        host1_dist_ver: "{{ hostvars[groups['all'][0]].ansible_distribution_version }}"
+        host2_dist: "{{ hostvars[groups['all'][1]].ansible_distribution }}"
+        host2_dist_ver: "{{ hostvars[groups['all'][1]].ansible_distribution_version }}"
+      run_once: true
+
+    - name: Fail if the two hosts are not the same distribution
+      fail:
+        msg: "Both hosts under test should be of the same distribution!"
+      when: (host1_dist != host2_dist) or
+            (host1_dist_ver != host2_dist_ver)
+      run_once: true
+
+    - name: Set hostnames as facts
+      set_fact:
+        host1_name: "{{ hostvars[groups['all'][0]].inventory_hostname }}"
+        host2_name: "{{ hostvars[groups['all'][1]].inventory_hostname }}"
+      run_once: true
+
+    - name: Make temporary directory
+      local_action: command mktemp -d
+      register: mktemp
+      sudo: false
+      run_once: true
+
+    - name: Set tmp_dir fact
+      set_fact:
+        tmp_dir: "{{ mktemp.stdout }}"
+      run_once: true
+
+  roles:
+    - role: is_atomic_host
+      tags:
+        - is_atomic_host
+
+    - role: compare_machine_id
+      tags:
+        - compare_machine_id
