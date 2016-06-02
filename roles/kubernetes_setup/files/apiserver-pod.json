@@ -1,0 +1,62 @@
+{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "kube-apiserver"
+  },    
+  "spec": {
+    "hostNetwork": true,
+    "containers": [
+      {
+        "name": "kube-apiserver",
+        "image": "registry.access.redhat.com/rhel7/kubernetes-apiserver",
+        "ports": [
+          {
+            "name": "https",
+            "hostPort": 443,
+            "containerPort": 443
+          },
+          {
+            "name": "local",
+            "hostPort": 8080,
+            "containerPort": 8080
+          }
+        ],
+        "volumeMounts": [
+          {
+            "name": "etcssl",
+            "mountPath": "/etc/ssl",
+            "readOnly": true
+          },
+          {
+            "name": "config",
+            "mountPath": "/etc/kubernetes",
+            "readOnly": true
+          }
+        ],
+        "livenessProbe": {
+          "httpGet": {
+            "path": "/healthz",
+            "port": 8080
+          },
+          "initialDelaySeconds": 15,
+          "timeoutSeconds": 15
+        }
+      }
+    ],
+    "volumes": [
+      {
+        "name": "etcssl",
+        "hostPath": {
+          "path": "/etc/ssl"
+        }
+      },
+      {
+        "name": "config",
+        "hostPath": {
+          "path": "/etc/kubernetes"
+        }
+      }
+    ]
+  }
+}

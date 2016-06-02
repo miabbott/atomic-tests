@@ -1,0 +1,20 @@
+kind: "ReplicationController"
+apiVersion: "v1"
+metadata:
+  name: "webserver-controller"
+spec:
+  replicas: 1
+  selector:
+    name: "webserver"
+  template:
+    spec:
+      containers:
+        - name: "apache-frontend"
+          image: "PRIVATE:5000/webwithdb"
+          ports:
+            - containerPort: 80
+              hostPort: 80
+    metadata:
+      labels:
+        name: "webserver"
+        uses: db

@@ -1,0 +1,111 @@
+---
+#
+#  This role sets up kubernetes apiserver, controller-mgr, and scheduler pods
+#
+  - name: pull kubernetes api-server
+    command: docker pull registry.access.redhat.com/rhel7/kubernetes-apiserver
+
+  - name: pull kubernetes controller-mgr
+    command: docker pull registry.access.redhat.com/rhel7/kubernetes-controller-mgr
+
+  - name: pull kubernetes scheduler
+    command: docker pull registry.access.redhat.com/rhel7/kubernetes-scheduler
+
+  - name: pull kubernetes api-server
+    docker:
+      image: registry.access.redhat.com/rhel7/kubernetes-apiserver
+      state: present
+
+  - name: pull kubernetes api-server
+    docker:
+      image: registry.access.redhat.com/rhel7/kubernetes-controller-mgr
+      state: present
+
+  - name: pull kubernetes api-server
+    docker:
+      image: registry.access.redhat.com/rhel7/kubernetes-scheduler
+      state: present
+
+  - name: make db directory
+    file: path=/etc/kubernetes/manifests state=directory mode=0755
+
+  - name: copy apiserver-pod.json
+    copy: 
+      src=roles/kubernetes_setup/files/apiserver-pod.json
+      dest=/etc/kubernetes/manifests
+      owner=root
+      group=root
+      mode=0644
+
+  - name: copy controller-pod.json
+    copy: 
+      src=roles/kubernetes_setup/files/controller-mgr-pod.json
+      dest=/etc/kubernetes/manifests
+      owner=root
+      group=root
+      mode=0644
+
+  - name: copy scheduler-pod.json
+    copy: 
+      src=roles/kubernetes_setup/files/scheduler-pod.json
+      dest=/etc/kubernetes/manifests
+      owner=root
+      group=root
+      mode=0644
+
+  - name: add kubelet args
+    replace:
+      dest=/etc/kubernetes/kubelet
+      regexp='^KUBELET_ARGS=\"\"'
+      replace='KUBELET_ARGS=\"--register-node=true --config=/etc/kubernetes/manifests/\"'
+
+  - name: add kubelet args
+    replace:
+      dest=/etc/kubernetes/apiserver
+      regexp='ServiceAccount,'
+      replace=''
+
+  - name: restart docker
+    service: name=docker state=restarted
+
+  - name: restart etcd
+    service: name=etcd state=restarted
+
+  - name: restart kube-proxy
+    service: name=kube-proxy state=restarted
+
+  - name: restart kubelet
+    service: name=kubelet state=restarted
+
+  - name: enable docker
+    service: name=docker enabled=yes
+
+  - name: enable etcd
+    service: name=etcd enabled=yes
+
+  - name: enable kube-proxy
+    service: name=kube-proxy enabled=yes
+
+  - name: enable kubelet
+    service: name=kubelet enabled=yes
+
+  - name: restart docker
+    service: name=docker state=restarted
+
+  - name: restart kube-proxy.service
+    service: name=kube-proxy.service state=restarted
+
+  - name: restart kubelet.service
+    service: name=kubelet.service state=restarted
+
+  - name: enable docker
+    service: name=docker enabled=yes
+
+  - name: enable kube-proxy.service
+    service: name=kube-proxy.service enabled=yes
+
+  - name: enable kubelet.service
+    service: name=kubelet.service enabled=yes
+
+  - name: test etcd
+    command: curl http://localhost:2379/version

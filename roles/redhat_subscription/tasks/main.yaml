@@ -1,0 +1,49 @@
+---
+# vim: set ft=ansible:
+#
+# A task for registering via `subscription-manager`.
+#
+# It reads a CSV file to extract the values for the options below.
+#
+# Expects the following variable to be defined:
+#  - subscription_file
+#
+# NOTE: The 'subscription_file' variable lives in vars/subscription.yaml
+#
+# NOTE: It is suggested that the value of `subscription_file` point to a file
+#       that is in the files directory of (same directory the tasks directory) 
+#       is located) a role.  This will reduce any difficulties trying to 
+#       determine the right path for the CSV file.
+#
+#       ../files/subscription_data.csv
+
+# Below we use string formatting to use a variable as the name of the file in
+# the lookup()
+# via http://stackoverflow.com/a/34239020
+#
+
+  - name: Fail if subscription_file is not defined
+    fail:
+      msg: "subscription_file is not defined!"
+    when: subscription_file is not defined
+    run_once: true
+
+  - name: Register with subscription-manager
+    command: subscription-manager register --auto-attach --force
+               --baseurl="{{ lookup('csvfile', 'baseurl file={} delimiter=,'.format(subscription_file)) }}"
+               --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
+               --username="{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
+               --password="{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
+    register: result
+    until: result.rc == 0
+    retries: 3
+    delay: 5
+
+  - name: disable all repos 
+    command: subscription-manager repos --disable=*
+
+  - name: enable server, optional, and extras repos
+    command: subscription-manager repos
+               --enable rhel-7-server-rpms
+               --enable rhel-7-server-optional-rpms
+               --enable rhel-7-server-extras-rpms

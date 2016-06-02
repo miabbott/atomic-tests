@@ -1,0 +1,92 @@
+---
+#
+#  This role sets up the replication controller and services for the webserver
+#  and database server
+#
+  - name: Fail if ansible_docker0.ipv4.address is not defined
+    fail:
+      msg: "ansible_docker0.ipv4.address it not defined!"
+    when: ansible_docker0.ipv4.address is not defined
+    run_once: true
+
+
+  - name: copy db-rc.yaml
+    copy: 
+      src=roles/k8_cluster_services_rc_setup/files/db-rc.yaml
+      dest=/root
+      owner=root
+      group=root
+      mode=0644
+
+  - name: copy db-service.yaml
+    copy: 
+      src=roles/k8_cluster_services_rc_setup/files/db-service.yaml
+      dest=/root
+      owner=root
+      group=root
+      mode=0644
+
+  - name: copy webserver-rc.yaml
+    copy: 
+      src=roles/k8_cluster_services_rc_setup/files/webserver-rc.yaml
+      dest=/root
+      owner=root
+      group=root
+      mode=0644
+
+  - name: copy webserver-service.yaml
+    copy: 
+      src=roles/k8_cluster_services_rc_setup/files/webserver-service.yaml
+      dest=/root
+      owner=root
+      group=root
+      mode=0644
+
+  - name: insert private registry ip in webserver controller image yaml
+    replace:
+      dest=/root/db-rc.yaml
+      regexp='PRIVATE'
+      replace='{{ ansible_docker0.ipv4.address }}'
+
+  - name: insert private registry ip in db controller image yaml
+    replace:
+      dest=/root/webserver-rc.yaml
+      regexp='PRIVATE'
+      replace='{{ ansible_docker0.ipv4.address }}'
+
+  - name: wait for services to kick back up
+    pause: minutes=1
+
+  - name: create db service
+    command: kubectl create -f /root/db-service.yaml
+    register: create_result
+    ignore_errors: True
+
+  - name: create web service
+    command: kubectl create -f /root/webserver-service.yaml
+    ignore_errors: True
+
+  - name: create db replication controller
+    command: kubectl create -f /root/db-rc.yaml
+    ignore_errors: True
+
+  - name: create web replication controller
+    command: kubectl create -f /root/webserver-rc.yaml
+    ignore_errors: True
+
+  - name: verify db pod is running
+    shell: kubectl get pods | grep db-controller
+    register: output
+    until: output.stdout.find("Running") > -1
+    retries: 12
+    delay: 10
+
+  - name: verify webserver-controller is running 
+    shell: kubectl get pods | grep webserver-controller
+    register: output
+    until: output.stdout.find("Running") > -1
+    retries: 12
+    delay: 10
+
+
+

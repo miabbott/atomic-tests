@@ -1,0 +1,39 @@
+{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "kube-scheduler"
+  },
+  "spec": {
+    "hostNetwork": true,
+    "containers": [
+      {
+        "name": "kube-scheduler",
+        "image": "registry.access.redhat.com/rhel7/kubernetes-scheduler",
+        "volumeMounts": [
+          {
+            "name": "config",
+            "mountPath": "/etc/kubernetes",
+            "readOnly": true
+          }
+        ],
+        "livenessProbe": {
+          "httpGet": {
+            "path": "/healthz",
+            "port": 10251
+          },
+          "initialDelaySeconds": 15,
+          "timeoutSeconds": 15
+        }
+      }
+    ],
+    "volumes": [
+      {
+        "name": "config",
+        "hostPath": {
+          "path": "/etc/kubernetes"
+        }
+      }
+    ]
+  }
+}

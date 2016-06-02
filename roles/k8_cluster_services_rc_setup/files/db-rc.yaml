@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: db-controller
+spec:
+  replicas: 1
+  selector:
+    app: "db"
+  template:
+    metadata:
+      name: "db"
+      labels:
+        app: "db"
+    spec:
+      containers:
+      - name: "db"
+        image: "PRIVATE:5000/dbforweb"
+        ports:
+        - containerPort: 3306
+          hostPort: 3306

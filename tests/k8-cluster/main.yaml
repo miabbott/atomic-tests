@@ -1,0 +1,48 @@
+---
+#
+#  This playbook creates a kubernetes cluster on a single system using the
+#  example in the Red Hat documentation.  The cluster contains a database
+#  and a webserver pod with data from the database to present a webpage that 
+#  says "Red Hat Rocks!"
+# 
+#  Execution Steps:
+#    1. Subscribe to RedHat if running RHEL Atomic Host
+#    2. Create an insecure private registry 
+#    3. Copy over the mariadb and apache webserver Dockerfile and supporting
+#       files, build the docker image, tag the image, then push to the private
+#       registry.
+#    4. Setup and start the kubernetes pods
+#    5. Setup and start the mariadb and webserver pods
+#    6. Verify that the pods are running and that the mariadb and webserver 
+#       can communicate through the kubernetes services
+#
+- name: k8-cluster
+  hosts: all
+  become: yes
+
+  roles:
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+  
+    - role: docker_private_registry
+      tags:
+        - docker_private_registry
+  
+    - role: docker_build_tag_push
+      tags:
+        - docker_build_tag_push
+  
+    - role: kubernetes_setup 
+      tags:
+        - kubernetes_setup
+  
+    - role: k8_cluster_services_rc_setup 
+      tags:
+        - k8_cluster_services_rc_setup
+
+  post_tasks:
+    - name: check if everything works!
+      shell: curl http://localhost:80/cgi-bin/action | grep "RedHat rocks"
+
