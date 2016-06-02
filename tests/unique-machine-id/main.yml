@@ -33,8 +33,8 @@
 
     - name: Set hostnames as facts
       set_fact:
-        host1_name: "{{ hostvars[groups['all'][0]].inventory_hostname }}"
-        host2_name: "{{ hostvars[groups['all'][1]].inventory_hostname }}"
+        g_host1_name: "{{ hostvars[groups['all'][0]].inventory_hostname }}"
+        g_host2_name: "{{ hostvars[groups['all'][1]].inventory_hostname }}"
       run_once: true
 
     - name: Make temporary directory
@@ -43,16 +43,16 @@
       sudo: false
       run_once: true
 
-    - name: Set tmp_dir fact
+    - name: Set g_tmp_dir fact
       set_fact:
-        tmp_dir: "{{ mktemp.stdout }}"
+        g_tmp_dir: "{{ mktemp.stdout }}"
       run_once: true
 
   roles:
-    - role: is_atomic_host
+    - role: atomic_host_check
       tags:
-        - is_atomic_host
+        - atomic_host_check
 
-    - role: compare_machine_id
+    - role: machine_id_compare
       tags:
-        - compare_machine_id
+        - machine_id_compare
