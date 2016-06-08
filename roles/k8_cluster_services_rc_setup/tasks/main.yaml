@@ -10,37 +10,18 @@
     run_once: true
 
 
-  - name: copy db-rc.yaml
+  - name: copy db-rc.yaml, db-service.yaml, webserver-rc.yaml, webserver-service.yaml 
     copy: 
-      src=roles/k8_cluster_services_rc_setup/files/db-rc.yaml
+      src=roles/k8_cluster_services_rc_setup/files/{{ item }}
       dest=/root
       owner=root
       group=root
       mode=0644
-
-  - name: copy db-service.yaml
-    copy: 
-      src=roles/k8_cluster_services_rc_setup/files/db-service.yaml
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
-
-  - name: copy webserver-rc.yaml
-    copy: 
-      src=roles/k8_cluster_services_rc_setup/files/webserver-rc.yaml
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
-
-  - name: copy webserver-service.yaml
-    copy: 
-      src=roles/k8_cluster_services_rc_setup/files/webserver-service.yaml
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
+    with_items:
+      - db-rc.yaml
+      - db-service.yaml
+      - webserver-rc.yaml
+      - webserver-service.yaml
 
   - name: insert private registry ip in webserver controller image yaml
     replace:
@@ -54,24 +35,24 @@
       regexp='PRIVATE'
       replace='{{ ansible_docker0.ipv4.address }}'
 
-  - name: wait for services to kick back up
-    pause: minutes=1
+  - name: wait for kubernetes apiserver to be available
+    wait_for:
+      port: 8080
+      timeout: 120
 
-  - name: create db service
-    command: kubectl create -f /root/db-service.yaml
-    register: create_result
+
+  - name: create db and webserver service
+    command: kubectl create -f /root/{{ item }}
+    with_items:
+      - db-service.yaml
+      - webserver-service.yaml
     ignore_errors: True
 
-  - name: create web service
-    command: kubectl create -f /root/webserver-service.yaml
-    ignore_errors: True
-
-  - name: create db replication controller
-    command: kubectl create -f /root/db-rc.yaml
-    ignore_errors: True
-
-  - name: create web replication controller
-    command: kubectl create -f /root/webserver-rc.yaml
+  - name: create db and webserver replication controller
+    command: kubectl create -f /root/{{ item }}
+    with_items:
+      - db-rc.yaml
+      - webserver-rc.yaml
     ignore_errors: True
 
   - name: verify db pod is running

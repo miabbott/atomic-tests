@@ -19,69 +19,53 @@
     run_once: true
 
 # Red Hat
-  - name: copy mariadb_cont.tgz
+  - name: copy mariadb_cont.tgz and web_cont_2.tgz 
     copy: 
-      src=roles/docker_build_tag_push/files/rhelah/mariadb_cont.tgz
+      src=roles/docker_build_tag_push/files/rhelah/{{ item }} 
       dest=/root
       owner=root
       group=root
       mode=0644
-    when: ansible_distribution == "RedHat"
-
-  - name: copy web_cont_2.tgz
-    copy: 
-      src=roles/docker_build_tag_push/files/rhelah/web_cont_2.tgz
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
+    with_items:
+      - mariadb_cont.tgz
+      - web_cont_2.tgz
     when: ansible_distribution == "RedHat"
 
 # Fedora 
-  - name: copy mariadb_cont.tgz
+  - name: copy mariadb_cont.tgz and web_cont_2.tgz
     copy: 
-      src=roles/docker_build_tag_push/files/fedora/mariadb_cont.tgz
+      src=roles/docker_build_tag_push/files/fedora/{{ item }}
       dest=/root
       owner=root
       group=root
       mode=0644
-    when: ansible_distribution == "Fedora"
-
-  - name: copy web_cont_2.tgz
-    copy: 
-      src=roles/docker_build_tag_push/files/fedora/web_cont_2.tgz
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
+    with_items:
+      - mariadb_cont.tgz
+      - web_cont_2.tgz
     when: ansible_distribution == "Fedora"
 
 # CentOS
-  - name: copy mariadb_cont.tgz
+  - name: copy mariadb_cont.tgz and web_cont_2.tgz
     copy: 
-      src=roles/docker_build_tag_push/files/centos/mariadb_cont.tgz
+      src=roles/docker_build_tag_push/files/centos/{{ item }}
       dest=/root
       owner=root
       group=root
       mode=0644
+    with_items:
+      - mariadb_cont.tgz
+      - web_cont_2.tgz
     when: ansible_distribution == "CentOS"
-
-  - name: copy web_cont_2.tgz
-    copy: 
-      src=roles/docker_build_tag_push/files/centos/web_cont_2.tgz
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
-    when: ansible_distribution == "CentOS"
-
 
 # Common build, tag, push
   - name: untar db file
-    unarchive: src=/root/mariadb_cont.tgz dest=/root/ copy=no
+    unarchive: 
+      src=/root/mariadb_cont.tgz 
+      dest=/root/ 
+      copy=no
 
   - name: build db docker image
-    docker_image: path="/root/db" name="dbforweb" state=build
+    command: docker build -t dbforweb /root/db
 
   - name: tag db build
     command: docker tag -f dbforweb {{ ansible_docker0.ipv4.address }}:5000/dbforweb
@@ -95,13 +79,19 @@
     command: docker push {{ ansible_docker0.ipv4.address }}:5000/dbforweb
 
   - name: download and untar web file
-    unarchive: src=/root/web_cont_2.tgz dest=/root/ copy=no
+    unarchive: 
+      src=/root/web_cont_2.tgz 
+      dest=/root/ 
+      copy=no
 
   - name: change IP address in action file before building
-    replace: dest=/root/web/action regexp='172.17.42.1' replace={{ ansible_docker0.ipv4.address }}
+    replace: 
+      dest=/root/web/action 
+      regexp='172.17.42.1' 
+      replace={{ ansible_docker0.ipv4.address }}
 
   - name: build web docker image
-    docker_image: path="/root/web" name="webwithdb" state=build
+    command: docker build -t webwithdb /root/web
 
   - name: tag web build
     command: docker tag -f webwithdb {{ ansible_docker0.ipv4.address }}:5000/webwithdb
@@ -117,13 +107,21 @@
 # Cleanup images to free up space
 
   - name: delete built dbforweb image
-    docker_image: name="dbforweb" state=absent
+    docker_image: 
+      name="dbforweb" 
+      state=absent
 
   - name: delete built webwtihdb image
-    docker_image: name="webwithdb" state=absent
+    docker_image: 
+      name="webwithdb" 
+      state=absent
 
   - name: delete tagged dbforweb image
-    docker_image: name="{{ ansible_docker0.ipv4.address }}:5000/dbforweb" state=absent
+    docker_image: 
+      name="{{ ansible_docker0.ipv4.address }}:5000/dbforweb" 
+      state=absent
 
   - name: delete tagged webwithdb image
-    docker_image: name="{{ ansible_docker0.ipv4.address }}:5000/webwithdb" state=absent
+    docker_image: 
+      name="{{ ansible_docker0.ipv4.address }}:5000/webwithdb" 
+      state=absent

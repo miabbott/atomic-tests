@@ -29,11 +29,12 @@
     run_once: true
 
   - name: Register with subscription-manager
-    command: subscription-manager register --auto-attach --force
-               --baseurl="{{ lookup('csvfile', 'baseurl file={} delimiter=,'.format(subscription_file)) }}"
-               --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
-               --username="{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
-               --password="{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
+    command: >
+      subscription-manager register --auto-attach --force
+      --baseurl="{{ lookup('csvfile', 'baseurl file={} delimiter=,'.format(subscription_file)) }}"
+      --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
+      --username="{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
+      --password="{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
     register: result
     until: result.rc == 0
     retries: 3
@@ -43,7 +44,8 @@
     command: subscription-manager repos --disable=*
 
   - name: enable server, optional, and extras repos
-    command: subscription-manager repos
-               --enable rhel-7-server-rpms
-               --enable rhel-7-server-optional-rpms
-               --enable rhel-7-server-extras-rpms
+    command: >
+      subscription-manager repos
+      --enable rhel-7-server-rpms
+      --enable rhel-7-server-optional-rpms
+      --enable rhel-7-server-extras-rpms

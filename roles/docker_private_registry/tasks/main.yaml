@@ -21,11 +21,18 @@
       regexp='^# INSECURE_REGISTRY=\'--insecure-registry\s?\''
       replace='INSECURE_REGISTRY=\'--insecure-registry {{ ansible_docker0.ipv4.address }}:5000\''
 
-  - name: restart docker
-    service: name=docker state=restarted
+  - name: stop docker
+    service: 
+      name=docker 
+      state=stopped
 
-  - name: wait for docker restart to complete
-    pause: seconds=30
+  - name: start docker
+    service:
+      name=docker
+      state=started
+
+#  - name: wait for docker restart to complete
+#    pause: seconds=30
 
   - name: create private registry
     docker:
