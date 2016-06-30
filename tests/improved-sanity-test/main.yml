@@ -1,0 +1,164 @@
+---
+# vim: set ft=ansible:
+#
+# This playbook is actually multiple playbooks contained in a single file.
+# I had to take this approach, because I encountered difficulties re-using
+# the same roles with non-unique variables.  Sometimes the roles would be
+# executed with the use of the 'always' tag, sometimes not.
+#
+# The wrinkle in this approach is that sharing global variables across the
+# multiple playbooks requires the use of a file containing the variables
+# which is included in each playbook with the 'vars_files' directive.
+#
+# The sanity tests performed in this set of playbooks:
+#   - check permissions on /tmp are correct (RHBZ 1276775) after each reboot
+#   - add user to system, verify it is present after upgrade
+#   - make changes to /etc, verify changes are present after upgrade
+#   - add directory/file to /var, verify they persist after upgrade/rollback
+#   - add user post-upgrade, verify it is not present after rollback
+#   - add directory/file to /var post-upgrade, verify they persist after
+#     rollback
+#
+# The intent is to expand the sanity test coverage in this set of playbooks
+# with small, focused tests going forward.  Additional functional tests that
+# are more expansive should be handled in separate playbooks.
+#
+- name: Improved Sanity Test - Pre-Upgrade
+  hosts: all
+  become: yes
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.0+ and an Atomic Host
+    - { role: ansible_version_check, avc_major: "2", avc_minor: "0", tags: ['ansible_version_check'] }
+
+    - role: atomic_host_check
+      tags:
+        - atomic_host_check
+
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+    # Check that /tmp is properly setup
+    - role: tmp_check_perms
+      tags:
+        - tmp_check_perms
+
+    # Add users, make changes to /etc, and add things to /var before the
+    # the system is upgraded
+    - { role: user_add, ua_uid: "{{ g_uid1 }}", tags: ['user_add'] }
+
+    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present'] }
+
+    - role: etc_modify
+      tags:
+        - etc_modify
+
+    - role: etc_verify_changes
+      tags:
+        - etc_verify_changes
+
+    - { role: var_add_files, vaf_filename: "{{ g_file1 }}", vaf_dirname: "{{ g_dir1 }}", tags: ['var_add_files'] }
+
+    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
+
+    # Upgrade and reboot
+    - role: rpm_ostree_upgrade
+      tags:
+        - rpm_ostree_upgrade
+
+    - role: reboot
+      tags:
+        - reboot
+
+
+- name: Improved Sanity Test - Post-Upgrade
+  hosts: all
+  become: yes
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.0+ and an Atomic Host
+    - { role: ansible_version_check, avc_major: "2", avc_minor: "0", tags: ['ansible_version_check'] }
+
+    - role: atomic_host_check
+      tags:
+        - atomic_host_check
+
+    # Check that /tmp is properly setup
+    - role: tmp_check_perms
+      tags:
+        - tmp_check_perms
+
+    # Verify that the new users, /etc changes, and /var additions are still
+    # present after the upgrade
+    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present'] }
+
+    - role: etc_verify_changes
+      tags:
+        - etc_verify_changes
+
+    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
+
+    # Add more users and more files to /var ahead of the rollback
+    - { role: user_add, ua_uid: "{{ g_uid2 }}", tags: ['user_add'] }
+
+    - { role: user_verify_present, uvp_uid: "{{ g_uid2 }}", tags: ['user_verify_present'] }
+
+    - { role: var_add_files, vaf_filename: "{{ g_file2 }}", vaf_dirname: "{{ g_dir2 }}", tags: ['var_add_files'] }
+
+    - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
+
+    # Rollback and reboot
+    - role: rpm_ostree_rollback
+      tags:
+        - rpm_ostree_rollback
+
+    - role: reboot
+      tags:
+        - reboot
+
+
+- name: Improved Sanity Test - Post-Rollback
+  hosts: all
+  become: yes
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.0+ and an Atomic Host
+    - { role: ansible_version_check, avc_major: "2", avc_minor: "0", tags: ['ansible_version_check'] }
+
+    - role: atomic_host_check
+      tags:
+        - atomic_host_check
+
+    # Check that /tmp is properly setup
+    - role: tmp_check_perms
+      tags:
+        - tmp_check_perms
+
+    # Verify changes still exist in original tree
+    - role: etc_verify_changes
+      tags:
+        - etc_verify_changes
+
+    # Verify first user added is still present in original tree
+    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present'] }
+
+    # Verify first files dropped in /var are still in original tree
+    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
+
+    # Verify that the newest user is not present in the previous tree
+    - { role: user_verify_missing, uvm_uid: "{{ g_uid2 }}", tags: ['user_verify_missing'] }
+
+    # Verify the most recent changes to /var are present
+    - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }

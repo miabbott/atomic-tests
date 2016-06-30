@@ -1,0 +1,12 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if uvm_uid is not defined
+  fail:
+    msg: "uvm_uid is undefined"
+  when: uvm_uid is undefined
+
+- name: Check to see if the user is in /etc/passwd
+  command: "grep atomic-user-{{ uvm_uid }}:x:{{ uvm_uid }}:{{ uvm_uid }}::/home/atomic-user-{{ uvm_uid }}:/bin/bash /etc/passwd"
+  register: grep_user
+  failed_when: grep_user.rc != 1

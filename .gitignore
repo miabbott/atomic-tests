@@ -1,2 +1,4 @@
 *.csv
-inventory
+*.retry
+inventory*
+.vagrant

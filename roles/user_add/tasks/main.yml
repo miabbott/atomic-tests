@@ -1,0 +1,11 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if ua_uid is not defined
+  fail:
+    msg: "ua_uid variable is not defined"
+  when: ua_uid is undefined
+
+- name: Add user
+  command: "useradd atomic-user-{{ ua_uid }} -u {{ ua_uid }}"
+

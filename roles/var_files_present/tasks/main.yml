@@ -1,0 +1,58 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if vfp_filename is not defined
+  fail:
+    msg: "vfp_filename is undefined"
+  when: vfp_filename is undefined
+
+- name: Fail if vfp_dirname is not defined
+  fail:
+    msg: "vfp_dirname is undefined"
+  when: vfp_dirname is undefined
+
+- name: Verify that the directory is present
+  stat:
+    path: "/var/{{ vfp_dirname }}"
+  register: var_dir
+
+- name: Fail if directory not owned by root
+  fail:
+    msg: "/var/{{ vfp_dirname }} is not owned by root"
+  when: var_dir.stat.uid != 0
+
+- name: Fail if the group of the owner of the directory is not root
+  fail:
+    msg: "/var/{{ vfp_dirname }} does not have the right GID"
+  when: var_dir.stat.gid != 0
+
+- name: Fail if permissions are incorrect on the directory
+  fail:
+    msg: "/var/{{ vfp_dirname }} does not have the correct permissions"
+  when: var_dir.stat.mode != "0755"
+
+- name: Check if the SELinux context on the directory is correct
+  shell: "stat /var/{{ vfp_dirname | quote }} | grep svirt_sandbox_file_t"
+
+- name: Check that file added to the directory is present
+  stat:
+    path: "/var/{{ vfp_dirname }}/{{ vfp_filename }}"
+  register: added_file
+
+- name: Fail if the owner of the file is not root
+  fail:
+    msg: "The added file is not owned by root"
+  when: added_file.stat.uid != 0
+
+- name: Fail if the group on the file is not root
+  fail:
+    msg: "The group on the added file is not root"
+  when: added_file.stat.uid != 0
+
+- name: Fail if the permissions are incorrect on the file
+  fail:
+    msg: "The permissions on the added file are incorrect"
+  when: added_file.stat.mode != "0644"
+
+- name: Check if the SELinux context on the added file is correct
+  shell: "stat /var/{{ vfp_dirname | quote }}/{{ vfp_filename | quote}} | grep svirt_sandbox_file_t"

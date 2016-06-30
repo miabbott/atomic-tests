@@ -1,0 +1,24 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if vaf_filename is not defined
+  fail:
+    msg: "vaf_filename is undefined"
+  when: vaf_filename is undefined
+
+- name: Fail if vaf_dirname is not defined
+  fail:
+    msg: "vaf_dirname is undefined"
+  when: vaf_dirname is undefined
+
+- name: Make directory in /var
+  file:
+    path: "/var/{{ vaf_dirname }}"
+    state: directory
+    mode: 0755
+    setype: svirt_sandbox_file_t
+
+- name: Add file in new directory
+  shell: "echo $(sha256sum /etc/passwd) > {{ vaf_filename | quote }}"
+  args:
+    chdir: "/var/{{ vaf_dirname }}"

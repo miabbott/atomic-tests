@@ -1,0 +1,25 @@
+---
+# vim: set ft=ansible:
+#
+- name: Verify changes to /etc/hosts
+  command: grep "{{ ansible_default_ipv4 }} {{ ansible_fqdn }}" /etc/hosts
+
+- name: Verify EPEL repo is present in /etc/yum.repos.d
+  stat:
+    path: /etc/yum.repos.d/epel.repo
+  register: epel
+
+- name: Fail if the file is not owned by root
+  fail:
+    msg: "The epel.repo file is not owned by root"
+  when: epel.stat.uid != 0
+
+- name: Fail if the group on the file is not root
+  fail:
+    msg: "The epel.repo file does not have the right group"
+  when: epel.stat.gid != 0
+
+- name: Fail if the permssions on the file are not correct
+  fail:
+    msg: "The epel.repo file does not have the right permissions"
+  when: epel.stat.mode != "0644"

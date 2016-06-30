@@ -1,0 +1,18 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if avc_major is not defined
+  fail:
+    msg: "The avc_major variable is undefined"
+  when: avc_major is undefined
+
+- name: Fail if avc_minor is not defined
+  fail:
+    msg: "The avc_minor variable is undefined"
+  when: avc_minor is undefined
+
+- name: Check if Ansible is the correct version (or newer)
+  assert:
+    that:
+      - "ansible_version.major >= {{ avc_major }}"
+      - "ansible_version.minor >= {{ avc_minor }}"

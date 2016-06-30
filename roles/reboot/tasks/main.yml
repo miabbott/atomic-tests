@@ -1,0 +1,45 @@
+---
+# vim: set ft=ansible:
+# There is no clean way to restart hosts in ansible. The general issue is that
+# the shutdown command may close sshd before ansible has time to "return" from
+# the task, even with async & poll. This is due to the fact that asynchronous
+# tasks still require a small synchronous bootstrapping script which takes 1 sec
+# to complete, during which it is vulnerable to erroring out if sshd dies.
+#       To mitigate this, we prefix a sleep command before the shutdown so
+# ansible has time to move on. For more info on this issue, see:
+# https://github.com/ansible/ansible/issues/10616
+#
+# The Ansible docs now recommend this combination of tasks to handle reboots
+# https://support.ansible.com/hc/en-us/articles/201958037-Reboot-a-server-and-wait-for-it-to-come-back
+#
+- name: restart hosts
+  shell: sleep 3 && shutdown -r now
+  async: 1
+  poll: 0
+  ignore_errors: true
+
+# NB: The following tasks use local actions, so we need to explicitly ensure
+# that they don't use sudo, which may require a password, and is not necessary
+# anyway.
+
+# During playbook testing, I found that sometimes the 'ansible_host' variable
+# is sometimes undefined, leading to errors waiting for the host to return.
+# We can opt to use the 'inventory_hostname' in this case and avoid those
+# (admittedly) rare error cases.
+- name: wait for hosts to come back up (ansible_host)
+  local_action: wait_for host={{ ansible_host }}
+                port=22
+                state=started
+                delay=15
+                timeout=120
+  become: false
+  when: ansible_host is defined
+
+- name: wait for hosts to come back up (inventory_hostname)
+  local_action: wait_for host={{ inventory_hostname }}
+                port=22
+                state=started
+                delay=15
+                timeout=120
+  become: false
+  when: ansible_host is undefined

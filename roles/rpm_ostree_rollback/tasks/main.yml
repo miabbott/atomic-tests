@@ -1,0 +1,5 @@
+---
+# vim: set ft=ansible:
+#
+- name: Rollback
+  command: rpm-ostree rollback

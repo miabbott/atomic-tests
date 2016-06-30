@@ -1,0 +1,10 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if uvp_uid is not defined
+  fail:
+    msg: "uvp_uid variable is undefined"
+  when: uvp_uid is undefined
+
+- name: Verify users in /etc/passwd
+  command: "grep atomic-user-{{ uvp_uid }}:x:{{ uvp_uid }}:{{ uvp_uid }}::/home/atomic-user-{{ uvp_uid }}:/bin/bash /etc/passwd"

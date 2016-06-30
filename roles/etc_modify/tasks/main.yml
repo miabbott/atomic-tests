@@ -1,0 +1,17 @@
+---
+# vim: set ft=ansible:
+#
+- name: Add entry to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    line: "{{ ansible_default_ipv4 }} {{ ansible_fqdn }}"
+    state: present
+
+- name: Copy EPEL repo into /etc/yum.repos.d
+  copy:
+    src: epel.repo
+    dest: /etc/yum.repos.d/epel.repo
+    owner: root
+    group: root
+    mode: 0644
