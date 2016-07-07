@@ -13,6 +13,8 @@ In the future, the playbook can be expanded with similar small and focused
 tests.
 
 ### Prerequisites
+  - Ansible version 2+ (the playbook was tested using Ansible 2.1)
+
   - Configure subscription data (if used)
 
     If running against a RHEL Atomic Host, you should provide subscription
@@ -20,7 +22,7 @@ tests.
     [roles/redhat_subscribe/tasks/main.yaml](roles/redhat_subscribe/tasks/main.yaml)
     for additional details.
 
-  - Configure the required variables to your liking in [tests/cahc-sanity-tests/cach_vars.yml](tests/cahc-sanity-tests/cach_vars.yml).
+  - Configure the required variables to your liking in [tests/improved-sanity-tests/vars.yml](tests/improved-sanity-tests/vars.yml).
 
 ### Running the Playbook
 
@@ -32,3 +34,9 @@ $ ansible-playbook -i inventory tests/improved-sanity-test/main.yml
 
 *NOTE*: You are responsible for providing a host to run the test against and the
 inventory file for that host.
+
+Alternatively, you can see how the playbook would run by using the supplied
+Vagrantfile which defines multiple boxes to test with. (See the Vagrantfile
+for additional information)
+
+Simply, `vagrant up` and observe.

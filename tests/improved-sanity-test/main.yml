@@ -1,6 +1,9 @@
 ---
 # vim: set ft=ansible:
 #
+# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
+# that the same version is used.
+#
 # This playbook is actually multiple playbooks contained in a single file.
 # I had to take this approach, because I encountered difficulties re-using
 # the same roles with non-unique variables.  Sometimes the roles would be
