@@ -19,10 +19,10 @@ tests.
 
     If running against a RHEL Atomic Host, you should provide subscription
     data that can be used by `subscription-manager`.  See
-    [roles/redhat_subscribe/tasks/main.yaml](roles/redhat_subscribe/tasks/main.yaml)
+    [/roles/redhat_subscribe/tasks/main.yaml](/roles/redhat_subscribe/tasks/main.yaml)
     for additional details.
 
-  - Configure the required variables to your liking in [tests/improved-sanity-tests/vars.yml](tests/improved-sanity-tests/vars.yml).
+  - Configure the required variables to your liking in [/tests/improved-sanity-tests/vars.yml](/tests/improved-sanity-tests/vars.yml).
 
 ### Running the Playbook
 
