@@ -24,6 +24,9 @@ tests.
 
   - Configure the required variables to your liking in [tests/improved-sanity-tests/vars.yml](tests/improved-sanity-tests/vars.yml).
 
+  - Because these tests are geared towards testing upgrades and rollbacks,
+    the system under test should have a new tree available to upgrade to.
+
 ### Running the Playbook
 
 To run the test, simply invoke as any other Ansible playbook:
@@ -35,8 +38,24 @@ $ ansible-playbook -i inventory tests/improved-sanity-test/main.yml
 *NOTE*: You are responsible for providing a host to run the test against and the
 inventory file for that host.
 
-Alternatively, you can see how the playbook would run by using the supplied
-Vagrantfile which defines multiple boxes to test with. (See the Vagrantfile
-for additional information)
+#### Vagrant
 
-Simply, `vagrant up` and observe.
+Alternatively, you can see how the playbook would run by using the supplied
+Vagrantfile which defines multiple boxes to test with. The Vagrantfile
+requires a 'vagrant-reload' plugin - see the Vagrantfile for additional
+information.
+
+With the plugin installed, you should be able to choose a CentOS AH box, a
+Fedora 23 AH box, or a CAHC box.
+
+```
+$ vagrant up centos
+
+or
+
+$ vagrant up fedora23
+
+or
+
+$ vagrant up cahc
+```
