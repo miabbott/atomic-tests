@@ -38,9 +38,20 @@ Additionally, certain variables are required to be configured for each test and
 the required variables can vary between tests.  There are sensible defaults
 provided, but it is up to the user to configure them as they see fit.
 
-**NOTE:**  The playbooks were developed/tested using Ansible 1.9.4
+**NOTE** The playbooks originally added to the repo were tested using Ansible
+1.9.4, but we are beginning to adopt Ansible version 2 (or newer) for future
+tests.  See [Issue #28](https://github.com/projectatomic/atomic-host-tests/issues/28)
+for discussion.
 
 ### Directory Layout
+
+**WARNING** The directory structure described below is in place for some of
+the first tests that were added to this repo.  However, newer tests have
+begun to adopt the OpenShift Ansible guidelines as described in
+[Issue #25](https://github.com/projectatomic/atomic-host-tests/issues/25).
+We will have to refactor the original tests to use these new guidelines in
+the future.
+
 The directory structure attempts to break out functionality into separate
 sub-directories where appropriate.  For example, the `common` directory has
 a set tasks that could be run anywhere and the `rhel` directory contains
