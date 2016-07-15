@@ -14,9 +14,11 @@
 # the 'Vagrant.configure()' stanza.
 
 # Define scripts to deploy HEAD^ of various trees
-# First one deploys HEAD^ of CAHC
-# Second, HEAD^ of base CentOS AH
-# Third, HEAD^ of Fedora 23 AH
+# - HEAD^ of CAHC
+# - HEAD^ of base CentOS AH
+# - HEAD^ of Fedora 23 AH
+# - HEAD^ of Fedora 24 AH
+#
 $cahc = <<CAHC
 #!/bin/bash
 set -xeuo pipefail
@@ -41,8 +43,17 @@ sudo ostree pull --commit-metadata-only --depth=1 fedora-atomic:fedora-atomic/f2
 sudo rpm-ostree deploy $(ostree rev-parse fedora-atomic/f23/x86_64/docker-host^)
 FEDORA23
 
+$fedora24 = <<FEDORA24
+#!/bin/bash
+set -xeuo pipefail
+sudo ostree pull --commit-metadata-only --depth=1 fedora-atomic:fedora-atomic/24/x86_64/docker-host
+sudo rpm-ostree deploy $(ostree rev-parse fedora-atomic/24/x86_64/docker-host^)
+FEDORA24
+
 # Define the Ansible playbook you want to run here
-$playbook_file = "tests/improved-sanity-test/main.yml"
+# Alternately, you can set the 'PLAYBOOK_FILE' environment variable to
+# override this value
+$playbook_file = ENV['PLAYBOOK_FILE'] || "tests/improved-sanity-test/main.yml"
 
 Vagrant.configure(2) do |config|
     config.vm.define "cahc", autostart: false do |cahc|
@@ -77,6 +88,22 @@ Vagrant.configure(2) do |config|
         # Because Vagrant enforces outside-in ordering with the provisioner
         # we have to specify the same playbook in multiple places
         fedora23.vm.provision "ansible" do |ansible|
+            ansible.playbook = $playbook_file
+        end
+    end
+
+    config.vm.define "fedora24", autostart: false do |fedora24|
+        fedora24.vm.box = "fedora/24-atomic-host"
+        fedora24.vm.hostname = "fedora24ah-dev"
+        fedora24.vm.provision "shell", inline: $fedora24
+        fedora24.vm.provision :reload
+        # Change folder sync
+        # https://pagure.io/pungi-fedora/issue/26
+        fedora24.vm.synced_folder "./", "/vagrant", disabled: 'true'
+        fedora24.vm.synced_folder "./", "/var/vagrant"
+        # Because Vagrant enforces outside-in ordering with the provisioner
+        # we have to specify the same playbook in multiple places
+        fedora24.vm.provision "ansible" do |ansible|
             ansible.playbook = $playbook_file
         end
     end

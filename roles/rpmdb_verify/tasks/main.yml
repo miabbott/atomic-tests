@@ -1,0 +1,11 @@
+---
+# vim: set ft=ansible:
+#
+- name: Verify that the RPM database is intact
+  shell: rpm -qa | wc -l
+  register: rpmdb
+
+- name: Fail if the RPM database is broken
+  fail:
+    msg: "The RPM database is not usuable"
+  when: rpmdb.stdout <= 0 or rpmdb.rc != 0

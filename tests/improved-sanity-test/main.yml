@@ -52,6 +52,11 @@
       tags:
         - tmp_check_perms
 
+    # Check that the RPM database is functional
+    - role: rpmdb_verify
+      tags:
+        - rpmdb_verify
+
     # Add users, make changes to /etc, and add things to /var before the
     # the system is upgraded
     - { role: user_add, ua_uid: "{{ g_uid1 }}", tags: ['user_add'] }
@@ -99,6 +104,11 @@
     - role: tmp_check_perms
       tags:
         - tmp_check_perms
+
+    # Check that the RPM database is functional
+    - role: rpmdb_verify
+      tags:
+        - rpmdb_verify
 
     # Verify that the new users, /etc changes, and /var additions are still
     # present after the upgrade
@@ -148,6 +158,11 @@
     - role: tmp_check_perms
       tags:
         - tmp_check_perms
+
+    # Check that the RPM database is functional
+    - role: rpmdb_verify
+      tags:
+        - rpmdb_verify
 
     # Verify changes still exist in original tree
     - role: etc_verify_changes
