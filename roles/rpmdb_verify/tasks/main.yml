@@ -8,4 +8,4 @@
 - name: Fail if the RPM database is broken
   fail:
     msg: "The RPM database is not usuable"
-  when: rpmdb.stdout <= 0 or rpmdb.rc != 0
+  when: "{{ rpmdb.stdout | int }} <= 0 or rpmdb.rc != 0"
