@@ -2,7 +2,7 @@
 # vim: set ft=ansible:
 #
 - name: Verify changes to /etc/hosts
-  command: grep "{{ ansible_default_ipv4.address }} {{ ansible_hostname}}" /etc/hosts
+  command: grep "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}" /etc/hosts
 
 - name: Verify EPEL repo is present in /etc/yum.repos.d
   stat:
