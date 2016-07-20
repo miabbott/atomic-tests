@@ -5,7 +5,7 @@
   lineinfile:
     dest: /etc/hosts
     insertafter: EOF
-    line: "{{ ansible_default_ipv4.address }} {{ ansible_fqdn }}"
+    line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
     state: present
 
 - name: Copy EPEL repo into /etc/yum.repos.d
