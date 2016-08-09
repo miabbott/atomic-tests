@@ -1,0 +1,7 @@
+Test Coverage:
+* Upgrade from HEAD^ to HEAD
+* Rollback from HEAD to HEAD^
+* Adding of users and persistence through upgrades/rollbacks
+* Modifications to /etc and verifying 3 way merge during upgrades/rollbacks
+* Verification of /tmp file permissions
+* Verification of basic rpm usage
