@@ -75,6 +75,11 @@
 
     - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
 
+    # Download and run cockpit container and verify it is running
+    - role: cockpit_run_verify
+      tags:
+        - cockpit_run_verify
+
     # Upgrade and reboot
     - role: rpm_ostree_upgrade
       tags:
@@ -128,6 +133,11 @@
     - { role: var_add_files, vaf_filename: "{{ g_file2 }}", vaf_dirname: "{{ g_dir2 }}", tags: ['var_add_files'] }
 
     - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
+
+    # Run cockpit container
+    - role: cockpit_run_verify
+      tags:
+        - cockpit_run_verify
 
     # Rollback and reboot
     - role: rpm_ostree_rollback

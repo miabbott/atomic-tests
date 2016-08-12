@@ -5,3 +5,4 @@ Test Coverage:
 * Modifications to /etc and verifying 3 way merge during upgrades/rollbacks
 * Verification of /tmp file permissions
 * Verification of basic rpm usage
+* Pull and run cockpit container
