@@ -1,0 +1,35 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if g_osname not set
+  fail:
+    msg: "The g_osname variable is not defined"
+  when: g_osname is not defined
+
+- name: Create temp directory for building
+  command: mktemp -d
+  register: m
+
+- name: Set build_dir fact
+  set_fact:
+    build_dir: "{{ m.stdout }}"
+
+- name: Copy Dockerfile to temp directory
+  copy:
+    src: "{{ g_osname }}_httpd_Dockerfile"
+    dest: "{{ build_dir }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Build httpd image
+  command: "docker build -t {{ g_osname }}_httpd -f {{ build_dir }}/{{ g_osname }}_httpd_Dockerfile {{ build_dir }}"
+
+- name: Get docker images after build
+  command: docker images
+  register: build_images
+
+- name: Fail if httpd image not present
+  fail:
+    msg: "The {{ g_osname }}_httpd image is not present"
+  when: "'{{ g_osname }}_httpd' not in build_images.stdout"

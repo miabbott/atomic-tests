@@ -1,0 +1,39 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if g_osname is not set
+  fail:
+    msg: "The g_osname variable is not defined"
+  when: g_osname is not defined
+
+- name: Get list of Docker images
+  command: docker images
+  register: images
+
+- name: Fail if httpd image is missing
+  fail:
+    msg: "httpd image is not present"
+  when: "'{{ g_osname }}_httpd' not in images.stdout"
+
+- name: Run httpd container
+  command: "docker run -d -p 80:80 --name {{ g_osname }}_httpd {{ g_osname }}_httpd"
+
+- name: Verify port 80 is open
+  wait_for:
+    port: 80
+    timeout: 30
+
+- name: Test connectivity to container
+  command: curl http://localhost:80
+
+- name: Stop httpd container
+  command: "docker stop {{ g_osname }}_httpd"
+
+- name: Get a list of running containers
+  command: docker ps
+  register: ps
+
+- name: Fail if httpd container is still running
+  fail:
+    msg: "The {{ g_osname }}_httpd container is still running"
+  when: "'{{ g_osname }}_httpd' in ps.stdout"

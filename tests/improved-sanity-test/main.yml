@@ -34,8 +34,8 @@
     - vars.yml
 
   roles:
-    # This playbook requires Ansible 2.0+ and an Atomic Host
-    - { role: ansible_version_check, avc_major: "2", avc_minor: "0", tags: ['ansible_version_check'] }
+    # This playbook requires Ansible 2.1 and an Atomic Host
+    - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check'] }
 
     - role: atomic_host_check
       tags:
@@ -75,6 +75,32 @@
 
     - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
 
+    # Pull down docker base images, build a layered, image, run it, then
+    # remove the container.  But we keep the image around to run later.
+    - role: osname_set_fact
+      tags:
+        - osname_set_fact
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: docker_pull_base_image
+      tags:
+        - docker_pull_base_image
+
+    - role: docker_build_httpd
+      tags:
+        - docker_build_httpd
+
+    - role: docker_run_httpd
+      tags:
+        - docker_run_httpd
+
+    - role: docker_rm_httpd_container
+      tags:
+        - docker_rm_httpd_container
+
     # Download and run cockpit container and verify it is running
     - role: cockpit_run_verify
       tags:
@@ -98,7 +124,7 @@
     - vars.yml
 
   roles:
-    # This playbook requires Ansible 2.0+ and an Atomic Host
+    # This playbook requires Ansible 2.1 and an Atomic Host
     - { role: ansible_version_check, avc_major: "2", avc_minor: "0", tags: ['ansible_version_check'] }
 
     - role: atomic_host_check
@@ -134,6 +160,23 @@
 
     - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
 
+    # Run the previously created docker layered image, then remove the container and the image.
+    - role: osname_set_fact
+      tags:
+        - osname_set_fact
+
+    - role: docker_run_httpd
+      tags:
+        - docker_run_httpd
+
+    - role: docker_rm_httpd_container
+      tags:
+        - docker_rm_httpd_container
+
+    - role: docker_rmi_httpd_image
+      tags:
+        - docker_rmi_httpd_image
+
     # Run cockpit container
     - role: cockpit_run_verify
       tags:
@@ -157,8 +200,8 @@
     - vars.yml
 
   roles:
-    # This playbook requires Ansible 2.0+ and an Atomic Host
-    - { role: ansible_version_check, avc_major: "2", avc_minor: "0", tags: ['ansible_version_check'] }
+    # This playbook requires Ansible 2.1 and an Atomic Host
+    - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check'] }
 
     - role: atomic_host_check
       tags:

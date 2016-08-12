@@ -1,0 +1,16 @@
+FROM fedora
+MAINTAINER Micah Abbott <micah@redhat.com>
+
+LABEL Version=1.1
+LABEL RUN="docker run -d --name NAME -p 80:80 IMAGE"
+
+ENV container docker
+
+RUN dnf -y install httpd && \
+    dnf clean all
+
+RUN echo "SUCCESS fedora24_httpd" > /var/www/html/index.html
+EXPOSE 80
+
+ENTRYPOINT [ "/usr/sbin/httpd" ]
+CMD [ "-D", "FOREGROUND" ]

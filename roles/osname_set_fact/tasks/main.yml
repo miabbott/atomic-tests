@@ -1,0 +1,17 @@
+---
+# vim: set ft=ansible:
+#
+- name: Set g_osname fact for CentOS
+  set_fact:
+    g_osname: "centos"
+  when: "'CentOS' in ansible_distribution"
+
+- name: Set g_osname fact for Fedora
+  set_fact:
+    g_osname: "{{ ansible_distribution|lower }}"
+  when: "ansible_distribution == 'Fedora'"
+
+- name: Set g_osname fact for RHEL
+  set_fact:
+    g_osname: "rhel7"
+  when: "ansible_distribution == 'RedHat'"

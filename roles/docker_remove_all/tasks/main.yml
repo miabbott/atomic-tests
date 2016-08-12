@@ -1,0 +1,28 @@
+---
+# vim: set ft=ansible:
+#
+- name: Remove all containers
+  shell: docker rm -f $(docker ps -aq)
+  ignore_errors: true
+
+- name: Check for containers
+  command: docker ps -aq
+  register: docker_ps
+
+- name: Fail if any containers persist
+  fail:
+    msg: "All containers were not removed successfully"
+  when: "{{ docker_ps.stdout|length }} != 0"
+
+- name: Remove all images
+  shell: docker rmi -f $(docker images -aq)
+  ignore_errors: true
+
+- name: Check for images
+  command: docker images -aq
+  register: docker_images
+
+- name: Fail if any images persist
+  fail:
+    msg: "All images were not removed successfully"
+  when: "{{ docker_images.stdout|length }} != 0"
