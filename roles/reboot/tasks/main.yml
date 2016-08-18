@@ -22,19 +22,6 @@
 # that they don't use sudo, which may require a password, and is not necessary
 # anyway.
 
-# During playbook testing, I found that sometimes the 'ansible_host' variable
-# is sometimes undefined, leading to errors waiting for the host to return.
-# We can opt to use the 'inventory_hostname' in this case and avoid those
-# (admittedly) rare error cases.
-- name: wait for hosts to come back up (ansible_host)
-  local_action: wait_for host={{ ansible_host }}
-                port=22
-                state=started
-                delay=15
-                timeout=120
-  become: false
-  when: ansible_host is defined
-
 - name: wait for hosts to come back up (inventory_hostname)
   local_action: wait_for host={{ inventory_hostname }}
                 port=22
@@ -42,4 +29,3 @@
                 delay=15
                 timeout=120
   become: false
-  when: ansible_host is undefined
