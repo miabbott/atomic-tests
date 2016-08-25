@@ -1,0 +1,15 @@
+---
+# vim: set ft=ansible:
+#
+- name: Run atomic host status
+  command: atomic host status
+  register: ahs
+
+- name: Run rpm-ostree status
+  command: rpm-ostree status
+  register: ros
+
+- name: Fail if output is not identical
+  fail:
+    msg="The output of atomic host status and rpm-ostree status are not the same"
+  when: ahs.stdout != ros.stdout

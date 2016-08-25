@@ -1,0 +1,39 @@
+---
+# vim: set ft=ansible:
+#
+#   This role verifies the atomic installation functionality through
+#   the installation of rsyslog container.  The rsyslog container will
+#   create a file at /etc/logrotate.d/syslog when installed and will
+#   remove the file when uninstalled.  This criteria will be used to
+#   validate the install/uninstall.
+#
+#   Commands tested:
+#   - atomic install
+#   - atomic uninstall
+#
+
+- name: Install rsyslog container
+  command: atomic install registry.access.redhat.com/rhel7/rsyslog
+
+- name: Verify rsyslog is installed
+  stat:
+    path=/etc/logrotate.d/syslog
+  register: syslog
+
+- name: Fail if syslog file is not found
+  fail:
+    msg="rsyslog installation failed"
+  when: syslog.stat.exists == False
+
+- name: Uninstall rsyslog container
+  command: atomic uninstall registry.access.redhat.com/rhel7/rsyslog
+
+- name: Verify rsyslog is uninstalled
+  stat:
+    path=/etc/logrotate.d/syslog
+  register: syslog
+
+- name: Fail if syslog file is found
+  fail:
+    msg="syslog uninstall failed"
+  when: syslog.stat.exists == True

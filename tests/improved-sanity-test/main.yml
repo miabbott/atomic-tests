@@ -77,9 +77,34 @@
 
     # Pull down docker base images, build a layered, image, run it, then
     # remove the container.  But we keep the image around to run later.
+    # Run atomic test prior to running docker test so the built images can be run later.
     - role: osname_set_fact
       tags:
         - osname_set_fact
+
+    - role: atomic_host_status_verify
+      tags:
+        - atomic_host_status_verify
+
+    - role: atomic_pull_verify
+      tags:
+        - atomic_pull_verify
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: atomic_installation_verify
+      tags:
+        - atomic_installation_verify
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: atomic_scan_verify
+      tags:
+        - atomic_scan_verify
 
     - role: docker_remove_all
       tags:
@@ -92,6 +117,14 @@
     - role: docker_build_httpd
       tags:
         - docker_build_httpd
+
+    - { role: atomic_run_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_run_verify'] }
+
+    - { role: atomic_stop_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_stop_verify'] }
+
+    - role: docker_rm_httpd_container
+      tags:
+        - docker_rm_httpd_container
 
     - role: docker_run_httpd
       tags:
@@ -114,7 +147,6 @@
     - role: reboot
       tags:
         - reboot
-
 
 - name: Improved Sanity Test - Post-Upgrade
   hosts: all
@@ -160,10 +192,23 @@
 
     - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
 
+    # Run cockpit container
+    - role: cockpit_run_verify
+      tags:
+        - cockpit_run_verify
+
     # Run the previously created docker layered image, then remove the container and the image.
     - role: osname_set_fact
       tags:
         - osname_set_fact
+
+    - { role: atomic_run_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_run_verify'] }
+
+    - { role: atomic_stop_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_stop_verify'] }
+
+    - role: docker_rm_httpd_container
+      tags:
+        - docker_rm_httpd_container
 
     - role: docker_run_httpd
       tags:
@@ -171,16 +216,40 @@
 
     - role: docker_rm_httpd_container
       tags:
-        - docker_rm_httpd_container
+        - rm_httpd_container
 
     - role: docker_rmi_httpd_image
       tags:
         - docker_rmi_httpd_image
 
-    # Run cockpit container
-    - role: cockpit_run_verify
+    # Re-run atomic tests
+    - role: atomic_host_status_verify
       tags:
-        - cockpit_run_verify
+        - atomic_host_status_verify
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: atomic_pull_verify
+      tags:
+        - atomic_pull_verify
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: atomic_installation_verify
+      tags:
+        - atomic_installation_verify
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: atomic_scan_verify
+      tags:
+        - atomic_scan_verify
 
     # Rollback and reboot
     - role: rpm_ostree_rollback
@@ -190,7 +259,6 @@
     - role: reboot
       tags:
         - reboot
-
 
 - name: Improved Sanity Test - Post-Rollback
   hosts: all

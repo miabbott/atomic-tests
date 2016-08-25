@@ -1,0 +1,27 @@
+---
+# vim: set ft=ansible:
+#
+#   This role verifies the atomic stop command.  It takes one parameter which
+#   is the container name and will check that the status is exited. This role
+#   requires atomic_run_verify to be run before and that there are no other
+#   containers running prior to that.
+#
+#   Commands:
+#   - atomic stop
+#
+- name: Fail if container is undefined
+  fail:
+    msg="No container specified"
+  when: container is undefined
+
+- name: atomic stop {{ container }}
+  command: atomic stop {{ container }}
+
+- name: Verify container is stopped
+  command: docker ps -a
+  register: dps
+
+- name: Fail if {{ container }} status is not exited
+  fail:
+    msg="Container is not Up or Created in docker ps -a output"
+  when: dps.stdout.find("Exited") == -1

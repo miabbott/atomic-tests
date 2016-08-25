@@ -1,0 +1,43 @@
+---
+# vim: set ft=ansible:
+#
+#   This role verifies the atomic scan command.  It validates the command by
+#   checking the output of the command and looking for the log file generated
+#   by the scan command.
+#
+#   Commands:
+#   - atomic install
+#   - atomic scan
+#
+
+- name: Install openscap
+  command: atomic install rhel7/openscap
+  register: result
+
+- name: Check installation of openscap
+  fail:
+    msg="Atomic install was unsuccessful"
+  when: "'Installation complete' not in result.stdout"
+
+- name: Run atomic scan
+  shell: python -c "import pty; pty.spawn(['atomic', 'scan', '--scanner', 'openscap', 'rhel7/openscap'])"
+  register: atomic_output
+
+- name: Catch atomic scan failures
+  fail:
+    msg="Atomic scan failed"
+  when: "'Files associated' not in atomic_output.stdout"
+
+- name: Get scanner result directory
+  shell: echo "{{ atomic_output.stdout }}" | awk '/^Files associated/{print $8}' | sed 's/\.//'
+  register: dir
+
+- name: Verify scanner result directory exists
+  stat:
+    path={{ dir.stdout }}
+  register: scan_dir
+
+- name: Fail if result directory does not exist
+  fail:
+    msg="Scanner result directory does not exist."
+  when: scan_dir.stat.exists == False
