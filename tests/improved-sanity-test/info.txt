@@ -6,4 +6,5 @@ Test Coverage:
 * Verification of /tmp file permissions
 * Verification of basic rpm usage
 * Basic docker operations (pull, build, run, rm, rmi)
+* Basic atomic operations (host status, pull, install, uninstall, run, stop, scan)
 * Pull and run cockpit container

@@ -134,10 +134,10 @@
       tags:
         - docker_rm_httpd_container
 
-    # Download and run cockpit container and verify it is running
-    - role: cockpit_run_verify
+    # Install, run and uninstall cockpit using atomic command
+    - role: atomic_installation_verify
       tags:
-        - cockpit_run_verify
+        - atomic_installation_verify
 
     # Upgrade and reboot
     - role: rpm_ostree_upgrade
@@ -192,10 +192,10 @@
 
     - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
 
-    # Run cockpit container
-    - role: cockpit_run_verify
+    # Install, run and uninstall cockpit using atomic command
+    - role: atomic_installation_verify
       tags:
-        - cockpit_run_verify
+        - atomic_installation_verify
 
     # Run the previously created docker layered image, then remove the container and the image.
     - role: osname_set_fact

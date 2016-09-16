@@ -2,38 +2,59 @@
 # vim: set ft=ansible:
 #
 #   This role verifies the atomic installation functionality through
-#   the installation of rsyslog container.  The rsyslog container will
-#   create a file at /etc/logrotate.d/syslog when installed and will
+#   the installation of cockpit container.  The cockpit container will
+#   create a file /etc/pam.d/cockpit  when installed and will
 #   remove the file when uninstalled.  This criteria will be used to
 #   validate the install/uninstall.
 #
 #   Commands tested:
 #   - atomic install
+#   - atomic run
 #   - atomic uninstall
 #
+- name: Set cockpit container name for RHELAH
+  set_fact:
+    cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
+  when: ansible_distribution == "RedHat"
 
-- name: Install rsyslog container
-  command: atomic install registry.access.redhat.com/rhel7/rsyslog
+- name: Set cockpit container name for Fedora/CentOS
+  set_fact:
+    cockpit_cname: "cockpit/ws"
+  when: ('CentOS' in ansible_distribution) or ansible_distribution == "Fedora"
 
-- name: Verify rsyslog is installed
+- name: Install cockpit container
+  shell: python -c "import pty; pty.spawn(['atomic', 'install', '{{ cockpit_cname }}'])"
+
+- name: Check for /etc/pam.d/cockpit
   stat:
-    path=/etc/logrotate.d/syslog
-  register: syslog
+    path=/etc/pam.d/cockpit
+  register: install_file
 
-- name: Fail if syslog file is not found
+- name: Fail if /etc/pam.d/cockpit file is not found
   fail:
-    msg="rsyslog installation failed"
-  when: syslog.stat.exists == False
+    msg="Cockpit installation failed"
+  when: install_file.stat.exists == False
 
-- name: Uninstall rsyslog container
-  command: atomic uninstall registry.access.redhat.com/rhel7/rsyslog
+- name: Run cockpit container
+  command: atomic run {{ cockpit_cname }}
 
-- name: Verify rsyslog is uninstalled
+- name: Verify port 9090 is open
+  wait_for:
+    port: 9090
+    timeout: 30
+
+- name: Verify cockpit webpage is up
+  shell: curl -k "https://localhost:9090" | grep "Log in"
+
+- name: Uninstall cockpit container
+  shell: python -c "import pty; pty.spawn(['atomic', 'uninstall', '{{ cockpit_cname }}'])"
+
+- name: Check for /etc/pam.d/cockpit file
   stat:
-    path=/etc/logrotate.d/syslog
-  register: syslog
+    path=/etc/pam.d/cockpit
+  register: uninstall_file
 
-- name: Fail if syslog file is found
+- name: Fail if /etc/pam.d/cockpit file is found
   fail:
-    msg="syslog uninstall failed"
-  when: syslog.stat.exists == True
+    msg="Cockpit uninstall failed"
+  when: uninstall_file.stat.exists == True

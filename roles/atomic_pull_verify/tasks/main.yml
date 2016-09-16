@@ -34,7 +34,7 @@
   command: "{{ atomic_images }}"
   register: aio
 
-- name: Fail if httpd is not in atomic images output
+- name: Fail if busybox is not in atomic images output
   fail:
-    msg="httpd is not in atomic images output"
+    msg="busybox is not in atomic images output"
   when: "'busybox' not in aio.stdout"

@@ -11,7 +11,7 @@
 #
 
 - name: Install openscap
-  command: atomic install rhel7/openscap
+  command: atomic install registry.access.redhat.com/rhel7/openscap
   register: result
 
 - name: Check installation of openscap
@@ -20,7 +20,7 @@
   when: "'Installation complete' not in result.stdout"
 
 - name: Run atomic scan
-  shell: python -c "import pty; pty.spawn(['atomic', 'scan', '--scanner', 'openscap', 'rhel7/openscap'])"
+  shell: python -c "import pty; pty.spawn(['atomic', 'scan', '--scanner', 'openscap', 'registry.access.redhat.com/rhel7/openscap'])"
   register: atomic_output
 
 - name: Catch atomic scan failures
@@ -29,7 +29,7 @@
   when: "'Files associated' not in atomic_output.stdout"
 
 - name: Get scanner result directory
-  shell: echo "{{ atomic_output.stdout }}" | awk '/^Files associated/{print $8}' | sed 's/\.//'
+  shell: echo "{{ atomic_output.stdout | quote }}" | awk '/Files associated/{print $8}' | sed "s/\.[\']*//"
   register: dir
 
 - name: Verify scanner result directory exists
