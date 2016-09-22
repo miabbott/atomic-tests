@@ -72,9 +72,13 @@
       --enable rhel-7-server-optional-rpms
       --enable rhel-7-server-extras-rpms
 
+  - name: Mask and stop rhsmcertd
+    shell: >
+      systemctl mask rhsmcertd && systemctl stop rhsmcertd
+
   - name: Revert refspec in origin after susbcription if it not the default refspec
     replace:
       dest: /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
-      regexp: '^refspec*'
+      regexp: '^refspec.*$'
       replace: "{{ refspec.stdout }}"
     when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
