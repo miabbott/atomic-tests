@@ -37,8 +37,13 @@
 
   - name: Set version and commit if deployment 1 is booted
     set_fact:
+<<<<<<< c90416a1156e45ef27089178aa2f76c8970312e4
       booted_commit: "{{ json['deployments'][1]['checksum'] }}"
     when: json['deployments'][1]['booted']
+=======
+      booted_commit: "{{ json['deployments'][0]['checksum'] }}"
+    when: json['deployments'][0]['booted']
+>>>>>>> Reset refspec in origin for alternate remotes
 
   - name: Get refspec from origin file
     command: grep refspec /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
@@ -72,6 +77,7 @@
       --enable rhel-7-server-optional-rpms
       --enable rhel-7-server-extras-rpms
 
+<<<<<<< c90416a1156e45ef27089178aa2f76c8970312e4
   - name: Mask and stop rhsmcertd
     shell: >
       systemctl mask rhsmcertd && systemctl stop rhsmcertd
@@ -80,5 +86,11 @@
     replace:
       dest: /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
       regexp: '^refspec.*$'
+=======
+  - name: Revert refspec in origin after susbcription if it not the default refspec
+    replace:
+      dest: /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
+      regexp: '^refspec*'
+>>>>>>> Reset refspec in origin for alternate remotes
       replace: "{{ refspec.stdout }}"
     when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
