@@ -1,7 +1,8 @@
 ---
 # vim: set ft=ansible:
 #
-# A task for registering via `subscription-manager`.
+# A task for registering via `subscription-manager`.  This role will
+# revert the refspec in the origin file if other RHEL streams are used.
 #
 # It reads a CSV file to extract the values for the options below.
 #
@@ -11,8 +12,8 @@
 # NOTE: The 'subscription_file' variable lives in vars/subscription.yaml
 #
 # NOTE: It is suggested that the value of `subscription_file` point to a file
-#       that is in the files directory of (same directory the tasks directory) 
-#       is located) a role.  This will reduce any difficulties trying to 
+#       that is in the files directory of (same directory the tasks directory)
+#       is located) a role.  This will reduce any difficulties trying to
 #       determine the right path for the CSV file.
 #
 #       ../files/subscription_data.csv
@@ -21,6 +22,27 @@
 # the lookup()
 # via http://stackoverflow.com/a/34239020
 #
+  - name: Get the current commit to find the correct origin file to manipulate later...
+    command: rpm-ostree status --json
+    register: rpm_output
+
+  - name: Convert deployment information into jinja2 json
+    set_fact:
+      json: "{{ rpm_output.stdout|from_json }}"
+
+  - name: Set version and commit if deployment 0 is booted
+    set_fact:
+      booted_commit: "{{ json['deployments'][0]['checksum'] }}"
+    when: json['deployments'][0]['booted']
+
+  - name: Set version and commit if deployment 1 is booted
+    set_fact:
+      booted_commit: "{{ json['deployments'][0]['checksum'] }}"
+    when: json['deployments'][0]['booted']
+
+  - name: Get refspec from origin file
+    command: grep refspec /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
+    register: refspec
 
   - name: Fail if subscription_file is not defined
     fail:
@@ -40,7 +62,7 @@
     retries: 3
     delay: 5
 
-  - name: disable all repos 
+  - name: disable all repos
     command: subscription-manager repos --disable=*
 
   - name: enable server, optional, and extras repos
@@ -49,3 +71,10 @@
       --enable rhel-7-server-rpms
       --enable rhel-7-server-optional-rpms
       --enable rhel-7-server-extras-rpms
+
+  - name: Revert refspec in origin after susbcription if it not the default refspec
+    replace:
+      dest: /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
+      regexp: '^refspec*'
+      replace: "{{ refspec.stdout }}"
+    when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
