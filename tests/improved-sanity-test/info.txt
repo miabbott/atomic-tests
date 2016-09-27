@@ -5,6 +5,7 @@ Test Coverage:
 * Modifications to /etc and verifying 3 way merge during upgrades/rollbacks
 * Verification of /tmp file permissions
 * Verification of basic rpm usage
+* Verification of SELinux context/labels for ostree/rpm-ostree
 * Basic docker operations (pull, build, run, rm, rmi)
 * Basic atomic operations (host status, pull, install, uninstall, run, stop, scan)
 * Pull and run cockpit container

@@ -41,6 +41,10 @@
       tags:
         - atomic_host_check
 
+    - role: selinux_verify
+      tags:
+        - selinux_verify
+
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
@@ -163,6 +167,10 @@
       tags:
         - atomic_host_check
 
+    - role: selinux_verify
+      tags:
+        - selinux_verify
+
     # Check that /tmp is properly setup
     - role: tmp_check_perms
       tags:
@@ -274,6 +282,10 @@
     - role: atomic_host_check
       tags:
         - atomic_host_check
+
+    - role: selinux_verify
+      tags:
+        - selinux_verify
 
     # Check that /tmp is properly setup
     - role: tmp_check_perms

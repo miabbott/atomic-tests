@@ -1,0 +1,31 @@
+---
+# vim: set ft=ansible:
+#
+- name: Verify that the SELinux context is correct on ostree/rpm-ostree
+  shell: ls -Z {{ item }} | awk '{print $4}'
+  register: selinux_context
+  failed_when: "'install_exec_t' not in selinux_context.stdout"
+  with_items:
+    - /usr/bin/ostree
+    - /usr/bin/rpm-ostree
+    - /usr/libexec/rpm-ostreed
+  when: ansible_distribution != "Fedora"
+
+
+- name: Verify that the SELinux context is correct ostree/rpm-ostree (Fedora)
+  shell: ls -Z {{ item }} | awk '{print $1}'
+  register: selinux_context_f
+  failed_when: "'install_exec_t' not in selinux_context_f.stdout"
+  with_items:
+    - /usr/bin/ostree
+    - /usr/bin/rpm-ostree
+    - /usr/libexec/rpm-ostreed
+  when: ansible_distribution == "Fedora"
+
+- name: Run 'rpm-ostree status' to start daemon
+  command: rpm-ostree status
+
+- name: Verify SELinux label is correct on rpm-ostreed process
+  shell: ps --no-headers -o label -q $(pidof rpm-ostreed)
+  register: selinux_label
+  failed_when: "'install_t' not in selinux_label.stdout"
