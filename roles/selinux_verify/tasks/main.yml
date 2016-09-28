@@ -10,7 +10,6 @@
     - /usr/bin/rpm-ostree
     - /usr/libexec/rpm-ostreed
 
-
 - name: Run 'rpm-ostree status' to start daemon
   command: rpm-ostree status
 
