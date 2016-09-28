@@ -32,8 +32,14 @@ CAHC
 $centos = <<CENTOS
 #!/bin/bash
 set -xeuo pipefail
+current=$(ostree rev-parse centos-atomic-host/7/x86_64/standard)
+sed -i 's|true|false|' /etc/ostree/remotes.d/centos-atomic-host.conf
 sudo ostree pull --commit-metadata-only --depth=1 centos-atomic-host:centos-atomic-host/7/x86_64/standard
-sudo rpm-ostree deploy $(ostree rev-parse centos-atomic-host/7/x86_64/standard^)
+sed -i 's|false|true|' /etc/ostree/remotes.d/centos-atomic-host.conf
+minusone=$(ostree rev-parse centos-atomic-host/7/x86_64/standard^)
+if $current != $minusone; then
+    sudo rpm-ostree deploy $minusone
+fi
 CENTOS
 
 $fedora23 = <<FEDORA23
