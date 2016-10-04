@@ -19,7 +19,7 @@
 
 - name: Set cockpit container name for Fedora/CentOS
   set_fact:
-    cockpit_cname: "cockpit/ws"
+    cockpit_cname: "docker.io/cockpit/ws"
   when: ('CentOS' in ansible_distribution) or ansible_distribution == "Fedora"
 
 - name: Install cockpit container
