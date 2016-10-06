@@ -14,12 +14,12 @@
 #
 - name: Set cockpit container name for RHELAH
   set_fact:
-    cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
+    cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws:latest"
   when: ansible_distribution == "RedHat"
 
 - name: Set cockpit container name for Fedora/CentOS
   set_fact:
-    cockpit_cname: "docker.io/cockpit/ws"
+    cockpit_cname: "docker.io/cockpit/ws:latest"
   when: ('CentOS' in ansible_distribution) or ansible_distribution == "Fedora"
 
 - name: Install cockpit container
