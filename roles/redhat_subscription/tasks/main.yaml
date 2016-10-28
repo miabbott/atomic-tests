@@ -33,12 +33,12 @@
   - name: Set version and commit if deployment 0 is booted
     set_fact:
       booted_commit: "{{ json['deployments'][0]['checksum'] }}"
-    when: json['deployments'][0]['booted']
+    when: json['deployments'][0] is defined and json['deployments'][0]['booted']
 
   - name: Set version and commit if deployment 1 is booted
     set_fact:
       booted_commit: "{{ json['deployments'][1]['checksum'] }}"
-    when: json['deployments'][1]['booted']
+    when: json['deployments'][1] is defined and json['deployments'][1]['booted']
 
   - name: Get refspec from origin file
     command: grep refspec /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
