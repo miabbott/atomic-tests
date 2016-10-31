@@ -6,17 +6,22 @@
     msg: "The g_osname variable is not defined"
   when: g_osname is not defined
 
+- name: Fail if g_httpd_name is not set
+  fail:
+    msg: "The g_httpd_name variable is not defined"
+  when: g_httpd_name is not defined
+
 - name: Get all the docker images
   command: docker images
   register: images_before
 
 - name: Fail if the httpd image is not present
   fail:
-    msg: "The {{ g_osname }}_httpd container is not present"
-  when: "'{{ g_osname}}_httpd' not in images_before.stdout"
+    msg: "The {{ g_httpd_name }} container is not present"
+  when: "'{{ g_httpd_name }}' not in images_before.stdout"
 
 - name: Remove the httpd container
-  command: "docker rmi {{ g_osname }}_httpd"
+  command: "docker rmi {{ g_httpd_name }}"
 
 - name: Get the docker images against
   command: docker images
@@ -24,5 +29,5 @@
 
 - name: Fail if the httpd image is present
   fail:
-    msg: "The {{ g_osname }}_httpd image was not removed"
-  when: "'{{ g_osname }}_httpd' in images_after.stdout"
+    msg: "The {{ g_httpd_name }} image was not removed"
+  when: "'{{ g_httpd_name }}' in images_after.stdout"

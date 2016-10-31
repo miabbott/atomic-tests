@@ -6,17 +6,22 @@
     msg: "The g_osname variable is not defined"
   when: g_osname is not defined
 
+- name: Fail if g_httpd_name not set
+  fail:
+    msg: "The g_httpd_name variable is not defined"
+  when: g_httpd_name is not defined
+
 - name: Get list of all containers
   command: docker ps -a
   register: ps_before
 
 - name: Fail if httpd container is not present
   fail:
-    msg: "The {{ g_osname }}_httpd container is not present"
-  when: "'{{ g_osname}}_httpd' not in ps_before.stdout"
+    msg: "The {{ g_httpd_name }} container is not present"
+  when: "'{{ g_httpd_name }}' not in ps_before.stdout"
 
 - name: Remove the httpd container
-  command: "docker rm {{ g_osname }}_httpd"
+  command: "docker rm {{ g_httpd_name }}"
 
 - name: Get list of all containers again
   command: docker ps -a
@@ -24,5 +29,5 @@
 
 - name: Fail if httpd container is present
   fail:
-    msg: "The {{ g_osname }}_httpd container is still present"
-  when: "'{{ g_osname }}_httpd' in ps_after.stdout"
+    msg: "The {{ g_httpd_name }} container is still present"
+  when: "'{{ g_httpd_name }}' in ps_after.stdout"

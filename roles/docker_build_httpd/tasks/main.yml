@@ -6,6 +6,11 @@
     msg: "The g_osname variable is not defined"
   when: g_osname is not defined
 
+- name: Fail if g_httpd_name not set
+  fail:
+    msg: "The g_httpd_name variable is not defined"
+  when: g_httpd_name is not defined
+
 - name: Create temp directory for building
   command: mktemp -d
   register: m
@@ -16,14 +21,14 @@
 
 - name: Copy Dockerfile to temp directory
   copy:
-    src: "{{ g_osname }}_httpd_Dockerfile"
+    src: "{{ g_httpd_name }}_Dockerfile"
     dest: "{{ build_dir }}"
     owner: root
     group: root
     mode: 0644
 
 - name: Build httpd image
-  command: "docker build -t {{ g_osname }}_httpd -f {{ build_dir }}/{{ g_osname }}_httpd_Dockerfile {{ build_dir }}"
+  command: "docker build -t {{ g_httpd_name }} -f {{ build_dir }}/{{ g_httpd_name }}_Dockerfile {{ build_dir }}"
 
 - name: Get docker images after build
   command: docker images
@@ -31,5 +36,5 @@
 
 - name: Fail if httpd image not present
   fail:
-    msg: "The {{ g_osname }}_httpd image is not present"
-  when: "'{{ g_osname }}_httpd' not in build_images.stdout"
+    msg: "The {{ g_httpd_name }} image is not present"
+  when: "'{{ g_httpd_name }}' not in build_images.stdout"

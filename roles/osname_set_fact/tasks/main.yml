@@ -15,3 +15,7 @@
   set_fact:
     g_osname: "rhel7"
   when: "ansible_distribution == 'RedHat'"
+
+- name: Set g_httpd_name fact
+  set_fact:
+    g_httpd_name: "{{ g_osname }}_httpd"

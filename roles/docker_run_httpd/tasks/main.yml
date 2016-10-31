@@ -6,6 +6,11 @@
     msg: "The g_osname variable is not defined"
   when: g_osname is not defined
 
+- name: Fail if g_httpd_name is not set
+  fail:
+    msg: "The g_httpd_name variable is not set"
+  when: g_httpd_name is not defined
+
 - name: Get list of Docker images
   command: docker images
   register: images
@@ -13,10 +18,19 @@
 - name: Fail if httpd image is missing
   fail:
     msg: "httpd image is not present"
-  when: "'{{ g_osname }}_httpd' not in images.stdout"
+  when: "'{{ g_httpd_name }}' not in images.stdout"
 
 - name: Run httpd container
-  command: "docker run -d -p 80:80 --name {{ g_osname }}_httpd {{ g_osname }}_httpd"
+  command: "docker run -d -p 80:80 --name {{ g_httpd_name }} {{ g_httpd_name }}"
+
+- name: Get running containers
+  command: "docker ps"
+  register: ps_run
+
+- name: Check for httpd container
+  fail:
+    msg: "The {{ g_httpd_name }} container is not running"
+  when: "'{{ g_httpd_name }}' not in ps_run.stdout"
 
 - name: Verify port 80 is open
   wait_for:
@@ -31,13 +45,13 @@
   delay: 5
 
 - name: Stop httpd container
-  command: "docker stop {{ g_osname }}_httpd"
+  command: "docker stop {{ g_httpd_name }}"
 
 - name: Get a list of running containers
   command: docker ps
-  register: ps
+  register: ps_stop
 
 - name: Fail if httpd container is still running
   fail:
-    msg: "The {{ g_osname }}_httpd container is still running"
-  when: "'{{ g_osname }}_httpd' in ps.stdout"
+    msg: "The {{ g_httpd_name }} container is still running"
+  when: "'{{ g_httpd_name }}' in ps_stop.stdout"

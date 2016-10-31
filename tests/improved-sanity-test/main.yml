@@ -122,9 +122,9 @@
       tags:
         - docker_build_httpd
 
-    - { role: atomic_run_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_run_verify'] }
+    - { role: atomic_run_verify, container: "{{ g_httpd_name }}", tags: ['atomic_run_verify'] }
 
-    - { role: atomic_stop_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_stop_verify'] }
+    - { role: atomic_stop_verify, container: "{{ g_httpd_name }}", tags: ['atomic_stop_verify'] }
 
     - role: docker_rm_httpd_container
       tags:
@@ -210,9 +210,9 @@
       tags:
         - osname_set_fact
 
-    - { role: atomic_run_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_run_verify'] }
+    - { role: atomic_run_verify, container: "{{ g_httpd_name }}", tags: ['atomic_run_verify'] }
 
-    - { role: atomic_stop_verify, container: "{{ g_osname }}_httpd", tags: ['atomic_stop_verify'] }
+    - { role: atomic_stop_verify, container: "{{ g_httpd_name }}", tags: ['atomic_stop_verify'] }
 
     - role: docker_rm_httpd_container
       tags:
