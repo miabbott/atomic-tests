@@ -1,8 +1,13 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Fail if g_hostname is not defined
+  fail:
+    msg: "g_hostname is not defined"
+  when: g_hostname is undefined
+
 - name: Verify changes to /etc/hosts
-  command: grep "{{ ansible_default_ipv4.address }} myhostname" /etc/hosts
+  command: grep "{{ ansible_default_ipv4.address }} {{ g_hostname }}" /etc/hosts
 
 - name: Verify EPEL repo is present in /etc/yum.repos.d
   stat:

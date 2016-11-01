@@ -1,11 +1,16 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Fail if g_hostname is not defined
+  fail:
+    msg: "g_hostname is not defined"
+  when: g_hostname is undefined
+
 - name: Add entry to /etc/hosts
   lineinfile:
     dest: /etc/hosts
     insertafter: EOF
-    line: "{{ ansible_default_ipv4.address }} myhostname"
+    line: "{{ ansible_default_ipv4.address }} {{ g_hostname }}"
     state: present
 
 - name: Copy EPEL repo into /etc/yum.repos.d
