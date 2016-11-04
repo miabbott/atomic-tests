@@ -35,11 +35,11 @@
 #    pause: seconds=30
 
   - name: create private registry
-    docker:
+    docker_container:
       name: registry
       image: registry:2
-      pull: missing
-      state: reloaded
+      state: started
+      restart: yes
       ports: 
         - 5000:5000
       restart_policy: always
