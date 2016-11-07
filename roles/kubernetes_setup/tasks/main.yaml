@@ -10,9 +10,8 @@
 #      - kubernetes-scheduler
 
   - name: pull kubernetes api-server, controller-mgr, scheduler 
-    docker_image:
-      name: {{ item }}
-      repository: registry.access.redhat.com/rhel7/
+    docker:
+      image: registry.access.redhat.com/rhel7/{{ item }}
       state: present
     with_items:
       - kubernetes-apiserver

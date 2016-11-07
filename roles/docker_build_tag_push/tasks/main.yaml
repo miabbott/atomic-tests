@@ -68,8 +68,8 @@
     command: docker build -t {{ ansible_docker0.ipv4.address}}:5000/dbforweb:latest /root/db
 
   - name: verify tag
-    docker_container:
-      name: '{{ ansible_docker0.ipv4.address }}:5000/dbforweb'
+    docker:
+      image: '{{ ansible_docker0.ipv4.address }}:5000/dbforweb'
       state: present
 
   - name: push db to private registry
@@ -94,8 +94,8 @@
     command: docker build -t {{ ansible_docker0.ipv4.address }}:5000/webwithdb:latest /root/web
 
   - name: verify tag
-    docker_container:
-      name: '{{ ansible_docker0.ipv4.address }}:5000/dbforweb'
+    docker:
+      image: '{{ ansible_docker0.ipv4.address }}:5000/dbforweb'
       state: present
 
   - name: push web to private registry
