@@ -30,6 +30,9 @@
   hosts: all
   become: yes
 
+  tags:
+    - pre_upgrade
+
   vars_files:
     - vars.yml
 
@@ -156,6 +159,9 @@
   hosts: all
   become: yes
 
+  tags:
+    - post_upgrade
+
   vars_files:
     - vars.yml
 
@@ -271,6 +277,9 @@
 - name: Improved Sanity Test - Post-Rollback
   hosts: all
   become: yes
+
+  tags:
+    - post_rollback
 
   vars_files:
     - vars.yml
