@@ -2,14 +2,14 @@
 #
 #  This role sets up kubernetes apiserver, controller-mgr, and scheduler pods
 #
-#  - name: pull {{ item }} 
+#  - name: pull {{ item }}
 #    command: docker pull registry.access.redhat.com/rhel7/{{ item }}
 #    with_items:
 #      - kubernetes-apiserver
 #      - kubernetes-controller-mgr
 #      - kubernetes-scheduler
 
-  - name: pull kubernetes api-server, controller-mgr, scheduler 
+  - name: pull kubernetes api-server, controller-mgr, scheduler
     docker:
       image: registry.access.redhat.com/rhel7/{{ item }}
       state: present
@@ -22,7 +22,7 @@
     file: path=/etc/kubernetes/manifests state=directory mode=0755
 
   - name: copy apiserver-pod.json, controller-mgr-pod.json, scheduler-pod.json
-    copy: 
+    copy:
       src=roles/kubernetes_setup/files/{{ item }}
       dest=/etc/kubernetes/manifests
       owner=root
@@ -39,15 +39,9 @@
       regexp='^KUBELET_ARGS=\"\"'
       replace='KUBELET_ARGS=\"--register-node=true --config=/etc/kubernetes/manifests/\"'
 
-  - name: add kubelet args
-    replace:
-      dest=/etc/kubernetes/apiserver
-      regexp='ServiceAccount,'
-      replace=''
-
   - name: stop docker, etcd, kube-proxy, kubelet
-    service: 
-      name={{ item }} 
+    service:
+      name={{ item }}
       state=stopped
     with_items:
       - docker
@@ -67,7 +61,7 @@
 
 
   - name: enable docker, etcd, kube-proxy, kubelet
-    service: 
+    service:
       name={{ item }}
       enabled=yes
     with_items:
@@ -77,7 +71,7 @@
       - kubelet
 
   - name: stop docker, kube-proxy.service, kubelet.service
-    service: 
+    service:
       name={{ item }}
       state=stopped
     with_items:
@@ -95,7 +89,7 @@
       - kubelet.service
 
   - name: enable docker, kube-rpoxy.service, kubelet.service
-    service: 
+    service:
       name={{ item }}
       enabled=yes
     with_items:

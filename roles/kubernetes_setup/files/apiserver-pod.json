@@ -3,13 +3,22 @@
   "apiVersion": "v1",
   "metadata": {
     "name": "kube-apiserver"
-  },    
+  },
   "spec": {
     "hostNetwork": true,
     "containers": [
       {
         "name": "kube-apiserver",
         "image": "registry.access.redhat.com/rhel7/kubernetes-apiserver",
+        "command": [
+          "/usr/bin/kube-apiserver",
+          "--v=0",
+          "--address=0.0.0.0",
+          "--etcd_servers=http://localhost:2379",
+          "--service-cluster-ip-range=10.254.0.0/16",
+          "--admission_control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota"
+        ],
+
         "ports": [
           {
             "name": "https",
