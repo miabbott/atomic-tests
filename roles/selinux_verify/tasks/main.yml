@@ -1,6 +1,16 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Check if getfattr installed
+  stat:
+    path: /usr/bin/getfattr
+  register: getfattr
+
+- name: Fail if getfattr not installed
+  fail:
+    msg: "The getfattr utility is not installed"
+  when: getfattr.stat.exists == False
+
 - name: Verify that the SELinux context is correct on ostree/rpm-ostree
   command: getfattr -n security.selinux {{ item }} --absolute-names --only-values
   register: selinux_context
