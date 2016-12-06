@@ -1,0 +1,47 @@
+---
+# vim: set ft=ansible:
+# role: rpm_ostree_install_verify
+#
+# This role verifies that a package is installed after rpm-ostree install
+#  by checking the package name is in rpm-ostree status output and verifying
+#  that the binary is available by using which.  
+#
+# Parameter:
+#   package - list of name of a single package
+#
+# Requirements:  
+#  Package must install a binary that is the same as the package name
+#    i.e. rpm-ostree install wget installs a binary named wget
+#  This role must be run after the reboot following rpm-ostree install of a package
+#
+
+- name: Fail if no package specified
+  fail:
+    msg: "No packages specified"
+  when: package is undefined
+
+- name: Get rpm-ostree status --json output
+  command: rpm-ostree status --json
+  register: installed
+  
+- name: Convert rpm-ostree status output to jinja2 json
+  set_fact:
+    installed_json: "{{ installed.stdout | from_json }}"
+
+- name: Set packages when deployment 0 is booted
+  set_fact:
+    installed_pkgs: "{{ installed_json['deployments'][0]['packages'] }}"
+  when: installed_json['deployments'][0] is defined and installed_json['deployments'][0]['booted']
+
+- name: Set packages when deployment 1 is booted
+  set_fact:
+    installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
+  when: installed_json['deployments'][1] is defined and installed_json['deployments'][1]['booted']
+
+- name: Fail if {{ package }} is not in rpm-ostree status output
+  fail:
+    msg: "{{ package }} not in rpm-ostree status output"
+  when: "'{{ package }}' not in installed_pkgs"
+
+- name: Check for {{ package }} binary
+  command: command -v {{ package }}

@@ -1,0 +1,7 @@
+---
+g_pkg1: 'wget'
+g_pkg2: 'ltrace'
+g_invalid_pkg: 'foobar'
+g_deployed_pkg: 'atomic'
+g_nonroot_pkg: 'httpd'
+g_epel_pkg: 'htop'

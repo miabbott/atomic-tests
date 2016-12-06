@@ -1,0 +1,56 @@
+---
+# vim: set ft=ansible:
+# role: rpm_ostree_uninstall
+#
+# This role uninstalls packages using rpm-ostree uninstall
+#
+# Parameters:
+#  packages - string of one or more packages separated by a space
+#  reboot - boolean - pass -r flag to install command
+#
+
+- name: Fail if no packages specified
+  fail:
+    msg: "No packages specified"
+  when: packages is undefined
+
+- name: Fail if reboot is undefined
+  fail:
+    msg: "Reboot is not defined"
+  when: reboot is undefined
+
+- name: Uninstall {{ packages }}
+  command: rpm-ostree uninstall {{ packages }}
+  when: not reboot
+
+- name: Uninstall {{ packages }} and reboot
+  command: rpm-ostree uninstall {{ packages }} -r
+  async: 60
+  poll: 0
+  when: reboot
+  ignore_errors: true
+
+# The reboot flag causes the system to automatically reboot.  Ansible will fail
+#  if we don't run it asynchronously.  Instead it is assumed that the
+#  command will succeed, wait for the SSH port to go down and then back up, the
+#  verify the command success afterwards.
+  
+- name: wait for host to go down
+  local_action: 
+    wait_for host={{ inventory_hostname }}
+    port=22
+    state=absent
+    delay=1
+    timeout=120
+  become: false
+  when: reboot
+
+- name: wait for hosts to come back up (inventory_hostname)
+  local_action: 
+    wait_for host={{ inventory_hostname }}
+    port=22
+    state=started
+    delay=30
+    timeout=120
+  become: false
+  when: reboot
