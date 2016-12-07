@@ -1,23 +1,7 @@
 ---
-# vim: set ft=ansible:
-# role: rpm_ostree_uninstall_verify
-#
-# This role verifies that a package is uninstall after rpm-ostree uninstall
-#  by checking the package name is not in rpm-ostree status output and verifying
-#  that the binary not available using which
-#
-# Parameter:
-#   package - the name of a single package
-#
-# Requirements:
-#  Package must install a binary that is the same as the package name
-#    i.e. rpm-ostree uninstall wget installs a binary named wget
-#  This role must be run after the reboot following rpm-ostree install of a package
-#
-
-- name: Fail if no packages specified
+- name: Fail when package is undefined
   fail:
-    msg: "No packages specified"
+    msg: "Package is undefined"
   when: package is undefined
 
 - name: Get rpm-ostree status --json output
@@ -38,17 +22,12 @@
     installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
   when: installed_json['deployments'][1]['packages'] is defined and installed_json['deployments'][1]['booted']
 
-- name: Fail if packages not found in rpm-ostree status output
-  fail:
-    msg: "Packages not found in rpm-ostree status output"
-  when: installed_pkgs is undefined
-
 - name: Fail if {{ package }} is in rpm-ostree status output
   fail:
     msg: "{{ package }} in rpm-ostree status output"
   when: "'{{ package }}' in installed_pkgs"
 
-- name: Fail if binary for {{ package }} is installed
+- name: Fail if {{ package }} is installed
   command: command -v {{ package }}
   register: binary
   failed_when: binary.rc != 1

@@ -40,7 +40,7 @@
     - vars.yml
 
   pre_tasks:
-    - name: Verify all 
+    - name: Verify all
       fail:
         msg: "Required variables are not defined.  Check vars.yml file."
       when: g_pkg1 is undefined or
@@ -51,61 +51,112 @@
             g_epel_pkg is undefined
 
   roles:
-  # Subscribe if the system is RHEL
+    # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
       tags:
         - redhat_subscription
 
     # single package install and uninstall
-    - { role: rpm_ostree_install, packages: "{{ g_pkg1 }}", reboot: false, tags: ['rpm_ostree_install11'] }
+    - role: rpm_ostree_install
+      packages: "{{ g_pkg1 }}"
+      reboot: false
+      tags: 
+        - 'rpm_ostree_install11'
 
     - role: reboot
       tags:
         - reboot1
 
-    - { role: rpm_ostree_install_verify, package: "{{ g_pkg1 }}", tags: ['rpm_ostree_install_verify12'] }
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg1 }}"
+      tags:
+        - 'rpm_ostree_install_verify12'
 
-    - { role: rpm_ostree_uninstall, packages: "{{ g_pkg1 }}", reboot: false, tags: ['rpm_ostree_uninstall13'] }
+    - role: rpm_ostree_uninstall
+      packages: "{{ g_pkg1 }}"
+      reboot: false
+      tags:
+        - 'rpm_ostree_uninstall13'
 
     - role: reboot
       tags:
         - reboot2
 
-    - { role: rpm_ostree_uninstall_verify, package: "{{ g_pkg1 }}", tags: ['rpm_ostree_uninstall_verify14'] }
+    - role: rpm_ostree_uninstall_verify
+      package: "{{ g_pkg1 }}"
+      tags:
+        - 'rpm_ostree_uninstall_verify14'
 
 
     # multiple package install and uninstall
-    - { role: rpm_ostree_install, packages: "{{ g_pkg1 }} {{ g_pkg2 }}", reboot: false, tags: ['rpm_ostree_install21'] }
+    - role: rpm_ostree_install
+      packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
+      reboot: false
+      tags:
+        - 'rpm_ostree_install21'
 
     - role: reboot
       tags:
         - reboot3
 
-    - { role: rpm_ostree_install_verify, package: "{{ g_pkg1 }}", tags: ['rpm_ostree_install_verify22'] }
-    - { role: rpm_ostree_install_verify, package: "{{ g_pkg2 }}", tags: ['rpm_ostree_install_verify23'] }
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg1 }}"
+      tags:
+        - 'rpm_ostree_install_verify22'
 
-    - { role: rpm_ostree_uninstall, packages: "{{ g_pkg1 }} {{ g_pkg2 }}", reboot: false, tags: ['rpm_ostree_uninstall24'] }
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg2 }}"
+      tags:
+        - 'rpm_ostree_install_verify23'
+
+    - role: rpm_ostree_uninstall
+      packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
+      reboot: false
+      tags:
+        - 'rpm_ostree_uninstall24'
 
     - role: reboot
       tags:
         - reboot4
 
-    - { role: rpm_ostree_uninstall_verify, package: "{{ g_pkg1 }}", tags: ['rpm_ostree_uninstall_verify25'] }
-    - { role: rpm_ostree_uninstall_verify, package: "{{ g_pkg2 }}", tags: ['rpm_ostree_uninstall_verify26'] }
+    - role: rpm_ostree_uninstall_verify
+      package: "{{ g_pkg1 }}"
+      tags:
+        - 'rpm_ostree_uninstall_verify25'
+
+    - role: rpm_ostree_uninstall_verify
+      package: "{{ g_pkg2 }}"
+      tags:
+        - 'rpm_ostree_uninstall_verify26'
 
     - role: reboot
       tags:
         - reboot5
 
     # install and uninstall using the reboot flag
-    - { role: rpm_ostree_install, packages: "{{ g_pkg1 }}", reboot: true, tags: ['rpm_ostree_install31'] }
+    - role: rpm_ostree_install
+      packages: "{{ g_pkg1 }}"
+      reboot: true
+      tags:
+        - 'rpm_ostree_install31'
 
-    - { role: rpm_ostree_install_verify, package: "{{ g_pkg1 }}", tags: ['rpm_ostree_install_verify32'] }
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg1 }}"
+      tags:
+        - 'rpm_ostree_install_verify32'
 
-    - { role: rpm_ostree_uninstall, packages: "{{ g_pkg1 }}", reboot: true, tags: ['rpm_ostree_uninstall33'] }
 
-    - { role: rpm_ostree_uninstall_verify, package: "{{ g_pkg1 }}", tags: ['rpm_ostree_uninstall_verify34'] }
+    - role: rpm_ostree_uninstall
+      packages: "{{ g_pkg1 }}"
+      reboot: true
+      tags:
+        - 'rpm_ostree_uninstall33'
+
+    - role: rpm_ostree_uninstall_verify
+      package: "{{ g_pkg1 }}"
+      tags:
+        - 'rpm_ostree_uninstall_verify34'
 
   tasks:
     # dry run test
@@ -118,34 +169,10 @@
         msg: "Dry run output does not contain 'Exiting because'"
       when: "'Exiting because' not in dry.stdout"
 
-    - name: Get rpm-ostree status --json output
-      command: rpm-ostree status --json
-      register: installed
-  
-    - name: Convert rpm-ostree status output to jinja2 json
-      set_fact:
-        installed_json: "{{ installed.stdout | from_json }}"
+    - include: verify_package_not_deployed.yml
+      vars:
+        package: "{{ g_pkg1 }}"
 
-    - name: Set packages when deployment 0 is booted
-      set_fact:
-        installed_pkgs: "{{ installed_json['deployments'][0]['packages'] }}"
-      when: installed_json['deployments'][0] is defined and installed_json['deployments'][0]['booted']
-
-    - name: Set packages when deployment 1 is booted
-      set_fact:
-        installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
-      when: installed_json['deployments'][1] is defined and installed_json['deployments'][1]['booted']
-
-    - name: Fail if {{ g_pkg1 }} is in rpm-ostree status output
-      fail:
-        msg: "{{ g_pkg1 }} in rpm-ostree status output"
-      when: "'{{ g_pkg1 }}' in installed_pkgs"
-
-    - name: Fail if {{ g_pkg1 }} is installed
-      command: command -v {{ g_pkg1 }}
-      register: binary
-      failed_when: binary.rc != 1
-    
     # Verify a dry-run of rpm-ostree install|uninstall does not affect an existing package that has been layered, but not rebooted.
     - name: Test Install {{ g_pkg1 }} and do not reboot
       command: rpm-ostree install {{ g_pkg1 }}
@@ -162,7 +189,7 @@
     - name: Get rpm-ostree status --json output
       command: rpm-ostree status --json
       register: installed
-  
+
     - name: Convert rpm-ostree status output to jinja2 json
       set_fact:
         pending_json: "{{ installed.stdout | from_json }}"
@@ -193,73 +220,41 @@
       failed_when: binary.rc != 1
 
     # Verify that after additional repos are enabled (i.e. EPEL), rpm-ostree install|uninstall can be successfully used for packages in those repos.
-    - name: Retrieve EPEL rpm
-      get_url:
-        url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-        dest: /tmp
-        mode: 0600
+    - name: Add EPEL repo
+      yum_repository:
+        name: epel
+        description: Extra Packages for Enterprise Linux 7 - $basearch
+        mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+        failovermethod: priority
+        gpgcheck: yes
+        gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 
-    - name: Extract GPG Key to install directory
-      shell: >
-        rpm2cpio /tmp/epel-release-latest-7.noarch.rpm |
-        cpio -iv --to-stdout ./etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 >
-        /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
-
-    - name: Extract EPEL repo file to install directory
-      shell: >
-        rpm2cpio /tmp/epel-release-latest-7.noarch.rpm |
-        cpio -iv --to-stdout ./etc/yum.repos.d/epel.repo >
-        /etc/yum.repos.d/epel.repo
+    - name: Copy GPG Key to Host
+      copy:
+        src=RPM-GPG-KEY-EPEL-7
+        dest=/etc/pki/rpm-gpg/
 
     - name: Install {{ g_epel_pkg }} from EPEL
-      command: rpm-ostree install {{ g_epel_pkg }} -r
-      async: 60
+      command: rpm-ostree install {{ g_epel_pkg }}
+
+    - name: restart hosts
+      shell: sleep 3 && shutdown -r now
+      async: 1
       poll: 0
       ignore_errors: true
 
-    - name: wait for host to go down
-      local_action: 
-        wait_for host={{ inventory_hostname }}
-        port=22
-        state=absent
-        delay=1
-        timeout=120
-      become: false
-
     - name: wait for hosts to come back up (inventory_hostname)
-      local_action: 
+      local_action:
         wait_for host={{ inventory_hostname }}
         port=22
         state=started
-        delay=30
+        delay=15
         timeout=120
       become: false
 
-    - name: Get rpm-ostree status --json output
-      command: rpm-ostree status --json
-      register: installed
-
-    - name: Convert rpm-ostree status output to jinja2 json
-      set_fact:
-        installed_json: "{{ installed.stdout | from_json }}"
-
-    - name: Set packages when deployment 0 is booted
-      set_fact:
-        installed_pkgs: "{{ installed_json['deployments'][0]['packages'] }}"
-      when: installed_json['deployments'][0] is defined and installed_json['deployments'][0]['booted']
-
-    - name: Set packages when deployment 1 is booted
-      set_fact:
-        installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
-      when: installed_json['deployments'][1] is defined and installed_json['deployments'][1]['booted']
-
-    - name: Fail if {{ g_epel_pkg }} is not in rpm-ostree status output
-      fail:
-        msg: "{{ g_epel_pkg }} not in rpm-ostree status output"
-      when: "'{{ g_epel_pkg }}' not in installed_pkgs"
-
-    - name: Verify {{ g_epel_pkg }} is installed
-      command: command -v {{ g_epel_pkg }}
+    - include: verify_package_deployed.yml
+      vars:
+        package: "{{ g_epel_pkg }}"
 
     # Verify correct error is displayed removing a package that does not exist
     - name: Attempt to uninstall non-existent package
@@ -316,4 +311,3 @@
       fail:
         msg: "Error message was incorrect"
       when: "'Rejected send message' not in unprivileged.stderr"
-

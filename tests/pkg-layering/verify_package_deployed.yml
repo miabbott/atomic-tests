@@ -1,23 +1,7 @@
 ---
-# vim: set ft=ansible:
-# role: rpm_ostree_install_verify
-#
-# This role verifies that a package is installed after rpm-ostree install
-#  by checking the package name is in rpm-ostree status output and verifying
-#  that the binary is available by using which.
-#
-# Parameter:
-#   package - list of name of a single package
-#
-# Requirements:
-#  Package must install a binary that is the same as the package name
-#    i.e. rpm-ostree install wget installs a binary named wget
-#  This role must be run after the reboot following rpm-ostree install of a package
-#
-
-- name: Fail if no package specified
+- name: Fail when package is undefined
   fail:
-    msg: "No packages specified"
+    msg: "Package is undefined"
   when: package is undefined
 
 - name: Get rpm-ostree status --json output
@@ -43,8 +27,8 @@
     msg: "{{ package }} not in rpm-ostree status output"
   when: "'{{ package }}' not in installed_pkgs"
 
-- name: Check for {{ package }} binary
+- name: Verify {{ package }} is installed
   command: command -v {{ package }}
 
-- name: Check {{ package }} in rpmdb
+- name: Verify {{ package }} in rpmdb
   command: rpm -q {{ package }}
