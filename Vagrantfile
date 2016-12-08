@@ -16,16 +16,12 @@
 # Define scripts to deploy HEAD^ of various trees
 # - HEAD^ of CAHC
 # - HEAD^ of base CentOS AH
-# - HEAD^ of Fedora 23 AH
 # - HEAD^ of Fedora 24 AH
+# - HEAD^ of Fedora 25 AH
 #
 $cahc = <<CAHC
 #!/bin/bash
 set -xeuo pipefail
-current=$(ostree rev-parse centos-atomic-host/7/x86_64/standard)
-sudo ostree remote add --set=gpg-verify=false centos-atomic-continuous https://ci.centos.org/artifacts/sig-atomic/rdgo/centos-continuous/ostree/repo/
-sudo ostree pull --commit-metadata-only --depth=1 centos-atomic-continuous:centos-atomic-host/7/x86_64/devel/continuous
-sudo sed -i 's|centos-atomic-host:centos-atomic-host/7/x86_64/standard|centos-atomic-continuous:centos-atomic-host/7/x86_64/devel/continuous|' /ostree/deploy/centos-atomic-host/deploy/$current.0.origin
 sudo rpm-ostree deploy $(ostree rev-parse centos-atomic-host/7/x86_64/devel/continuous^)
 CAHC
 
@@ -42,19 +38,19 @@ if [ "$current" != "$minusone" ] ; then
 fi
 CENTOS
 
-$fedora23 = <<FEDORA23
-#!/bin/bash
-set -xeuo pipefail
-sudo ostree pull --commit-metadata-only --depth=1 fedora-atomic:fedora-atomic/f23/x86_64/docker-host
-sudo rpm-ostree deploy $(ostree rev-parse fedora-atomic/f23/x86_64/docker-host^)
-FEDORA23
-
 $fedora24 = <<FEDORA24
 #!/bin/bash
 set -xeuo pipefail
 sudo ostree pull --commit-metadata-only --depth=1 fedora-atomic:fedora-atomic/24/x86_64/docker-host
 sudo rpm-ostree deploy $(ostree rev-parse fedora-atomic/24/x86_64/docker-host^)
 FEDORA24
+
+$fedora25 = <<FEDORA25
+#!/bin/bash
+set -xeuo pipefail
+sudo ostree pull --commit-metadata-only --depth=1 fedora-atomic:fedora-atomic/25/x86_64/docker-host
+sudo rpm-ostree deploy $(ostree rev-parse fedora-atomic/25/x86_64/docker-host^)
+FEDORA25
 
 # Define the Ansible playbook you want to run here
 # Alternately, you can set the 'PLAYBOOK_FILE' environment variable to
@@ -63,7 +59,8 @@ $playbook_file = ENV['PLAYBOOK_FILE'] || "tests/improved-sanity-test/main.yml"
 
 Vagrant.configure(2) do |config|
     config.vm.define "cahc", autostart: false do |cahc|
-        cahc.vm.box = "centos/atomic-host"
+        cahc.vm.box = "centos/7/atomic/continuous"
+        cahc.vm.box_url = "https://ci.centos.org/artifacts/sig-atomic/centos-continuous/images/cloud/latest/images/centos-atomic-host-7-vagrant-libvirt.box"
         cahc.vm.hostname = "cahc-dev"
         cahc.vm.provision "shell", inline: $cahc
         cahc.vm.provision :reload
@@ -86,18 +83,6 @@ Vagrant.configure(2) do |config|
         end
     end
 
-    config.vm.define "fedora23", autostart: false do |fedora23|
-        fedora23.vm.box = "fedora/23-atomic-host"
-        fedora23.vm.hostname = "fedora23ah-dev"
-        fedora23.vm.provision "shell", inline: $fedora23
-        fedora23.vm.provision :reload
-        # Because Vagrant enforces outside-in ordering with the provisioner
-        # we have to specify the same playbook in multiple places
-        fedora23.vm.provision "ansible" do |ansible|
-            ansible.playbook = $playbook_file
-        end
-    end
-
     config.vm.define "fedora24", autostart: false do |fedora24|
         fedora24.vm.box = "fedora/24-atomic-host"
         fedora24.vm.hostname = "fedora24ah-dev"
@@ -110,6 +95,22 @@ Vagrant.configure(2) do |config|
         # Because Vagrant enforces outside-in ordering with the provisioner
         # we have to specify the same playbook in multiple places
         fedora24.vm.provision "ansible" do |ansible|
+            ansible.playbook = $playbook_file
+        end
+    end
+
+    config.vm.define "fedora25", autostart: false do |fedora25|
+        fedora25.vm.box = "fedora/25-atomic-host"
+        fedora25.vm.hostname = "fedora25ah-dev"
+        fedora25.vm.provision "shell", inline: $fedora25
+        fedora25.vm.provision :reload
+        # Change folder sync
+        # https://pagure.io/pungi-fedora/issue/26
+        fedora25.vm.synced_folder "./", "/vagrant", disabled: 'true'
+        fedora25.vm.synced_folder "./", "/var/vagrant"
+        # Because Vagrant enforces outside-in ordering with the provisioner
+        # we have to specify the same playbook in multiple places
+        fedora25.vm.provision "ansible" do |ansible|
             ansible.playbook = $playbook_file
         end
     end
