@@ -1,6 +1,17 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Set fedora25 to be False by default
+  set_fact:
+    fedora25: False
+
+- name: Set fedora25 to be True for F25
+  set_fact:
+    fedora25: True
+  when:
+    - ansible_distribution == "Fedora"
+    - ansible_distribution_version == "25"
+
 - name: Fail if vfp_filename is not defined
   fail:
     msg: "vfp_filename is undefined"
@@ -31,8 +42,13 @@
     msg: "/var/{{ vfp_dirname }} does not have the correct permissions"
   when: var_dir.stat.mode != "0755"
 
-- name: Check if the SELinux context on the directory is correct
+- name: Check for svirt_sandbox_file_t context on directory
   shell: "stat /var/{{ vfp_dirname | quote }} | grep svirt_sandbox_file_t"
+  when: not fedora25
+
+- name: Check for container_file_t context on directory
+  shell: "stat /var/{{ vfp_dirname | quote }} | grep container_file_t"
+  when: fedora25
 
 - name: Check that file added to the directory is present
   stat:
@@ -54,5 +70,10 @@
     msg: "The permissions on the added file are incorrect"
   when: added_file.stat.mode != "0644"
 
-- name: Check if the SELinux context on the added file is correct
+- name: Check for svirt_sandbox_file_t context on added file
   shell: "stat /var/{{ vfp_dirname | quote }}/{{ vfp_filename | quote}} | grep svirt_sandbox_file_t"
+  when: not fedora25
+
+- name: Check for container_file_t context on added file
+  shell: "stat /var/{{ vfp_dirname | quote }}/{{ vfp_filename | quote}} | grep container_file_t"
+  when: fedora25

@@ -1,6 +1,17 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Set fedora25 to be False by default
+  set_fact:
+    fedora25: False
+
+- name: Set fedora25 to be True for F25
+  set_fact:
+    fedora25: True
+  when:
+    - ansible_distribution == "Fedora"
+    - ansible_distribution_version == "25"
+
 - name: Fail if vaf_filename is not defined
   fail:
     msg: "vaf_filename is undefined"
@@ -11,12 +22,21 @@
     msg: "vaf_dirname is undefined"
   when: vaf_dirname is undefined
 
-- name: Make directory in /var
+- name: Make directory in /var with svirt_sandbox_file_t
   file:
     path: "/var/{{ vaf_dirname }}"
     state: directory
     mode: 0755
     setype: svirt_sandbox_file_t
+  when: not fedora25
+
+- name: Make directory in /var with container_file_t
+  file:
+    path: "/var/{{ vaf_dirname }}"
+    state: directory
+    mode: 0755
+    setype: container_file_t
+  when: fedora25
 
 - name: Add file in new directory
   shell: "echo $(sha256sum /etc/passwd) > {{ vaf_filename | quote }}"
