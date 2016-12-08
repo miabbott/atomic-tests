@@ -32,9 +32,12 @@
 #   - Verify that install/uninstall operations cannot be performed by unprivileged users
 #
 
-- name: Package Layering Tests
+- name: Package Layering Tests - Setup
   hosts: all
   become: yes
+
+  tags:
+    - setup
 
   vars_files:
     - vars.yml
@@ -57,109 +60,111 @@
       tags:
         - redhat_subscription
 
-    # single package install and uninstall
+
+- name: Package Layering - Single package install and uninstall test
+  hosts: all
+  become: yes
+
+  tags:
+    - single_pkg_install_uninstall
+
+  vars_files:
+    - vars.yml
+
+  roles:
     - role: rpm_ostree_install
       packages: "{{ g_pkg1 }}"
       reboot: false
-      tags: 
-        - 'rpm_ostree_install11'
 
     - role: reboot
-      tags:
-        - reboot1
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg1 }}"
-      tags:
-        - 'rpm_ostree_install_verify12'
 
     - role: rpm_ostree_uninstall
       packages: "{{ g_pkg1 }}"
       reboot: false
-      tags:
-        - 'rpm_ostree_uninstall13'
 
     - role: reboot
       tags:
-        - reboot2
+        - reboot
 
     - role: rpm_ostree_uninstall_verify
       package: "{{ g_pkg1 }}"
-      tags:
-        - 'rpm_ostree_uninstall_verify14'
 
+- name: Package Layering - Multiple package install and uninstall test
+  hosts: all
+  become: yes
 
-    # multiple package install and uninstall
+  tags:
+    - multi_pkg_install_uninstall
+
+  vars_files:
+    - vars.yml
+
+  roles:
     - role: rpm_ostree_install
       packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
       reboot: false
-      tags:
-        - 'rpm_ostree_install21'
 
     - role: reboot
-      tags:
-        - reboot3
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg1 }}"
-      tags:
-        - 'rpm_ostree_install_verify22'
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg2 }}"
-      tags:
-        - 'rpm_ostree_install_verify23'
 
     - role: rpm_ostree_uninstall
       packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
       reboot: false
-      tags:
-        - 'rpm_ostree_uninstall24'
 
     - role: reboot
       tags:
-        - reboot4
+        - reboot
 
     - role: rpm_ostree_uninstall_verify
       package: "{{ g_pkg1 }}"
-      tags:
-        - 'rpm_ostree_uninstall_verify25'
 
     - role: rpm_ostree_uninstall_verify
       package: "{{ g_pkg2 }}"
-      tags:
-        - 'rpm_ostree_uninstall_verify26'
 
-    - role: reboot
-      tags:
-        - reboot5
+- name: Package Layering - Reboot flag test
+  hosts: all
+  become: yes
 
-    # install and uninstall using the reboot flag
+  tags:
+    - reboot_flag
+
+  vars_files:
+    - vars.yml
+
+  roles:
     - role: rpm_ostree_install
       packages: "{{ g_pkg1 }}"
       reboot: true
-      tags:
-        - 'rpm_ostree_install31'
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg1 }}"
-      tags:
-        - 'rpm_ostree_install_verify32'
-
 
     - role: rpm_ostree_uninstall
       packages: "{{ g_pkg1 }}"
       reboot: true
-      tags:
-        - 'rpm_ostree_uninstall33'
 
     - role: rpm_ostree_uninstall_verify
       package: "{{ g_pkg1 }}"
-      tags:
-        - 'rpm_ostree_uninstall_verify34'
+
+- name: Package Layering - Dry run tests
+  hosts: all
+  become: yes
+
+  tags:
+    - dry_run
+
+  vars_files:
+    - vars.yml
 
   tasks:
-    # dry run test
     - name: Attempt to install package with -n / --dry-run option
       command: rpm-ostree install "{{ g_pkg1 }}" -n
       register: dry
@@ -173,7 +178,18 @@
       vars:
         package: "{{ g_pkg1 }}"
 
-    # Verify a dry-run of rpm-ostree install|uninstall does not affect an existing package that has been layered, but not rebooted.
+
+- name: Package Layering - Dry run does not affect installed packages tests
+  hosts: all
+  become: yes
+
+  tags:
+    - dry_run_interaction
+
+  vars_files:
+    - vars.yml
+
+  tasks:
     - name: Test Install {{ g_pkg1 }} and do not reboot
       command: rpm-ostree install {{ g_pkg1 }}
 
@@ -219,7 +235,22 @@
       register: binary
       failed_when: binary.rc != 1
 
-    # Verify that after additional repos are enabled (i.e. EPEL), rpm-ostree install|uninstall can be successfully used for packages in those repos.
+- name: Package Layering - install package from EPEL repo test
+  hosts: all
+  become: yes
+
+  tags:
+    - alternate_repo_install
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Copy GPG Key to Host
+      copy:
+        src=RPM-GPG-KEY-EPEL-7
+        dest=/etc/pki/rpm-gpg/
+
     - name: Add EPEL repo
       yum_repository:
         name: epel
@@ -227,12 +258,8 @@
         mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
         failovermethod: priority
         gpgcheck: yes
+        enabled: yes
         gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
-
-    - name: Copy GPG Key to Host
-      copy:
-        src=RPM-GPG-KEY-EPEL-7
-        dest=/etc/pki/rpm-gpg/
 
     - name: Install {{ g_epel_pkg }} from EPEL
       command: rpm-ostree install {{ g_epel_pkg }}
@@ -256,7 +283,17 @@
       vars:
         package: "{{ g_epel_pkg }}"
 
-    # Verify correct error is displayed removing a package that does not exist
+- name: Package Layering - Negative test - Uninstalling non-existent package
+  hosts: all
+  become: yes
+
+  tags:
+    - uninstall_invalid_pkg
+
+  vars_files:
+    - vars.yml
+
+  tasks:
     - name: Attempt to uninstall non-existent package
       command: rpm-ostree uninstall {{ g_invalid_pkg }}
       register: uninstall
@@ -267,7 +304,18 @@
         msg: "Command error not expected"
       when: "'Package \\'{{ g_invalid_pkg }}\\' is not currently requested' not in uninstall.stderr"
 
-    # Verify correct error is displayed when adding a package that does not exists in the repo
+
+- name: Package Layering - Negative Test - Installing non-existent package
+  hosts: all
+  become: yes
+
+  tags:
+    - install_invalid_pkg
+
+  vars_files:
+    - vars.yml
+
+  tasks:
     - name: Attempt to install non-existent package
       command: rpm-ostree install {{ g_invalid_pkg }}
       register: nonexist
@@ -278,7 +326,18 @@
         msg: "Command error not expected"
       when: "'No package' not in nonexist.stderr"
 
-    # Verify correct error message is displayed when adding a package that is already in the deployment
+
+- name: Package Layering - Negative Test - Installing existing package
+  hosts: all
+  become: yes
+
+  tags:
+    - install_existing_pkg
+
+  vars_files:
+    - vars.yml
+
+  tasks:
     - name: Attempt to install package that is already in the deployment
       command: rpm-ostree install {{ g_deployed_pkg }}
       register: already
@@ -289,7 +348,18 @@
         msg: "Error is incorrect"
       when: "'package \\'{{ g_deployed_pkg }}\\' is already in the deployment' not in already.stderr"
 
-    # Verify packages which have files with non-root ownership cannot be installed
+
+- name: Package Layering - Negative Test - Installing non-root ownership package
+  hosts: all
+  become: yes
+
+  tags:
+    - install_nonroot_pkg
+
+  vars_files:
+    - vars.yml
+
+  tasks:
     - name: Attempt to install package with non-root ownership
       command: rpm-ostree install {{ g_nonroot_pkg }}
       register: nonroot
@@ -300,7 +370,18 @@
         msg: "Error is incorrect"
       when: "'Non-root ownership currently unsupported' not in nonroot.stderr"
 
-    # Verify that install/uninstall operations cannot be performed by unprivileged users
+
+- name: Package Layering - Negative Test - Installing without sufficient privileges
+  hosts: all
+  become: yes
+
+  tags:
+    - install_unprivileged
+
+  vars_files:
+    - vars.yml
+
+  tasks:
     - name: Attempt to install package with insufficient privileges
       command: rpm-ostree install {{ g_pkg1 }}
       register: unprivileged
