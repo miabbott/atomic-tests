@@ -20,7 +20,7 @@
     msg: "vaf_dirname is undefined"
   when: vaf_dirname is undefined
 
-- name: Make directory in /var_
+- name: Make directory in /var
   file:
     path: "/var/{{ vaf_dirname }}"
     state: directory
