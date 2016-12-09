@@ -1,16 +1,19 @@
 ---
 # vim: set ft=ansible:
 #
-- name: Set fedora25 to be False by default
+- name: Set use_container_file_t to be False by default
   set_fact:
-    fedora25: False
+    use_container_file_t: False
 
-- name: Set fedora25 to be True for F25
+- name: Check for presence of container_file_t type
+  command: seinfo --type=container_file_t
+  register: seinfo
+  ignore_errors: True
+
+- name: Set use_container_file_t to True when present
   set_fact:
-    fedora25: True
-  when:
-    - ansible_distribution == "Fedora"
-    - ansible_distribution_version == "25"
+    use_container_file_t: True
+  when: seinfo.rc == 0
 
 - name: Fail if vfp_filename is not defined
   fail:
@@ -44,11 +47,11 @@
 
 - name: Check for svirt_sandbox_file_t context on directory
   shell: "stat /var/{{ vfp_dirname | quote }} | grep svirt_sandbox_file_t"
-  when: not fedora25
+  when: not use_container_file_t
 
 - name: Check for container_file_t context on directory
   shell: "stat /var/{{ vfp_dirname | quote }} | grep container_file_t"
-  when: fedora25
+  when: use_container_file_t
 
 - name: Check that file added to the directory is present
   stat:
@@ -71,9 +74,13 @@
   when: added_file.stat.mode != "0644"
 
 - name: Check for svirt_sandbox_file_t context on added file
-  shell: "stat /var/{{ vfp_dirname | quote }}/{{ vfp_filename | quote}} | grep svirt_sandbox_file_t"
-  when: not fedora25
+  command: "stat -c '%C' /var/{{ vfp_dirname }}/{{ vfp_filename }}"
+  register: stat
+  failed_when: "'svirt_sandbox_file_t' not in stat.stdout"
+  when: not use_container_file_t
 
 - name: Check for container_file_t context on added file
-  shell: "stat /var/{{ vfp_dirname | quote }}/{{ vfp_filename | quote}} | grep container_file_t"
-  when: fedora25
+  command: "stat -c '%C' /var/{{ vfp_dirname }}/{{ vfp_filename }}"
+  register: stat
+  failed_when: "'container_file_t' not in stat.stdout"
+  when: use_container_file_t

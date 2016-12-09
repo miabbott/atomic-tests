@@ -1,16 +1,19 @@
 ---
 # vim: set ft=ansible:
 #
-- name: Set fedora25 to be False by default
+- name: Set use_container_file_t to be False by default
   set_fact:
-    fedora25: False
+    use_container_file_t: False
 
-- name: Set fedora25 to be True for F25
+- name: Check for presence of container_file_t type
+  command: seinfo --type=container_file_t
+  register: seinfo
+  ignore_errors: True
+
+- name: Set use_container_file_t to True when present
   set_fact:
-    fedora25: True
-  when:
-    - ansible_distribution == "Fedora"
-    - ansible_distribution_version == "25"
+    use_container_file_t: True
+  when: seinfo.rc == 0
 
 - name: Fail if vaf_filename is not defined
   fail:
@@ -28,7 +31,7 @@
     state: directory
     mode: 0755
     setype: svirt_sandbox_file_t
-  when: not fedora25
+  when: not use_container_file_t
 
 - name: Make directory in /var with container_file_t
   file:
@@ -36,7 +39,7 @@
     state: directory
     mode: 0755
     setype: container_file_t
-  when: fedora25
+  when: use_container_file_t
 
 - name: Add file in new directory
   shell: "echo $(sha256sum /etc/passwd) > {{ vaf_filename | quote }}"
