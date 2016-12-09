@@ -1,19 +1,14 @@
 ---
 # vim: set ft=ansible:
 #
-- name: Set use_container_file_t to be False by default
-  set_fact:
-    use_container_file_t: False
-
 - name: Check for presence of container_file_t type
   command: seinfo --type=container_file_t
   register: seinfo
   ignore_errors: True
 
-- name: Set use_container_file_t to True when present
+- name: Set SELinux type to be used
   set_fact:
-    use_container_file_t: True
-  when: seinfo.rc == 0
+    selinux_type: '{{ "container_file_t" if seinfo.rc == 0 else "svirt_sandbox_file_t" }}'
 
 - name: Fail if vfp_filename is not defined
   fail:
@@ -45,13 +40,10 @@
     msg: "/var/{{ vfp_dirname }} does not have the correct permissions"
   when: var_dir.stat.mode != "0755"
 
-- name: Check for svirt_sandbox_file_t context on directory
-  shell: "stat /var/{{ vfp_dirname | quote }} | grep svirt_sandbox_file_t"
-  when: not use_container_file_t
-
-- name: Check for container_file_t context on directory
-  shell: "stat /var/{{ vfp_dirname | quote }} | grep container_file_t"
-  when: use_container_file_t
+- name: Check for correct SELinux type
+  command: "stat -c '%C' /var/{{ vfp_dirname }}"
+  register: dir_stat
+  failed_when: "selinux_type not in dir_stat.stdout"
 
 - name: Check that file added to the directory is present
   stat:
@@ -73,14 +65,7 @@
     msg: "The permissions on the added file are incorrect"
   when: added_file.stat.mode != "0644"
 
-- name: Check for svirt_sandbox_file_t context on added file
+- name: Check for correct SELinux type
   command: "stat -c '%C' /var/{{ vfp_dirname }}/{{ vfp_filename }}"
-  register: stat
-  failed_when: "'svirt_sandbox_file_t' not in stat.stdout"
-  when: not use_container_file_t
-
-- name: Check for container_file_t context on added file
-  command: "stat -c '%C' /var/{{ vfp_dirname }}/{{ vfp_filename }}"
-  register: stat
-  failed_when: "'container_file_t' not in stat.stdout"
-  when: use_container_file_t
+  register: file_stat
+  failed_when: "selinux_type not in file_stat.stdout"
