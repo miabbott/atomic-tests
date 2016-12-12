@@ -7,5 +7,5 @@
 
 - name: Fail if the RPM database is broken
   fail:
-    msg: "The RPM database is not usuable"
+    msg: "The RPM database is not usable"
   when: "{{ rpmdb.stdout | int }} <= 0 or rpmdb.rc != 0"
