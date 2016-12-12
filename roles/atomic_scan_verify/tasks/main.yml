@@ -9,9 +9,24 @@
 #   - atomic install
 #   - atomic scan
 #
+- name: Set scanner image (RHEL)
+  set_fact:
+    scanner_image: "registry.access.redhat.com/rhel7/openscap"
+    scanner_type: "openscap"
+  when: ansible_distribution == "RedHat"
+
+- name: Set scanner image
+  set_fact:
+    scanner_image: "docker.io/fedora/atomic_scan_openscap"
+    scanner_type: "atomic_scan_openscap"
+  when: ansible_distribution != "RedHat"
+
+- name: Set scanner target
+  set_fact:
+    scanner_target: "registry.access.redhat.com/rhel7"
 
 - name: Install openscap
-  command: atomic install registry.access.redhat.com/rhel7/openscap
+  command: atomic install {{ scanner_image }}
   register: result
 
 - name: Check installation of openscap
@@ -19,8 +34,11 @@
     msg="Atomic install was unsuccessful"
   when: "'Installation complete' not in result.stdout"
 
+- name: Pull scanner target
+  command: atomic pull {{ scanner_target }}
+
 - name: Run atomic scan
-  shell: python -c "import pty; pty.spawn(['atomic', 'scan', '--scanner', 'openscap', 'registry.access.redhat.com/rhel7/openscap'])"
+  command: atomic --debug scan --scanner {{ scanner_type }} {{ scanner_target }}
   register: atomic_output
 
 - name: Catch atomic scan failures
