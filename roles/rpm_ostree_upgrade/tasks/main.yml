@@ -1,15 +1,7 @@
 ---
 # vim: set ft=ansible:
-#
-- name: Check for available upgrade
-  command: rpm-ostree upgrade --check
-  register: upgrade_check
-  ignore_errors: true
 
-- name: Fail when upgrade not available
-  fail:
-    msg: "No upgrade available"
-  when: upgrade_check.rc == 77 and "No upgrade available" in upgrade_check.stdout
-
+# use --upgrade-unchanged-exit-77 to also force a fail when
+# no upgrade is performed (we always expect an upgrade)
 - name: Perform the upgrade
-  command: rpm-ostree upgrade
+  command: rpm-ostree upgrade --upgrade-unchanged-exit-77
