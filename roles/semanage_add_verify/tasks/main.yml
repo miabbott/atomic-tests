@@ -1,0 +1,22 @@
+---
+- name: Check for presence of container_file_t type
+  command: seinfo --type=container_file_t
+  register: seinfo
+  ignore_errors: True
+
+- name: Set SELinux type to be used
+  set_fact:
+    selinux_type: '{{ "container_file_t" if seinfo.rc == 0 else "svirt_sandbox_file_t" }}'
+    dir_match: '/var/lib/kubelet(/.*)?'
+
+- name: Set fcontext for /var/lib/kubernetes
+  command: semanage fcontext -a -t {{ selinux_type }} {{ dir_match }}
+
+- name: Verify fcontext is set
+  shell: semanage fcontext --list | grep '{{ dir_match }}'
+  register: output
+
+- name: Fail selinux type is not in semanage output
+  fail:
+    msg: "Could not find {{ selinux_type }} in output"
+  when: "selinux_type not in output.stdout"

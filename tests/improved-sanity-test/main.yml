@@ -48,6 +48,10 @@
       tags:
         - selinux_verify
 
+    - role: semanage_add_verify
+      tags:
+        - semanage_add_verify
+
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
@@ -176,6 +180,10 @@
     - role: selinux_verify
       tags:
         - selinux_verify
+
+    - role: semanage_add_verify
+      tags:
+        - semanage_add_verify
 
     # Check that /tmp is properly setup
     - role: tmp_check_perms
