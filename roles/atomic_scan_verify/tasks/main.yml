@@ -34,8 +34,10 @@
     msg="Atomic install was unsuccessful"
   when: "'Installation complete' not in result.stdout"
 
+  # Use 'docker pull' for now; maybe switch to 'atomic pull' once all the
+  # streams have support for v1 schema manifests
 - name: Pull scanner target
-  command: atomic pull {{ scanner_target }}
+  command: docker pull {{ scanner_target }}
 
 - name: Run atomic scan
   command: atomic --debug scan --scanner {{ scanner_type }} {{ scanner_target }}
