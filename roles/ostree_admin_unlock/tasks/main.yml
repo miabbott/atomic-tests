@@ -1,0 +1,15 @@
+---
+# vim: set ft=ansible:
+#
+# Unlocks the system to be unlocked to make temporary changes to the /usr mount
+#
+
+- name: Unlock system
+  command: ostree admin unlock
+
+- include: '../../rpm_ostree_status/tasks/main.yml'
+
+- name: Fail if unlocked is not set to development
+  fail:
+    msg: "Unlocked is not set to development"
+  when: "'development' not in ros_booted['unlocked']"

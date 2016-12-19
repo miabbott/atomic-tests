@@ -1,0 +1,36 @@
+---
+# vim: set ft=ansible:
+#
+# Scrapes the html on EPEL for the package name since the name changes wtih
+#  the version.  Downloads the file and installs it using rpm command.
+#  This should be used after system unlocks using ostree admin unlock
+#  or ostree admin unlock --hotfix.
+#
+- name: Fail if rpm_name
+  fail:
+    msg: "rpm_name must be passed into this role/include"
+  when: rpm_name is undefined
+
+- name: Set EPEL base url
+  set_fact:
+    epel_base: "https://dl.fedoraproject.org/pub/epel/7/x86_64"
+
+- name: Get first letter of package name
+  shell: echo {{ rpm_name | quote }} | head -c 1
+  register: first_letter
+
+- name: Get base url
+  set_fact:
+    epel_url: "{{ epel_base }}/{{ first_letter.stdout }}"
+
+- name: Scrape HTML for package name
+  shell: curl -sSk {{ epel_url }}/ | sed -n 's/.*<a href=\"\({{ rpm_name }}.*\.rpm\)\".*/\1/p'
+  register: full_rpm_name
+
+- name: Get {{ full_rpm_name.stdout }}
+  get_url:
+    url: "{{ epel_url}}/{{ full_rpm_name.stdout }}"
+    dest: /root
+
+- name: Install {{ full_rpm_name.stdout }}
+  command:  rpm -i /root/{{ full_rpm_name.stdout }}

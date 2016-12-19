@@ -1,0 +1,7 @@
+---
+# vim: set ft=ansible:
+#
+# Verifies the presence of an overlayfs in mount output
+#
+- name: Verify overlayfs
+  shell: mount | grep -e 'overlay on .* type overlay'

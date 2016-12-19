@@ -1,0 +1,316 @@
+---
+# vim: set ft=ansible:
+#
+# Core Functionality
+#   Verify rpms can installed and uninstalled after ostree admin unlock
+#   Verify overlayfs is created after running ostree admin unlock
+#     (use mount command verify presence of overlayfs mount)
+#   Verify ostree admin status indicates "Unlocked: development" after running
+#     ostree admin unlock
+#   Verify that changes to deployment after ostree admin unlock do not persist
+#     through reboot.
+#   Verify overlayfs is removed (use mount command verify absence of overlayfs
+#       mount)
+#   Verify ostree admin status does not show locked deployment
+#   Verify rpms can be installed and uninstalled after ostree admin unlock
+#     --hotfix and changes persist through reboot.
+#   Verify ostree admin status indicates "Unlocked: hotfix"
+#   Verify a clone of the current deployment is added to the deployment
+#   Use rpm-ostree status to verify there are two deployments with the same
+#     commit ID
+#   Verify overlayfs is created (use mount command verify presence of overlayfs
+#      mount)
+#   Verify rpms can still be installed and uninstalled after reboot
+#   Verify ostree admin unlock --hotfix overwrites any other deployment already
+#      on the system
+#   Verify rollback between hotfixed deployment and regular deployment
+# NOT TESTED:
+#   Verify upgrade from hotfixed deployment
+#     Upgrade should be successful
+#     Packages installed in previous unlocked deployment should not be present
+#       in the upgraded deployment
+#
+# Negative Testing
+#   Verify rpms cannot be installed without ostree admin unlock
+#   Run ostree admin unlock twice.  Verify that an error message specifying
+#     that the deployment is already in an unlocked state: development
+#   Run ostree admin unlock, then ostree admin unlock --hotfix.  Verify that
+#     an error message specifying that the deployment is already in an unlocked
+#     state: development
+#   Run ostree admin unlock --hotfix twice.  Verify that an error message
+#     specifying that the deployment is already in an unlocked state: hotfix
+#   Run ostree admin unlock --hotfix then ostree admin unlock.  Verify that an
+#     error message specifying that the deployment is already in an unlocked
+#     state: hotfix
+
+- name: Ostree Admin Unlock - Setup
+  hosts: all
+  become: yes
+
+  tags:
+    - setup
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Verify all
+      fail:
+        msg: "Required variables are not defined.  Check vars.yml file."
+      when: g_rpm_name is undefined or
+            g_rpm_name_2 is undefined
+
+  roles:
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+- name: Ostree Admin Unlock - Add/Remove Package - Non-persistence
+  hosts: all
+  become: yes
+
+  tags:
+    - unlock_add_remove_package_non_persistence
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: set rpm_name
+      set_fact:
+        rpm_name: "{{ g_rpm_name }}"
+
+  roles:
+    - role: ostree_admin_unlock
+
+    - role: overlayfs_verify_present
+
+    - role: rpm_install
+
+    - role: package_verify_present
+
+    - role: rpm_uninstall
+
+    - role: package_verify_missing
+
+    - role: rpm_install
+      tags:
+        - second_install
+
+    - role: package_verify_present
+      tags:
+        - second_verify_present
+
+    - role: reboot
+
+    - role: overlayfs_verify_missing
+
+    - role: package_verify_missing
+      tags:
+        - second_verify_missing
+
+- name: Ostree Admin Unlock - Hotfix - Add/Remove Package Persistence
+  hosts: all
+  become: yes
+
+  tags:
+    - hotfix_add_remove_package_persistence
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: set rpm_name
+      set_fact:
+        rpm_name: "{{ g_rpm_name }}"
+
+  roles:
+    - role: ostree_admin_unlock_hotfix
+
+    - role: overlayfs_verify_present
+
+    - role: rpm_install
+
+    - role: package_verify_present
+
+    - role: rpm_uninstall
+
+    - role: package_verify_missing
+
+    - role: rpm_install
+      tags:
+        - second_install
+
+    - role: package_verify_present
+      tags:
+        - second_verify_present
+
+    - role: reboot
+
+    - role: overlayfs_verify_present
+
+    - role: package_verify_present
+      tags:
+        - third_verify_present
+
+    - role: rpm_install
+      rpm_name: "{{ g_rpm_name_2 }}"
+      tags:
+        - third_install
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name_2 }}"
+      tags:
+        - fourth_verify_present
+
+- name: Ostree Admin Unlock - Hotfix - Rollback
+  hosts: all
+  become: yes
+
+  tags:
+    - hotfix_rollback
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: set rpm_name
+      set_fact:
+        rpm_name: "{{ g_rpm_name }}"
+
+  roles:
+    - role: rpm_ostree_rollback
+
+    - role: reboot
+
+    - role: overlayfs_verify_missing
+
+    - role: package_verify_missing
+
+    - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name_2 }}"
+      tags:
+        - second_package_verify_missing
+
+- name: Ostree Admin Unlock - No Install Without Unlock
+  hosts: all
+  become: yes
+
+  tags:
+    - cannot_install_without_unlock
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: set rpm_name
+      set_fact:
+        rpm_name: "{{ g_rpm_name }}"
+
+    - name: Get one of the rpms that was downloaded
+      shell: ls /root | grep {{ rpm_name }}*
+      register: rpm
+
+    - name: Attempt to install rpm
+      command: rpm -i /root/{{ rpm.stdout }}
+      register: attempted_install
+      failed_when: attempted_install.rc != 1
+
+    - include: 'roles/rpm_ostree_status/tasks/main.yml'
+
+    - name: Fail if current deployment has unlocked not set to none
+      fail:
+        when: "deployment unlocked not set to none"
+      when: "'none' not in ros_booted['unlocked']"
+
+- name: Ostree Admin Unlock - Unlock Twice - Error Message
+  hosts: all
+  become: yes
+
+  tags:
+    - unlock_twice_error_message
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Unlock system
+      command: ostree admin unlock
+
+    - include: 'roles/rpm_ostree_status/tasks/main.yml'
+
+    - name: Verify rpm_ostree status has unlocked set to hotfix
+      fail:
+        msg: "Booted deployment does not have unlocked set to hotfix"
+      when: "'development' not in ros_booted['unlocked']"
+
+    - name: Run unlock twice (system is already unlocked)
+      command: ostree admin unlock
+      register: double_unlock
+      failed_when: double_unlock.rc != 1
+
+    - name: Fail when error message is incorrect
+      fail:
+        msg: "Error message is incorrect"
+      when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
+
+    - name: Run unlock hotfix (system is already locked)
+      command: ostree admin unlock --hotfix
+      register: double_hotfix_unlock
+      failed_when: double_hotfix_unlock.rc != 1
+
+    - name: Fail when error message is incorrect
+      fail:
+        msg: "Error message is incorrect"
+      when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
+
+    - include: 'roles/reboot/tasks/main.yml'
+
+- name: Ostree Admin Unlock - Hotfix Unlock Twice - Error Message
+  hosts: all
+  become: yes
+
+  tags:
+    - hotfix_unlock_twice_error_message
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Unlock system with hotfix
+      command: ostree admin unlock --hotfix
+
+    - include: 'roles/rpm_ostree_status/tasks/main.yml'
+
+    - name: Verify rpm_ostree status has unlocked set to hotfix
+      fail:
+        msg: "Booted deployment does not have unlocked set to hotfix"
+      when: "'hotfix' not in ros_booted['unlocked']"
+
+    - name: Fail if non booted deployment does not have same commit id as booted
+      fail:
+        msg: "Deployments have different commit_IDs"
+      when: ros_not_booted['checksum'] !=  ros_booted['checksum']
+
+    - name: Run unlock twice (system is already unlocked)
+      command: ostree admin unlock
+      register: double_unlock
+      failed_when: double_unlock.rc != 1
+
+    - name: Fail when error message is incorrect
+      fail:
+        msg: "Error message is incorrect"
+      when: "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
+
+    - name: Run unlock hotfix (system is already locked)
+      command: ostree admin unlock --hotfix
+      register: double_hotfix_unlock
+      failed_when: double_hotfix_unlock.rc != 1
+
+    - name: Fail when error message is incorrect
+      fail:
+        msg: "Error message is incorrect"
+      when: "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
+

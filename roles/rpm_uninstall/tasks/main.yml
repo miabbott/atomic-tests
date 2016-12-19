@@ -1,0 +1,12 @@
+---
+# vim: set ft=ansible:
+#
+# Removes package using rpm
+#
+- name: Fail if g_rpm_name
+  fail:
+    msg: "g_rpm_name is undefined"
+  when: g_rpm_name is undefined
+
+- name: Install {{ g_rpm_name }}
+  command:  rpm -e {{ g_rpm_name }}

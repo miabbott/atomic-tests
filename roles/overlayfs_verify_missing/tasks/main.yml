@@ -1,0 +1,9 @@
+---
+# vim: set ft=ansible:
+#
+# Runs the mount command and verifies no overlayfs is present
+#
+- name: Verify overlayfs
+  shell: mount | grep -e 'overlay on .* type overlay'
+  register: out
+  failed_when: out.rc != 1

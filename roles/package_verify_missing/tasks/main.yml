@@ -1,0 +1,19 @@
+---
+# vim: set ft=ansible:
+#
+# Verifies that a package is not installed
+#
+- name: Fail if rpm_name is undefined
+  fail:
+    msg: "rpm_name must be passed into this role/include"
+  when: rpm_name is undefined
+
+- name: Check for {{ rpm_name }} binary
+  command: command -v {{ rpm_name }}
+  register: c_output
+  failed_when: c_output.rc != 1
+
+- name: Check {{ rpm_name }} in rpmdb
+  command: rpm -q {{ rpm_name }}
+  register: rpm_output
+  failed_when: rpm_output.rc != 1

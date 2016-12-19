@@ -1,0 +1,2 @@
+ostree admin unlock
+ostree admin unlock --hotfix

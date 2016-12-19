@@ -1,0 +1,26 @@
+---
+# vim: set ft=ansible:
+#
+# Will change the variable ros_booted and ros_not_booted to the latest
+#  rpm-ostree status --json output.  If no second deployment exists,
+#  ros_not_booted will be set to false
+#
+- name: Get rpm-ostree status output
+  command: rpm-ostree status --json
+  register: ros
+
+- name: Convert to JSON
+  set_fact:
+    ros_json: "{{ ros.stdout|from_json }}"
+
+- name: Set ros variable if deployment 0 is booted
+  set_fact:
+    ros_booted: "{{ ros_json['deployments'][0] }}"
+    ros_not_booted: "{{ ros_json['deployments'][1] if ros_json['deployments'][1] is defined else false }}"
+  when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
+
+- name: Set ros variable if deployment 1 is booted
+  set_fact:
+    ros_booted: "{{ ros_json['deployments'][1] }}"
+    ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
+  when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
