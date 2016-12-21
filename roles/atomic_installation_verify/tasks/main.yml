@@ -22,17 +22,29 @@
     cockpit_cname: "docker.io/cockpit/ws:latest"
   when: ('CentOS' in ansible_distribution) or ansible_distribution == "Fedora"
 
+- name: Pull the cockpit container for inspection
+  command: docker pull {{ cockpit_cname }}
+
+- name: Get the version of the cockpit-ws rpm in the container
+  command: docker run --rm {{ cockpit_cname }} rpm --queryformat '%{VERSION}\n' -q cockpit-ws
+  register: cockpit_version
+
 - name: Install cockpit container
+  command: atomic install {{ cockpit_cname }}
+  when: "{{ cockpit_version|int }} > 126"
+
+- name: Install cockpit container (interactive)
   shell: python -c "import pty; pty.spawn(['atomic', 'install', '{{ cockpit_cname }}'])"
+  when: "{{ cockpit_version|int }} <= 126"
 
 - name: Check for /etc/pam.d/cockpit
   stat:
-    path=/etc/pam.d/cockpit
+    path: /etc/pam.d/cockpit
   register: install_file
 
 - name: Fail if /etc/pam.d/cockpit file is not found
   fail:
-    msg="Cockpit installation failed"
+    msg: "Cockpit installation failed"
   when: install_file.stat.exists == False
 
 - name: Run cockpit container
@@ -47,14 +59,19 @@
   shell: curl -k "https://localhost:9090" | grep "Log in"
 
 - name: Uninstall cockpit container
+  shell: atomic uninstall {{ cockpit_cname }}
+  when: "{{ cockpit_version|int }} > 126"
+
+- name: Uninstall cockpit container (interactive)
   shell: python -c "import pty; pty.spawn(['atomic', 'uninstall', '{{ cockpit_cname }}'])"
+  when: "{{ cockpit_version|int }} <= 126"
 
 - name: Check for /etc/pam.d/cockpit file
   stat:
-    path=/etc/pam.d/cockpit
+    path: /etc/pam.d/cockpit
   register: uninstall_file
 
 - name: Fail if /etc/pam.d/cockpit file is found
   fail:
-    msg="Cockpit uninstall failed"
+    msg: "Cockpit uninstall failed"
   when: uninstall_file.stat.exists == True
