@@ -4,6 +4,6 @@
 # Runs the mount command and verifies no overlayfs is present
 #
 - name: Verify overlayfs
-  shell: mount | grep -e 'overlay on .* type overlay'
+  shell: findmnt /usr | grep overlay
   register: out
-  failed_when: out.rc != 1
+  failed_when: out.rc == 0

@@ -1,7 +1,7 @@
 ---
 # vim: set ft=ansible:
 #
-# Unlocks the system to be unlocked to make temporary changes to the /usr mount
+# Unlocks the system to be unlocked to make permanent changes to the /usr mount
 #
 - name: Unlock system with hotfix
   command: ostree admin unlock --hotfix

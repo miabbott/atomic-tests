@@ -79,7 +79,6 @@
 
   roles:
     - role: ostree_admin_unlock
-      rpm_name: "{{ g_rpm_name }}"
 
     - role: overlayfs_verify_present
 

@@ -8,5 +8,5 @@
     msg: "rpm_name is undefined"
   when: rpm_name is undefined
 
-- name: Install {{ rpm_name }}
+- name: Uninstall {{ rpm_name }}
   command:  rpm -e {{ rpm_name }}

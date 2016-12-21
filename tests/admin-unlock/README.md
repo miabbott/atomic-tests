@@ -78,14 +78,18 @@ requires a 'vagrant-reload' plugin - see the Vagrantfile for additional
 information.
 
 With the plugin installed, you should be able to choose a CentOS AH box, a
-Fedora 23 AH box, or a CAHC box.
+Fedora 24/25 AH box, or a CAHC box.
 
 ```
 $ vagrant up centos
 
 or
 
-$ vagrant up fedora23
+$ vagrant up fedora24
+
+or
+
+$ vagrant up fedora25
 
 or
 
