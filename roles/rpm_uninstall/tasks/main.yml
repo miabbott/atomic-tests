@@ -3,10 +3,10 @@
 #
 # Removes package using rpm
 #
-- name: Fail if g_rpm_name
+- name: Fail if rpm_name
   fail:
-    msg: "g_rpm_name is undefined"
-  when: g_rpm_name is undefined
+    msg: "rpm_name is undefined"
+  when: rpm_name is undefined
 
-- name: Install {{ g_rpm_name }}
-  command:  rpm -e {{ g_rpm_name }}
+- name: Install {{ rpm_name }}
+  command:  rpm -e {{ rpm_name }}

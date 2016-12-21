@@ -77,29 +77,31 @@
   vars_files:
     - vars.yml
 
-  pre_tasks:
-    - name: set rpm_name
-      set_fact:
-        rpm_name: "{{ g_rpm_name }}"
-
   roles:
     - role: ostree_admin_unlock
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: overlayfs_verify_present
 
     - role: rpm_install
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: package_verify_present
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_uninstall
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
+      rpm_name: "{{ g_rpm_name }}"
       tags:
         - second_install
 
     - role: package_verify_present
+      rpm_name: "{{ g_rpm_name }}"
       tags:
         - second_verify_present
 
@@ -108,6 +110,7 @@
     - role: overlayfs_verify_missing
 
     - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name }}"
       tags:
         - second_verify_missing
 
@@ -121,29 +124,30 @@
   vars_files:
     - vars.yml
 
-  pre_tasks:
-    - name: set rpm_name
-      set_fact:
-        rpm_name: "{{ g_rpm_name }}"
-
   roles:
     - role: ostree_admin_unlock_hotfix
 
     - role: overlayfs_verify_present
 
     - role: rpm_install
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: package_verify_present
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_uninstall
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
+      rpm_name: "{{ g_rpm_name }}"
       tags:
         - second_install
 
     - role: package_verify_present
+      rpm_name: "{{ g_rpm_name }}"
       tags:
         - second_verify_present
 
@@ -152,6 +156,7 @@
     - role: overlayfs_verify_present
 
     - role: package_verify_present
+      rpm_name: "{{ g_rpm_name }}"
       tags:
         - third_verify_present
 
@@ -175,11 +180,6 @@
   vars_files:
     - vars.yml
 
-  pre_tasks:
-    - name: set rpm_name
-      set_fact:
-        rpm_name: "{{ g_rpm_name }}"
-
   roles:
     - role: rpm_ostree_rollback
 
@@ -188,6 +188,7 @@
     - role: overlayfs_verify_missing
 
     - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name }}"
 
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name_2 }}"
@@ -205,12 +206,8 @@
     - vars.yml
 
   tasks:
-    - name: set rpm_name
-      set_fact:
-        rpm_name: "{{ g_rpm_name }}"
-
     - name: Get one of the rpms that was downloaded
-      shell: ls /root | grep {{ rpm_name }}*
+      shell: ls /root | grep {{ g_rpm_name }}*
       register: rpm
 
     - name: Attempt to install rpm
@@ -241,7 +238,7 @@
 
     - include: 'roles/rpm_ostree_status/tasks/main.yml'
 
-    - name: Verify rpm_ostree status has unlocked set to hotfix
+    - name: Verify rpm_ostree status is unlocked and set to hotfix
       fail:
         msg: "Booted deployment does not have unlocked set to hotfix"
       when: "'development' not in ros_booted['unlocked']"
@@ -286,7 +283,7 @@
 
     - name: Verify rpm_ostree status has unlocked set to hotfix
       fail:
-        msg: "Booted deployment does not have unlocked set to hotfix"
+        msg: "Booted deployment is not unlocked and set to hotfix"
       when: "'hotfix' not in ros_booted['unlocked']"
 
     - name: Fail if non booted deployment does not have same commit id as booted

@@ -53,6 +53,9 @@ Negative Testing
     for additional details.
 
   - Configure the required variables to your liking in [tests/admin-unlock/vars.yml](tests/admin-unlock/vars.yml).
+    There are two variables g_rpm_name and g_rpm_name_2.  These should be set to
+    rpm names from the EPEL repo that have no dependencies and install a binary
+    with the same name as the package.
 
 ### Running the Playbook
 
@@ -64,6 +67,8 @@ $ ansible-playbook -i inventory tests/admin-unlock/main.yml
 
 *NOTE*: You are responsible for providing a host to run the test against and the
 inventory file for that host.
+
+*NOTE*: This playbook must be run as a whole.  Do not run individual plays.
 
 #### Vagrant
 

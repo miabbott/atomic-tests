@@ -15,13 +15,9 @@
   set_fact:
     epel_base: "https://dl.fedoraproject.org/pub/epel/7/x86_64"
 
-- name: Get first letter of package name
-  shell: echo {{ rpm_name | quote }} | head -c 1
-  register: first_letter
-
 - name: Get base url
   set_fact:
-    epel_url: "{{ epel_base }}/{{ first_letter.stdout }}"
+    epel_url: "{{ epel_base }}/{{ rpm_name[0] }}"
 
 - name: Scrape HTML for package name
   shell: curl -sSk {{ epel_url }}/ | sed -n 's/.*<a href=\"\({{ rpm_name }}.*\.rpm\)\".*/\1/p'
