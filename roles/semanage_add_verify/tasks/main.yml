@@ -8,13 +8,16 @@
   set_fact:
     selinux_type: '{{ "container_file_t" if seinfo.rc == 0 else "svirt_sandbox_file_t" }}'
     dir_match: '/var/lib/kubelet(/.*)?'
+  when: have_builtin_kube
 
 - name: Set fcontext for /var/lib/kubernetes
   command: semanage fcontext -a -t {{ selinux_type }} {{ dir_match }}
+  when: have_builtin_kube
 
 - name: Verify fcontext is set
   shell: semanage fcontext --list | grep '{{ dir_match }}'
   register: output
+  when: have_builtin_kube
 
 - name: Fail selinux type is not in semanage output
   fail:
