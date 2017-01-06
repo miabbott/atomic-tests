@@ -23,14 +23,5 @@
 - name: Fail if system is not an Atomic Host
   fail:
     msg: "The system is not an Atomic Host"
-  when: not is_atomic
+    when: not is_atomic
 
-- name: Determine we have builtin kube
-  command: rpm -q kubelet
-  changed_when: false
-  failed_when: false
-  register: rpmq_kubelet
-
-- name: Set the builtin kube fact
-  set_fact:
-    have_builtin_kube: rpmq_kubelet.rc == 0

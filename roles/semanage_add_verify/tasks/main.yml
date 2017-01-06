@@ -1,4 +1,14 @@
 ---
+- name: Determine we have builtin kube
+  command: rpm -q kubelet
+  changed_when: false
+  failed_when: false
+  register: rpmq_kubelet
+
+- name: Set the builtin kube fact
+  set_fact:
+    have_builtin_kube: rpmq_kubelet.rc == 0
+
 - name: Check for presence of container_file_t type
   command: seinfo --type=container_file_t
   register: seinfo
@@ -22,4 +32,4 @@
 - name: Fail selinux type is not in semanage output
   fail:
     msg: "Could not find {{ selinux_type }} in output"
-  when: "selinux_type not in output.stdout"
+  when: "{{ selinux_type }} not in output.stdout and output is defined"
