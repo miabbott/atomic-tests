@@ -1,0 +1,19 @@
+---
+# vim: set ft=ansible:
+#
+#  This role verifies the specified container is not in the atomic containers
+#   list output
+#
+- name: Fail if image is undefined
+  fail:
+    msg: "Image is undefined"
+  when: image is undefined
+
+- name: Get atomic containers list output
+  command: atomic containers list --all --no-trunc
+  register: acl_output
+
+- name: Fail if image is in list output
+  fail:
+    msg: "{{ image }} is in list output"
+  when: image in acl_output.stdout

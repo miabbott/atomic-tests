@@ -1,0 +1,28 @@
+Core Functionality
+- Verify system containers can be installed through atomic command
+- Verify system containers can be uninstalled through the atomic command
+- Verify user can specify name for system containers
+- Verify system containers can be listed
+- Verify environment variables can be pass to the container
+- Verify update/rollback of system containers
+- Verify commands can be run in the system container
+- Verify specification of rootfs for system containers
+- Verify setting RUN_DIRECTORY and STATE_DIRECTORY
+- Verify system containers are started on reboot
+- Verify system containers persist through reboot
+
+Upgrade Tests
+- Verify the system container persists through ostree upgrade
+- Verify the system container persists through ostree rollback
+
+Flannel & Etcd Tests
+- Verify installation of flannel and etcd containers
+
+Negative Testing
+- Verify error message is displayed when uninstalling a system container that does not exist
+
+NOT COVERED
+Upgrade Tests
+- Verify the system container persists through ostree upgrade
+- Verify the system container persists through ostree rollback
+

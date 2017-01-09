@@ -1,0 +1,511 @@
+---
+# vim: set ft=ansible:
+#
+# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
+# that the same version is used.
+#
+# Test Cases
+#   Core Functionality
+#     - Verify system containers can be installed through atomic command
+#     - Verify system containers can be uninstalled through the atomic command
+#     - Verify user can specify name for system containers
+#     - Verify system containers can be listed
+#     - Verify environment variables can be pass to the container
+#     - Verify update/rollback of system containers
+#     - Verify commands can be run in the system container
+#     - Verify specification of rootfs for system containers.
+#     - Verify setting RUN_DIRECTORY and STATE_DIRECTORY
+#     - Verify system containers are started on reboot
+#     - Verify system containers persist through reboot
+#
+#   Flannel & Etcd Tests
+#     - Verify installation of flannel and etcd containers
+#
+#   Negative Testing
+#     - Verify error message is displayed when uninstalling a system container that does not exist
+#
+#   Not Covered
+#     Upgrade Tests
+#       - Verify the system container persists through ostree upgrade
+#       - Verify the system container persists through ostree rollback
+#
+- name: System Containers - Setup
+  hosts: all
+  become: yes
+
+  tags:
+    - setup
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Set facts
+      set_fact:
+        etcd_image: 'registry.access.redhat.com/rhel7/etcd'
+        etcd_name: 'etcd'
+        flannel_image: 'registry.access.redhat.com/rhel7/flannel'
+        flannel_name: 'flannel'
+      when: ansible_distribution == 'RedHat'
+
+    - name: Set facts
+      set_fact:
+        etcd_image: 'gscrivano/etcd'
+        etcd_name: 'etcd'
+        flannel_image: 'gscrivano/flannel'
+        flannel_name: 'flannel'
+      when: ansible_distribution != 'RedHat'
+
+  roles:
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+
+- name: System Containers - Install/Uninstall
+  hosts: all
+  become: yes
+
+  #  - Verify system containers can be installed through atomic command
+  #  - Verify system containers can be uninstalled through the atomic command
+  #  - Verify user can specify name for system containers
+  #  - Verify system containers can be listed
+
+  tags:
+    - install_uninstall
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    - role: atomic_system_install
+      image: "{{ g_hw_image }}"
+
+    - role: atomic_system_install_verify
+      image: "{{ g_hw_image }}"
+
+    - role: atomic_system_uninstall
+      name: "{{ g_hw_name }}"
+
+    # uninstall can only be done by name because multiple system containers can
+    #  use the same image https://github.com/projectatomic/atomic/issues/705
+    - role: atomic_system_uninstall_verify
+      image: "{{ g_hw_image }}"
+
+- name: System Containers - Reboot
+  hosts: all
+  become: yes
+
+  tags:
+    - reboot
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Install system container and pass in variables
+      command: >
+        atomic install
+        --system
+        --name={{ g_hw_name }}
+        --set=PORT=8080
+        --set=RECEIVER=foo
+        {{ g_hw_image }}
+
+    - name: Start hello-world service
+      command: systemctl start {{ g_hw_name }}
+
+    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8080
+      register: c_output
+
+    - name: Fail if output is incorrect
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi foo' not in c_output.stdout"
+
+    - include: 'roles/reboot/tasks/main.yml'
+
+    - name: Verify {{ g_hw_name }} service is active
+      command: systemctl is-active {{ g_hw_name }}
+      register: hw_output
+      failed_when: "'active' not in hw_output.stdout"
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8080
+      register: c_output
+
+    - name: Fail if output is incorrect
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi foo' not in c_output.stdout"
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ g_hw_name }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+- name: System Containers - Pass Variables
+  hosts: all
+  become: yes
+
+  # - Verify environment variables can be pass to the container
+
+  tags:
+    - pass_variables
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Install system container and pass in variables
+      command: >
+        atomic install
+        --system
+        --name={{ g_hw_name }}
+        --set=PORT=8080
+        --set=RECEIVER=foo
+        {{ g_hw_image }}
+
+    - name: Start hello-world service
+      command: systemctl start {{ g_hw_name }}
+
+    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8080
+      register: c_output
+
+    - name: Fail if output is incorrect
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi foo' not in c_output.stdout"
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ g_hw_name }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+
+- name: System Containers - Update/Rollback
+  hosts: all
+  become: yes
+
+  # - Verify update/rollback of system containers
+
+  tags:
+    - update_rollback
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Install system container and pass in variables
+      command: >
+        atomic install
+        --system
+        --name={{ g_hw_name }}
+        --set=PORT=8080
+        --set=RECEIVER=foo
+        {{ g_hw_image }}
+
+    - name: Start hello-world service
+      command: systemctl start {{ g_hw_name }}
+
+    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8080
+      register: c_output
+
+    - name: Fail if Hi foo is not in output
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi foo' not in c_output.stdout"
+
+    - name: Update system container
+      command: atomic containers update --set=RECEIVER=bar {{ g_hw_name }}
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8080
+      register: c_output
+
+    - name: Fail if Hi bar is not in output
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi bar' not in c_output.stdout"
+
+    - name: Rollback system container
+      command: atomic containers rollback {{ g_hw_name }}
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8080
+      register: c_output
+
+    - name: Fail if Hi foo is not in output
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi foo' not in c_output.stdout"
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ g_hw_name }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+
+- name: System Containers - Rootfs
+  hosts: all
+  become: yes
+
+  # - Verify specification of rootfs for system containers.
+
+  tags:
+    - rootfs
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Install system container and pass in variables
+      command: >
+        atomic install
+        --system
+        --name={{ g_hw_name }}
+        --set=PORT=8080
+        --set=RECEIVER=foo
+        {{ g_hw_image }}
+
+    - name: Start {{ g_hw_name }} service
+      command: systemctl start {{ g_hw_name }}
+
+    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8080
+      register: c_output
+
+    - name: Fail if Hi foo is not in output
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi foo' not in c_output.stdout"
+
+    - name: Create another container using the first container as the rootfs
+      command: atomic install
+        --system
+        --name={{ g_hw_name }}-remote
+        --rootfs=/var/lib/containers/atomic/{{ g_hw_name }}
+        --set=RECEIVER=remote
+        --set=PORT=8083
+        {{ g_hw_image }}
+
+    - name: Start the {{ g_hw_name }}-remote service
+      command: systemctl start {{ g_hw_name }}-remote
+
+    - name: Verify system container is running with the parameters passed in
+      command: curl http://localhost:8083
+      register: c_output
+
+    - name: Fail if Hi remote is not in output
+      fail:
+        msg: "Paramaters were not correctly passed in"
+      when: "'Hi remote' not in c_output.stdout"
+
+    - name: Verify first container has rootfs
+      stat:
+        path: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs
+      register: hw
+
+    - name: Verify first container has rootfs
+      stat:
+        path: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
+      register: hwr
+
+    - name: Fail when rootfs dir is missing from main container
+      fail:
+        msg: "/var/lib/containers/atomic/{{ g_hw_name }}/rootfs does not exist"
+      when: hw.stat.exists == False
+
+    - name: Fail when rootfs dir exists for rootfs container
+      fail:
+        msg: "/var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs exists"
+      when: hwr.stat.exists == True
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ g_hw_name }}-remote"
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ g_hw_name }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_name }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_name }}-remote"
+
+
+- name: System Containers - Flannel & Etcd
+  hosts: all
+  become: yes
+
+  #  Flannel & Etcd Tests
+
+  tags:
+    - flannel_etcd
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Install etcd
+      command: >
+        atomic install
+        --system
+        --name=etcd
+        {{ etcd_image }}
+
+    - name: Start etcd
+      command: systemctl start etcd
+
+    - name: Verify etcd is active
+      command: systemctl is-active etcd
+      register: etcd_output
+      failed_when: "'active' not in etcd_output.stdout"
+
+    - name: Configure etcd
+      command: >
+        runc exec etcd etcdctl
+        set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'
+
+    - name: Install flannel
+      command:
+        atomic install
+        --system
+        --name=flannel
+        {{ flannel_image }}
+
+    - name: Start flannel
+      command: systemctl start flannel
+
+    - name: Verify flannel service is active
+      command: systemctl is-active flannel
+      register: flannel_output
+      failed_when: "'active' not in flannel_output.stdout"
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ etcd_name }}"
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ flannel_name }}"
+
+    # Upstream issue with flannel container installation stopping docker
+    # https://github.com/projectatomic/atomic-system-containers/issues/23
+    - name: Start docker
+      command: systemctl start docker
+      when: "'gscrivano' in etcd_image"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ etcd_image }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ flannel_image }}"
+
+- name: System Containers - Set RUN_DIRECTORY & STATE_DIRECTORY
+  hosts: all
+  become: yes
+
+  # - Verify setting RUN_DIRECTORY and STATE_DIRECTORY
+
+  tags:
+    - run_state_dir
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Set facts
+      set_fact:
+        run_dir: '/root'
+        state_dir: '/root'
+
+    - name: Create container with RUN_DIRECTORY and STATE_DIRECTORY
+      command: >
+        atomic install
+        --system
+        --set=RUN_DIRECTORY={{ run_dir }}
+        --set=STATE_DIRECTORY={{ state_dir }}
+        {{ g_hw_image }}
+
+    - name: Get output of {{ g_hw_name }} info file
+      command:  cat /var/lib/containers/atomic/{{ g_hw_name }}/info
+      register: info_output
+
+    - name: Convert output to JSON
+      set_fact:
+        info_json: "{{ info_output.stdout|from_json }}"
+
+    - name: Verify RUN_DIRECTORY is set
+      fail:
+        msg: "RUN_DIRECTORY is not set to {{ run_dir }}"
+      when: run_dir not in info_json['values']['RUN_DIRECTORY']
+
+    - name: Verify STATE_DIRECTORY is set
+      fail:
+        msg: "STATE_DIRECTORY is not set to {{ state_dir }}"
+      when: state_dir not in info_json['values']['STATE_DIRECTORY']
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ g_hw_name }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"
+
+- name: System Containers - Negative Testing
+  hosts: all
+  become: yes
+
+  #  Negative Testing
+  #    - Verify error message is displayed when uninstalling a system container that does not exist
+  #    - Verify error message is displayed when installing a non system container with the --system option?
+
+  tags:
+    - negative
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Uninstall system container that does not exist
+      command: atomic uninstall foobar
+      register: auf_output
+      failed_when: auf_output.rc == 0
