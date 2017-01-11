@@ -7,9 +7,9 @@ LABEL RUN="docker run -d --name NAME -p 80:80 IMAGE"
 ENV container docker
 
 ADD makecache.sh /
-RUN /makecache.sh
 
-RUN yum install --disablerepo=\* \
+RUN /makecache.sh && \
+    yum install --disablerepo=\* \
                 --enablerepo=rhel-7-server-rpms \
                 -y httpd && \
     yum clean all
