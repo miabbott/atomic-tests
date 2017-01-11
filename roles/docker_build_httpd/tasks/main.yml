@@ -27,6 +27,14 @@
     group: root
     mode: 0644
 
+- name: Copy makecache.sh to temp directory
+  copy:
+    src: makecache.sh
+    dest: "{{ build_dir }}"
+    owner: root
+    group: root
+    mode: 0744
+
 - name: Build httpd image
   command: "docker build -t {{ g_httpd_name }} -f {{ build_dir }}/{{ g_httpd_name }}_Dockerfile {{ build_dir }}"
 
