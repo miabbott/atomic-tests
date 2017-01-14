@@ -396,6 +396,11 @@
       register: etcd_output
       failed_when: "'active' not in etcd_output.stdout"
 
+    - name: Wait for etcd port to open
+      wait_for:
+        port: 2379
+        timeout: 30
+
     - name: Configure etcd
       command: >
         runc exec etcd etcdctl
