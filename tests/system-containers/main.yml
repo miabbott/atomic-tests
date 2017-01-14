@@ -127,7 +127,7 @@
 
     - name: Fail if output is incorrect
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/reboot/tasks/main.yml'
@@ -143,7 +143,7 @@
 
     - name: Fail if output is incorrect
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -189,7 +189,7 @@
 
     - name: Fail if output is incorrect
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -236,7 +236,7 @@
 
     - name: Fail if Hi foo is not in output
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi foo' not in c_output.stdout"
 
     - name: Update system container
@@ -248,7 +248,7 @@
 
     - name: Fail if Hi bar is not in output
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi bar' not in c_output.stdout"
 
     - name: Rollback system container
@@ -260,7 +260,7 @@
 
     - name: Fail if Hi foo is not in output
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -307,7 +307,7 @@
 
     - name: Fail if Hi foo is not in output
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi foo' not in c_output.stdout"
 
     - name: Create another container using the first container as the rootfs
@@ -328,7 +328,7 @@
 
     - name: Fail if Hi remote is not in output
       fail:
-        msg: "Paramaters were not correctly passed in"
+        msg: "Parameters were not correctly passed in"
       when: "'Hi remote' not in c_output.stdout"
 
     - name: Verify first container has rootfs
