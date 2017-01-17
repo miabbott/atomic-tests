@@ -22,7 +22,10 @@
 #     - Verify installation of flannel and etcd containers
 #
 #   Negative Testing
-#     - Verify error message is displayed when uninstalling a system container that does not exist
+#     - Verify uninstalling a system container that does not exist fails
+#     - Verify installing a system container that does not exist fails
+#     - Verify DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, and HOST_GID
+#         cannot be set
 #
 #   Not Covered
 #     Upgrade Tests
@@ -500,9 +503,10 @@
   become: yes
 
   #  Negative Testing
-  #    - Verify error message is displayed when uninstalling a system container that does not exist
-  #    - Verify error message is displayed when installing a non system container with the --system option?
-
+  #    - Verify uninstalling a system container that does not exist fails
+  #    - Verify installing a system container that does not exist fails
+  #    - Verify DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, and HOST_GID
+  #        cannot be set
   tags:
     - negative
 
@@ -514,3 +518,37 @@
       command: atomic uninstall foobar
       register: auf_output
       failed_when: auf_output.rc == 0
+
+    - name: Install a system container that does not exist
+      command: atomic install xxfoobarxx
+      register: aif_output
+      failed_when: aif_output.rc == 0
+
+    - name: Create container with DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, HOST_GID
+      command: >
+        atomic install
+        --system
+        --set=DESTDIR={{ g_invalid_value }}
+        --set=NAME={{ g_invalid_value }}
+        --set=EXEC_START={{ g_invalid_value }}
+        --set=EXEC_STOP={{ g_invalid_value }}
+        --set=HOST_UID={{ g_invalid_value }}
+        --set=HOST_GID={{ g_invalid_value }}
+        {{ g_hw_image }}
+
+    - name: Get output of {{ g_hw_name }} info file
+      command:  cat /var/lib/containers/atomic/{{ g_hw_name }}/info
+      register: info_output
+
+    - name: Fail if {{ g_invalid_value }} in output
+      fail:
+        msg: "Able to set DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID"
+      when: g_invalid_value in info_output.stdout
+
+    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+      vars:
+        name: "{{ g_hw_name }}"
+
+    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+      vars:
+        image: "{{ g_hw_image }}"

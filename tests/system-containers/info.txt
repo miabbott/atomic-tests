@@ -19,10 +19,12 @@ Flannel & Etcd Tests
 - Verify installation of flannel and etcd containers
 
 Negative Testing
-- Verify error message is displayed when uninstalling a system container that does not exist
+- Verify uninstalling a system container that does not exist fails
+- Verify installing a system container that does not exist fails
+- Verify DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, and HOST_GID
+  cannot be set
 
 NOT COVERED
 Upgrade Tests
 - Verify the system container persists through ostree upgrade
 - Verify the system container persists through ostree rollback
-
