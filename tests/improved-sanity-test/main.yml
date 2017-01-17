@@ -58,6 +58,37 @@
       tags:
         - redhat_subscription
 
+    # Install package using package layering
+    - role: rpm_ostree_install
+      packages: "{{ g_pkg }}"
+      reboot: true
+      tags:
+        - rpm_ostree_install
+
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg }}"
+      tags:
+        - rpm_ostree_install_verify
+
+    # Verify admin unlock
+    - role: ostree_admin_unlock_hotfix
+      tags:
+        - ostree_admin_unlock_hotfix
+
+    - role: overlayfs_verify_present
+      tags:
+        - overlayfs_verify_present
+
+    - role: rpm_install
+      rpm_name: "{{ g_rpm_name }}"
+      tags:
+        - rpm_install
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name }}"
+      tags:
+        - package_verify_present
+
     # Check that /tmp is properly setup
     - role: tmp_check_perms
       tags:
@@ -185,6 +216,23 @@
       tags:
         - semanage_add_verify
 
+    # Check layered package is still installed
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg }}"
+      tags:
+        - rpm_ostree_install_verify
+
+    # Check admin unlock overlayfs is no longer there after upgrade
+    - role: overlayfs_verify_missing
+      tags:
+        - overlayfs_verify_missing
+
+    # Verify admin unlocked package still installed
+    - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name }}"
+      tags:
+        - package_verify_missing
+
     # Check that /tmp is properly setup
     - role: tmp_check_perms
       tags:
@@ -303,6 +351,23 @@
     - role: selinux_verify
       tags:
         - selinux_verify
+
+    # Check layered package is still installed
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg }}"
+      tags:
+        - rpm_ostree_install_verify
+
+    # Check admin unlock overlayfs still present
+    - role: overlayfs_verify_present
+      tags:
+        - overlayfs_verify_present
+
+    # Verify admin unlocked package still installed
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name }}"
+      tags:
+        - package_verify_present
 
     # Check that /tmp is properly setup
     - role: tmp_check_perms

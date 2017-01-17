@@ -20,3 +20,11 @@
     owner: root
     group: root
     mode: 0644
+
+- name: Copy EPEL GPG Key into /etc/pki/rpm-gpg
+  copy:
+    src: RPM-GPG-KEY-EPEL-7
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+    owner: root
+    group: root
+    mode: 0644
