@@ -6,6 +6,22 @@
     msg: "ua_uid variable is not defined"
   when: ua_uid is undefined
 
+- name: Check enabled password algorithm
+  shell: authconfig --test | grep hash
+  register: algo
+
+- name: Fail if password algorithm is not SHA-512
+  fail:
+    msg: "Password algorithm is not SHA-512"
+  when: "'sha512' not in algo.stdout"
+
 - name: Add user
   command: "useradd atomic-user-{{ ua_uid }} -u {{ ua_uid }}"
 
+  # because UUIDs could be passwords
+- name: Generate some random string
+  command: uuidgen -r
+  register: uuid
+
+- name: Set the password for the user
+  shell: "echo {{ uuid.stdout | quote }} | passwd atomic-user-{{ ua_uid | quote }} --stdin"
