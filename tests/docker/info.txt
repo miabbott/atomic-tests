@@ -1,0 +1,11 @@
+Test Coverage:
+* docker build
+* docker images
+* docker ps
+* docker pull
+* docker rm
+* docker rmi
+* docker run
+* docker start
+* docker stop
+

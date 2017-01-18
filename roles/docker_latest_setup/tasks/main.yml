@@ -1,0 +1,38 @@
+---
+# vim: set ft=ansible:
+#
+# This role configures the atomic host to run docker lates
+#
+
+- name: Stop and disable docker (current) service
+  service:
+    name: docker
+    state: stopped
+    enabled: no
+
+- name: Enable and start docker-latest service
+  service:
+    name: docker-latest
+    state: started
+    enabled: yes
+
+- name: Change docker binary
+  replace:
+    dest: /etc/sysconfig/docker
+    regexp: '#DOCKERBINARY=/usr/bin/docker-latest'
+    replace: 'DOCKERBINARY=/usr/bin/docker-latest'
+
+- name: Get docker version
+  command: docker --version
+  register: docker_ver
+
+- name: Get docker-latest version
+  command: /usr/bin/docker-latest --version
+  register: dockerl_ver
+
+- name: Fail if docker version is not the same as docker-latest
+  fail:
+    msg: "Docker is not docker latest"
+  when: docker_ver.stdout != dockerl_ver.stdout
+
+

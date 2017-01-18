@@ -55,3 +55,27 @@
   fail:
     msg: "The {{ g_httpd_name }} container is still running"
   when: "'{{ g_httpd_name }}' in ps_stop.stdout"
+
+- name: Start httpd container
+  command: "docker start {{ g_httpd_name }}"
+
+- name: Get a list of running containers
+  command: docker ps
+  register: ps_start
+
+- name: Fail if httpd container is not running
+  fail:
+    msg: "The {{ g_httpd_name }} container is not running"
+  when: "'{{ g_httpd_name }}' not in ps_start.stdout"
+
+- name: Stop httpd container
+  command: "docker stop {{ g_httpd_name }}"
+
+- name: Get a list of running containers
+  command: docker ps
+  register: ps_stop
+
+- name: Fail if httpd container is still running
+  fail:
+    msg: "The {{ g_httpd_name }} container is still running"
+  when: "'{{ g_httpd_name }}' in ps_stop.stdout"

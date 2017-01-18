@@ -1,0 +1,89 @@
+---
+# vim: set ft=ansible:
+#
+# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
+# that the same version is used.
+#
+# This playbook tests the basic functions of docker or docker-latest. These
+# functions include:
+#   - docker build
+#   - docker images
+#   - docker ps
+#   - docker pull
+#   - docker rm
+#   - docker rmi
+#   - docker run
+#   - docker start
+#   - docker stop
+#
+# To test docker-current, set the g_docker_latest variable to false in the
+# vars.yml file.
+#
+
+- name: Docker - Setup
+  hosts: all
+  become: yes
+
+  tags:
+    - setup
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.1 and an Atomic Host
+    - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check'] }
+
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+- name: Docker - Functional Tests
+  hosts: all
+  become: yes
+
+  tags:
+    - functional
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    - role: osname_set_fact
+      tags:
+        - osname_set_fact
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: docker_latest_setup
+      tags:
+        - docker_latest_setup
+      when: g_docker_latest
+
+    - role: docker_pull_base_image
+      tags:
+        - docker_pull_base_image
+
+    - role: docker_build_httpd
+      tags:
+        - docker_build_httpd
+
+    - role: docker_run_httpd
+      tags:
+        - docker_run_httpd
+
+    - role: docker_rm_httpd_container
+      tags:
+        - docker_rm_httpd_container
+
+    - role: docker_rmi_httpd_image
+      tags:
+        - docker_rmi_httpd_image
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all2
