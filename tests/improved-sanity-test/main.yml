@@ -227,7 +227,7 @@
       tags:
         - overlayfs_verify_missing
 
-    # Verify admin unlocked package still installed
+    # Verify admin unlocked package is removed after upgrade
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name }}"
       tags:
