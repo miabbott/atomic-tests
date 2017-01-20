@@ -30,6 +30,17 @@
   vars_files:
     - vars.yml
 
+
+  pre_tasks:
+    - name: Check for docker-latest package
+      command: rpm -qa
+      register: pkgs
+
+    - name: Fail if docker latest is not installed
+      fail:
+        msg: "This test is not valid because docker-latest is not installed"
+      when: "'docker-latest' not in pkgs.stdout"
+
   roles:
     # This playbook requires Ansible 2.1 and an Atomic Host
     - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check'] }
