@@ -10,4 +10,4 @@
   command: "grep atomic-user-{{ uvp_uid }}:x:{{ uvp_uid }}:{{ uvp_uid }}::/home/atomic-user-{{ uvp_uid }}:/bin/bash /etc/passwd"
 
 - name: Verify password is a SHA-512 hash
-  command: "grep '^atomic-user-{{ uvp_uid }}:$6.*' /etc/shadow"
+  command: "grep '^atomic-user-{{ uvp_uid }}:$6$.*' /etc/shadow"
