@@ -264,20 +264,7 @@
     - name: Install {{ g_epel_pkg }} from EPEL
       command: rpm-ostree install {{ g_epel_pkg }}
 
-    - name: restart hosts
-      shell: sleep 3 && shutdown -r now
-      async: 1
-      poll: 0
-      ignore_errors: true
-
-    - name: wait for hosts to come back up (inventory_hostname)
-      local_action:
-        wait_for host={{ inventory_hostname }}
-        port=22
-        state=started
-        delay=15
-        timeout=120
-      become: false
+    - include: ../../common/ans_reboot.yaml
 
     - include: verify_package_deployed.yml
       vars:
