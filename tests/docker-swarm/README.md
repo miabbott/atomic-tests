@@ -1,0 +1,58 @@
+This playbook is a basic functional test for docker swarm in single node mode.
+It is not intended test all features of docker swarm.
+
+Core Functionality
+- Initialize docker swarm
+- Create docker swarm service
+- Scale replicas up and down
+- Remove service
+- Leave swarm
+
+### Prerequisites
+  - Ansible version 2+ (the playbook was tested using Ansible 2.1)
+
+  - Configure subscription data (if used)
+
+    If running against a RHEL Atomic Host, you should provide subscription
+    data that can be used by `subscription-manager`.  See
+    [roles/redhat_subscribe/tasks/main.yaml](roles/redhat_subscribe/tasks/main.yaml)
+    for additional details.
+
+  - Configure the required variables to your liking in [tests/docker-swarm/vars.yml](tests/docker-swarm/vars.yml).
+
+  - Because these tests are geared towards testing upgrades and rollbacks,
+    the system under test should have a new tree available to upgrade to.
+
+### Running the Playbook
+
+To run the test, simply invoke as any other Ansible playbook:
+
+```
+$ ansible-playbook -i inventory tests/docker-swarm/main.yml
+```
+
+*NOTE*: You are responsible for providing a host to run the test against and the
+inventory file for that host.
+
+#### Vagrant
+
+Alternatively, you can see how the playbook would run by using the supplied
+Vagrantfile which defines multiple boxes to test with. The Vagrantfile
+requires a 'vagrant-reload' plugin - see the Vagrantfile for additional
+information.
+
+With the plugin installed, you should be able to choose a CentOS AH box, a
+Fedora 23 AH box, or a CAHC box.
+
+```
+$ vagrant up centos
+
+or
+
+$ vagrant up fedora23
+
+or
+
+$ vagrant up cahc
+```
+

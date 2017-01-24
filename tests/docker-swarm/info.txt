@@ -1,0 +1,6 @@
+TEST COVERAGE
+- Initialize docker swarm
+- Create docker swarm service
+- Scale replicas up and down
+- Remove service
+- Leave swarm
