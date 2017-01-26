@@ -49,7 +49,7 @@ $ vagrant up centos
 
 or
 
-$ vagrant up fedora23
+$ vagrant up fedora24
 
 or
 

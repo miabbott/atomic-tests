@@ -1,26 +1,16 @@
 ---
 # vim: set ft=ansible:
 #
-- name: Fail if docker_major is not defined
+- name: Fail if required docker_version is not defined
   fail:
-    msg: "The docker_major variable is undefined"
-  when: docker_major is undefined
+    msg: "The docker_version undefined"
+  when: docker_version is undefined
 
-- name: Fail if docker_minor is not defined
+- name: Set actual docker
+  shell: docker version -f \{\{.Server.Version\}\}
+  register: actual_docker_version
+
+- name: Check if minimum version is met
   fail:
-    msg: "The docker_minor variable is undefined"
-  when: docker_minor is undefined
-
-- name: Set actual docker major version
-  shell: docker --version | awk '{ print $3 }' | cut -d. -f1
-  register: major_output
-
-- name: Set actual docker minor version
-  shell: docker --version | awk '{ print $3 }' | cut -d. -f2
-  register: minor_output
-
-- name: Check if Ansible is the correct version (or newer)
-  assert:
-    that:
-      - "{{ major_output.stdout | int }} >= {{ docker_major }}"
-      - "{{ minor_output.stdout | int  }} >= {{ docker_minor }}"
+    msg: "Docker version too old: {{ actual_docker_version.stdout }} < {{ docker_version }}"
+  when: actual_docker_version.stdout | version_compare(docker_version, '<')

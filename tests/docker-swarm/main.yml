@@ -24,8 +24,7 @@
 
   roles:
     - role: docker_version_check
-      docker_major: 1
-      docker_minor: 12
+      docker_version: 1.12.0
       tags:
         - docker_version_check
 
