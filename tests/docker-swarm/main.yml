@@ -77,7 +77,6 @@
 
     - name: Initialize docker swarm
       command: docker swarm init --advertise-addr 127.0.0.1
-      register: dsi
 
     - name: Verify docker swarm is started
       command: docker info
@@ -168,7 +167,6 @@
 
     - name: Deactivate swarm
       command: docker swarm leave --force
-      register: dsl
 
     - name: Verify swarm is inactive
       command: docker info
