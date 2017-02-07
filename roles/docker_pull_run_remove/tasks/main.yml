@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# popular_images is defined in roles/docker_pull_run_remove/vars/main.yml
+#
+- name: Pull the popular images from Docker Hub
+  command: "docker pull docker.io/{{ item }}"
+  with_items: "{{ popular_images }}"
+
+- name: Run the popular images
+  command: "docker run --rm docker.io/{{ item }} echo 'hello'"
+  with_items: "{{ popular_images }}"
+
+- name: Remove the popular images
+  command: "docker rmi docker.io/{{ item }}"
+  with_items: "{{ popular_images }}"
