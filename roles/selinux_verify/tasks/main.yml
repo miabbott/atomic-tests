@@ -24,6 +24,6 @@
   command: rpm-ostree status
 
 - name: Verify SELinux label is correct on rpm-ostreed process
-  shell: ps --no-headers -o label -q $(pidof rpm-ostreed)
+  shell: ps --no-headers -o label -q $(systemctl show -p MainPID rpm-ostreed | sed -e s,MainPID=,,) 
   register: selinux_label
   failed_when: "'install_t' not in selinux_label.stdout"
