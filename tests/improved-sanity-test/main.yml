@@ -58,10 +58,6 @@
       tags:
         - redhat_subscription
 
-    - role: docker_pull_run_remove
-      tags:
-        - docker_pull_run_remove
-
     # Install package using package layering
     - role: rpm_ostree_install
       packages: "{{ g_pkg }}"
