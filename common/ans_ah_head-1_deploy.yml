@@ -1,0 +1,32 @@
+---
+- hosts: '{{ hosts | default("all") }}'
+  gather_facts: false
+  become: yes
+
+  tasks:
+    - name: Get rpm-ostree JSON status
+      command: rpm-ostree status --json
+      register: rpm_output
+
+    - name: Convert JSON to Jinja2
+      set_fact:
+        json: "{{ rpm_output.stdout|from_json }}"
+
+    - name: Get checksum of HEAD-1
+      command: ostree rev-parse {{ json['deployments'][0]['checksum'] }}^
+      register: head_minus_one
+
+    - name: Deploy HEAD-1
+      command: rpm-ostree deploy {{ head_minus_one.stdout }}
+      register: output
+      until: output.rc == 0
+      retries: 3
+      delay: 5
+      failed_when: "output.rc != 0"
+
+    - include: ans_reboot.yaml
+
+    - name: wait for docker service to start
+      service:
+        name: docker
+        state: started
