@@ -41,5 +41,5 @@
   become: false
 
 - name: give host some time to settle
-  local_action: pause seconds=15
+  local_action: pause seconds=30
   become: false
