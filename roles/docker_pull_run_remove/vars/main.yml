@@ -4,7 +4,4 @@
 popular_images:
   - alpine
   - busybox
-  - centos
-  - debian
-  - fedora
   - ubuntu
