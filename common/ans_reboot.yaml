@@ -39,3 +39,11 @@
     wait_for host={{ real_ansible_host }}
     port=22 state=started delay=30 timeout=120
   become: false
+
+# provide an empty iterator when a list is not provided
+# http://docs.ansible.com/ansible/playbooks_conditionals.html#loops-and-conditionals
+- name: check services have started
+  service:
+    name: "{{ item }}"
+    state: started
+  with_items: "{{ services|default([]) }}"

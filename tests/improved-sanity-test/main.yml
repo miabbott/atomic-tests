@@ -187,6 +187,8 @@
         - rpm_ostree_upgrade
 
     - role: reboot
+      wait_for_services:
+        - docker
       tags:
         - reboot
 
@@ -331,6 +333,8 @@
         - rpm_ostree_rollback
 
     - role: reboot
+      wait_for_services:
+        - docker
       tags:
         - reboot
 
