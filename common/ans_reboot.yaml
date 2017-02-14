@@ -46,4 +46,4 @@
   service:
     name: "{{ item }}"
     state: started
-  with_items: "{{ services|default([]) }}"
+  with_items: "{{ wait_for_services|default([]) }}"
