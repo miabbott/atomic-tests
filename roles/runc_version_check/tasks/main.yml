@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if required runc_version is not defined
+  fail:
+    msg: "The runc_version undefined"
+  when: runc_version is undefined
+
+- name: Set actual runc version
+  shell: runc --version | grep version | cut -d' ' -f3
+  register: actual_runc_version
+
+- name: Check if minimum version is met
+  fail:
+    msg: "Runc version too old: {{ actual_runc_version.stdout }} < {{ runc_version }}"
+  when: actual_runc_version.stdout | version_compare(runc_version, '<')

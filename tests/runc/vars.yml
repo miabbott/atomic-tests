@@ -1,0 +1,6 @@
+---
+g_runc_version: 1.0.0-rc2
+g_upstream_test: https://fedorapeople.org/cgit/caiqian/public_git/runctst.git/plain/runctst.py
+g_base_path: /root
+g_pip_url: https://bootstrap.pypa.io/get-pip.py
+g_script_path: /root/runctst.py
