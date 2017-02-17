@@ -37,25 +37,3 @@ $ ansible-playbook -i inventory tests/improved-sanity-test/main.yml
 
 *NOTE*: You are responsible for providing a host to run the test against and the
 inventory file for that host.
-
-#### Vagrant
-
-Alternatively, you can see how the playbook would run by using the supplied
-Vagrantfile which defines multiple boxes to test with. The Vagrantfile
-requires a 'vagrant-reload' plugin - see the Vagrantfile for additional
-information.
-
-With the plugin installed, you should be able to choose a CentOS AH box, a
-Fedora 24/25 AH box, or a CAHC box.
-
-```
-$ vagrant up centos
-
-or
-
-$ vagrant up {fedora24|fedora25}
-
-or
-
-$ vagrant up cahc
-```

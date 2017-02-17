@@ -41,23 +41,3 @@ out-of-box release of docker, set g_docker_latest to false in [tests/docker/vars
 
 *NOTE*: You are responsible for providing a host to run the test against and the
 inventory file for that host.
-
-#### Vagrant
-
-Alternatively, you can see how the playbook would run by using the supplied
-Vagrantfile which defines multiple boxes to test with. The Vagrantfile
-requires a 'vagrant-reload' plugin - see the Vagrantfile for additional
-information.
-
-With the plugin installed, you should be able to choose a CentOS AH box,
-a CAHC box.
-
-```
-$ vagrant up centos
-```
-
-or
-
-```
-$ vagrant up cahc
-```

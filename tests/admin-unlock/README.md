@@ -69,30 +69,3 @@ $ ansible-playbook -i inventory tests/admin-unlock/main.yml
 inventory file for that host.
 
 *NOTE*: This playbook must be run as a whole.  Do not run individual plays.
-
-#### Vagrant
-
-Alternatively, you can see how the playbook would run by using the supplied
-Vagrantfile which defines multiple boxes to test with. The Vagrantfile
-requires a 'vagrant-reload' plugin - see the Vagrantfile for additional
-information.
-
-With the plugin installed, you should be able to choose a CentOS AH box, a
-Fedora 24/25 AH box, or a CAHC box.
-
-```
-$ vagrant up centos
-
-or
-
-$ vagrant up fedora24
-
-or
-
-$ vagrant up fedora25
-
-or
-
-$ vagrant up cahc
-```
-

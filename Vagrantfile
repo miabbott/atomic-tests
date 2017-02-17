@@ -5,7 +5,7 @@
 # https://github.com/aidanns/vagrant-reload
 
 # This Vagrantfile defines multiple boxes that are tooled to test/run the
-# sanity playbook in 'tests/cach-sanity-test/main.yml'.
+# sanity playbook in 'tests/improved-sanity-test/main.yml'.
 #
 # Each box boots into the OS, deploys HEAD^ of a particular tree, then runs
 # the playbook (which currently includes upgrading to HEAD of the same tree).
