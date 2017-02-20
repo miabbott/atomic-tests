@@ -26,7 +26,7 @@ Core Functionality
     [roles/redhat_subscribe/tasks/main.yaml](roles/redhat_subscribe/tasks/main.yaml)
     for additional details.
 
-  - Configure the required variables to your liking in [tests/docker/vars.yml](tests/docker/vars.yml).
+  - Configure the required variables to your liking in [tests/docker/vars.yml](vars.yml).
 
 ### Running the Playbook
 
@@ -37,7 +37,7 @@ $ ansible-playbook -i inventory tests/docker/main.yml
 ```
 
 By default, this test will test docker-latest.  If you would like to test the
-out-of-box release of docker, set g_docker_latest to false in [tests/docker/vars.yml]
+out-of-box release of docker, set `g_docker_latest` to false in [tests/docker/vars.yml](vars.yml).
 
 *NOTE*: You are responsible for providing a host to run the test against and the
 inventory file for that host.
