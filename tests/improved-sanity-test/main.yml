@@ -44,6 +44,10 @@
       tags:
         - atomic_host_check
 
+    - role: atomic_host_status_verify
+      tags:
+        - atomic_host_status_verify
+
     - role: selinux_verify
       tags:
         - selinux_verify
@@ -123,10 +127,6 @@
     - role: osname_set_fact
       tags:
         - osname_set_fact
-
-    - role: atomic_host_status_verify
-      tags:
-        - atomic_host_status_verify
 
     - role: atomic_pull_verify
       tags:
@@ -209,6 +209,24 @@
     - role: atomic_host_check
       tags:
         - atomic_host_check
+
+    # we remove any subscriptions after the upgrade to verify that
+    # 'rpm-ostree status' with the 'unconfigured-state' field present.
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1421867
+    - role: redhat_unsubscribe
+      unconfigured_state: true
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe
+
+    - role: atomic_host_status_verify
+      tags:
+        - atomic_host_status_verify
+
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscribe
 
     - role: selinux_verify
       tags:
@@ -297,11 +315,6 @@
     - role: docker_rmi_httpd_image
       tags:
         - docker_rmi_httpd_image
-
-    # Re-run atomic tests
-    - role: atomic_host_status_verify
-      tags:
-        - atomic_host_status_verify
 
     - role: docker_remove_all
       tags:
@@ -403,3 +416,9 @@
 
     # Verify the most recent changes to /var are present
     - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
+
+    # cleanup our subscriptions because we are nice people
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe
