@@ -29,8 +29,16 @@
     - unconfigured_state is defined
     - unconfigured_state
 
-- name: Remove all subscriptions
+# we've seen the remove command return 70 even though it was successful
+- name: Remove all subscriptions locally
   command: subscription-manager remove --all
+  register: subman_remove
+  failed_when:
+    - subman_remove.rc != 0
+    - subman_remove.rc != 70
+
+- name: Unregister from remote service
+  command: subscription-manager unregister
 
 - name: Insert 'unconfigured-state' field
   lineinfile:
