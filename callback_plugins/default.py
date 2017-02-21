@@ -49,6 +49,7 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
         # pylint: disable=non-parent-init-called
         BASECLASS.__init__(self, *args, **kwargs)
         self.failed_task = []
+        self.result_file = os.environ.get('AHT_RESULT_FILE')
 
     def _dump_results(self, result):
         '''Return the text to output for a result.'''
@@ -63,7 +64,7 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
 
         for key in ['stdout', 'stderr', 'msg']:
             if key in save and save[key]:
-                output += '\n\n%s:\n\n%s\n' % (key.upper(), save[key])
+                output += '\n\n%s:\n---\n%s\n---' % (key.upper(), save[key])
 
         for key, value in save.items():
             result[key] = value
@@ -128,18 +129,13 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
 
         self._display.display("", screen_only=True)
 
-        # Save result file in current working directory
-        try:
-            os.remove('result')
-        except OSError:
-            pass
 
-        if self.failed_task:
-            with open('result', 'w') as f:
-                f.write("FAILED\n")
-                f.write("PLAY: %s\n%s\n%s" % (self._play, \
-                                              self.failed_task._task, \
-                                              self._dump_results(self.failed_task._result)))
-        else:
-            with open('result', 'w') as f:
-                f.write("PASSED\n")
+        # Save result to file if environment variable exists
+        if self.result_file is not None:
+            if self.failed_task:
+                with open(self.result_file, 'w') as f:
+                    f.write("PLAY: %s\n%s\n%s" % (self._play, \
+                                                  self.failed_task._task, \
+                                                  self._dump_results(self.failed_task._result)))
+            else:
+                open(self.result_file, 'w').close()
