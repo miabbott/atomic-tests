@@ -220,6 +220,7 @@
         - redhat_unsubscribe
 
     - role: atomic_host_status_verify
+      stop_daemon: true
       tags:
         - atomic_host_status_verify
 

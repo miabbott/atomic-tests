@@ -1,6 +1,14 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Optionally stop the rpm-ostree daemon
+  service:
+    name: rpm-ostreed
+    state: stopped
+  when:
+    - stop_daemon is defined
+    - stop_daemon
+
 - name: Run atomic host status
   command: atomic host status
   register: ahs
