@@ -8,3 +8,4 @@ g_dir2: 'qe2'
 g_hostname: 'myhostname'
 g_rpm_name: "fpaste"
 g_pkg: "wget"
+g_seboolean: "virt_use_nfs"

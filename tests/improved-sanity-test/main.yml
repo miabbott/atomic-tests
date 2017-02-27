@@ -56,6 +56,10 @@
       tags:
         - semanage_add_verify
 
+    - role: selinux_boolean
+      tags:
+        - selinux_boolean
+
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
@@ -236,6 +240,10 @@
     - role: semanage_add_verify
       tags:
         - semanage_add_verify
+
+    - role: selinux_boolean_verify
+      tags:
+        - selinux_boolean_verify
 
     - role: docker_pull_run_remove
       tags:

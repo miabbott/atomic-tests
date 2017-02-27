@@ -1,6 +1,13 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Fail if required variables are not defined
+  fail:
+    msg: "The required variables are not defined.  Check roles/selinux_verify/vars/main.yml"
+  when: etc_files is undefined or
+        mountpoints is undefined or
+        services is undefined
+
 - name: Check if getfattr installed
   stat:
     path: /usr/bin/getfattr
@@ -11,19 +18,92 @@
     msg: "The getfattr utility is not installed"
   when: getfattr.stat.exists == False
 
-- name: Verify that the SELinux context is correct on ostree/rpm-ostree
-  command: getfattr -n security.selinux {{ item }} --absolute-names --only-values
-  register: selinux_context
-  failed_when: "'install_exec_t' not in selinux_context.stdout"
-  with_items:
-    - /usr/bin/ostree
-    - /usr/bin/rpm-ostree
-    - /usr/libexec/rpm-ostreed
+  # I'm both proud and embarrassed about what I've done here.  This is peak
+  # "Ansible abuse".  Please don't do this.
+  #
+  # I discovered a handy iterator 'with_subelements' that lets you iterate over
+  # a hash/dict and then iterates on a list found in a key of the dict. See the
+  # following bit of docs:
+  #
+  # http://docs.ansible.com/ansible/playbooks_loops.html#looping-over-subelements
+  #
+  # This allowed me to use a simple data structure (really just a variable) in
+  # 'roles/selinux_verify/vars/main.yml' to track files/procs/labels for different
+  # services.
+  #
+  # After getting the results for each 'service', I had to figure a way to compare
+  # the labels in the data structure to what was found in the output of the command.
+  #
+  # I happened to notice that each item in the 'results' variable contained a key
+  # named 'item' that is the original data structure which was used for the original
+  # 'command' invocation.  This allowed me to pull out the 'file_label' value from
+  # the original data structure and compare it to what was in stdout.
+  #
+  # http://docs.ansible.com/ansible/playbooks_loops.html#using-register-with-a-loop
+  #
+  # This type of abuse is continued for the inspection of SELinux process labels and
+  # /etc/ file labels
+  #
+- name: Retrieve the SELinux file labels
+  command: getfattr -n security.selinux {{ item.1 }} --absolute-names --only-values
+  register: selinux_file_labels
+  with_subelements:
+    - "{{ services }}"
+    - files
+
+- name: Verify SELinux file labels are correct
+  fail:
+    msg: "The file {{ item.item.1 }} did not have the correct SELinux file label"
+  when: item.item.0.file_label not in item.stdout
+  with_items: "{{ selinux_file_labels.results }}"
 
 - name: Run 'rpm-ostree status' to start daemon
   command: rpm-ostree status
 
-- name: Verify SELinux label is correct on rpm-ostreed process
-  shell: ps --no-headers -o label -q $(systemctl show -p MainPID rpm-ostreed | sed -e s,MainPID=,,) 
-  register: selinux_label
-  failed_when: "'install_t' not in selinux_label.stdout"
+- name: Retrieve SELinux process labels
+  shell: ps --no-headers -o label -q $(systemctl show -p MainPID {{ item.1|quote }} | sed -e s,MainPID=,,)
+  register: selinux_proc_labels
+  with_subelements:
+    - "{{ services }}"
+    - procs
+
+- name: Verify SELinux process labels are correct
+  fail:
+    msg: "The process {{ item.item.1 }} did not have the correct SELinux process label"
+  when: item.item.0.proc_label not in item.stdout
+  with_items: "{{ selinux_proc_labels.results }}"
+
+- name: Look for files/dirs with 'default_t' label
+  command: find {{ item }} -context '*:default_t:*'
+  register: find_default_t
+  with_items: "{{ mountpoints }}"
+
+- name: Fail if a file/dir is found with 'default_t' label
+  fail:
+    msg: "The file {{ item.item }} had an SELinux label of 'default_t'"
+  when: "{{ item.stdout | length }} != 0"
+  with_items: "{{ find_default_t.results }}"
+
+- name: Look for files/dir with 'file_t' label
+  command: find {{ item }} -context '*:file_t:*'
+  register: find_file_t
+  with_items: "{{ mountpoints }}"
+
+- name: Fail if a file is found with the 'file_t' label
+  fail:
+    msg: "The file {{ item.item }} had an SELinux label of 'file_t'"
+  when: "{{ item.stdout | length }} != 0"
+  with_items: "{{ find_file_t.results }}"
+
+- name: Retrieve the SELinux file labels for key /etc files
+  command: getfattr -n security.selinux {{ item.1 }} --absolute-names --only-values
+  register: etc_file_labels
+  with_subelements:
+    - "{{ etc_files }}"
+    - files
+
+- name: Verify key /etc SELinux file labels are correct
+  fail:
+    msg: "The file {{ item.item.1 }} did not have the correct SELinux file label"
+  when: item.item.0.label not in item.stdout
+  with_items: "{{ etc_file_labels.results }}"

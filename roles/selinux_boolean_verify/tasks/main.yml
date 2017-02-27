@@ -1,0 +1,12 @@
+---
+# vim: set ft=ansible
+#
+- name: Fail if 'g_seboolean' is undefined
+  fail:
+    msg: "The variable 'g_seboolean' is undefined"
+  when: g_seboolean is undefined
+
+- name: Verify that the SELinux Boolean is correct
+  command: "getsebool {{ g_seboolean }}"
+  register: seboolean
+  failed_when: "'off' in seboolean.stdout"
