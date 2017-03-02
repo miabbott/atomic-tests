@@ -29,9 +29,12 @@
 
   # Because the 'atomic install' of the 'rhel7/openscap' image drops a config
   # file in '/etc/atomic.d/' which doesn't use a fully-qualified image name,
-  # this causes a problem on non RHEL hosts. We need to work around it until
-  # it gets fixed. It's a safe change to make for RHEL hosts too, so let's
-  # just do it everywhere.
+  # this causes a problem on non RHEL hosts. See:
+  #
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1418464
+  #
+  # We need to work around it until it gets fixed. It's a safe change to make
+  # for RHEL hosts too, so let's just do it everywhere.
 - name: Modify image name in /etc/atomic.d/openscap
   lineinfile:
     destfile: /etc/atomic.d/openscap
