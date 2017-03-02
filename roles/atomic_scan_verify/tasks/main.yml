@@ -13,13 +13,6 @@
   set_fact:
     scanner_image: "registry.access.redhat.com/rhel7/openscap"
     scanner_type: "openscap"
-  when: ansible_distribution == "RedHat"
-
-- name: Set scanner image
-  set_fact:
-    scanner_image: "docker.io/fedora/atomic_scan_openscap"
-    scanner_type: "atomic_scan_openscap"
-  when: ansible_distribution != "RedHat"
 
 - name: Set scanner target
   set_fact:
@@ -33,6 +26,17 @@
   fail:
     msg="Atomic install was unsuccessful"
   when: "'Installation complete' not in result.stdout"
+
+  # Because the 'atomic install' of the 'rhel7/openscap' image drops a config
+  # file in '/etc/atomic.d/' which doesn't use a fully-qualified image name,
+  # this causes a problem on non RHEL hosts. We need to work around it until
+  # it gets fixed. It's a safe change to make for RHEL hosts too, so let's
+  # just do it everywhere.
+- name: Modify image name in /etc/atomic.d/openscap
+  lineinfile:
+    destfile: /etc/atomic.d/openscap
+    regexp: '^image_name:*'
+    line: 'image_name: registry.access.redhat.com/rhel7/openscap'
 
   # Use 'docker pull' for now; maybe switch to 'atomic pull' once all the
   # streams have support for v1 schema manifests
