@@ -38,29 +38,50 @@
 
   roles:
     # This playbook requires Ansible 2.1 and an Atomic Host
-    - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check'] }
+    - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check','cloud_image'] }
 
     - role: atomic_host_check
       tags:
         - atomic_host_check
+        - cloud_image
 
+    # Set some facts that are used in multiple roles
+    - role: osname_set_fact
+      tags:
+        - osname_set_fact
+        - cloud_image
+
+    # Verify that the output from 'atomic host status' matches 'rpm-ostree status'
     - role: atomic_host_status_verify
       tags:
         - atomic_host_status_verify
+        - cloud_image
 
+    # Verify SELinux labels are correct
     - role: selinux_verify
       tags:
         - selinux_verify
+        - cloud_image
 
+    # Verify that SELinux file contexts can be modified
     - role: semanage_add_verify
       tags:
         - semanage_add_verify
+        - cloud_image
 
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
       tags:
         - redhat_subscription
+        - cloud_image
+
+    # Verify that 'docker pull' is successful. (Note: this is a different
+    # operation than 'atomic pull')
+    - role: docker_pull_run_remove
+      tags:
+        - docker_pull_run_remove
+        - cloud_image
 
     # Install package using package layering
     - role: rpm_ostree_install
@@ -68,118 +89,129 @@
       reboot: true
       tags:
         - rpm_ostree_install
+        - cloud_image
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
+        - cloud_image
 
-    # Verify admin unlock
+    # Verify admin unlock by installing an RPM
     - role: ostree_admin_unlock_hotfix
       tags:
         - ostree_admin_unlock_hotfix
+        - cloud_image
 
     - role: overlayfs_verify_present
       tags:
         - overlayfs_verify_present
+        - cloud_image
 
     - role: rpm_install
       rpm_name: "{{ g_rpm_name }}"
       tags:
         - rpm_install
+        - cloud_image
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       tags:
         - package_verify_present
+        - cloud_image
 
-    # Check that /tmp is properly setup
+    # Check that /tmp has the proper permissions
     - role: tmp_check_perms
       tags:
         - tmp_check_perms
+        - cloud_image
 
     # Check that the RPM database is functional
     - role: rpmdb_verify
       tags:
         - rpmdb_verify
+        - cloud_image
 
     # Add users, make changes to /etc, and add things to /var before the
     # the system is upgraded
-    - { role: user_add, ua_uid: "{{ g_uid1 }}", tags: ['user_add'] }
+    - { role: user_add, ua_uid: "{{ g_uid1 }}", tags: ['user_add','cloud_image'] }
 
-    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present'] }
+    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present','cloud_image'] }
 
     - role: etc_modify
       tags:
         - etc_modify
+        - cloud_image
 
     - role: etc_verify_changes
       tags:
         - etc_verify_changes
+        - cloud_image
 
-    - { role: var_add_files, vaf_filename: "{{ g_file1 }}", vaf_dirname: "{{ g_dir1 }}", tags: ['var_add_files'] }
+    - { role: var_add_files, vaf_filename: "{{ g_file1 }}", vaf_dirname: "{{ g_dir1 }}", tags: ['var_add_files','cloud_image'] }
 
-    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
+    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present','cloud_image'] }
 
-    # Pull down docker base images, build a layered, image, run it, then
-    # remove the container.  But we keep the image around to run later.
-    # Run atomic test prior to running docker test so the built images can be run later.
-    - role: osname_set_fact
-      tags:
-        - osname_set_fact
-
+    # Validate 'atomic pull', 'atomic scan' works correctly.
+    # Remove images after test of each command.
     - role: atomic_pull_verify
       tags:
         - atomic_pull_verify
+        - cloud_image
 
     - role: docker_remove_all
       tags:
         - docker_remove_all
-
-    - role: atomic_installation_verify
-      tags:
-        - atomic_installation_verify
-
-    - role: docker_remove_all
-      tags:
-        - docker_remove_all
+        - cloud_image
 
     - role: atomic_scan_verify
       tags:
         - atomic_scan_verify
+        - cloud_image
 
     - role: docker_remove_all
       tags:
         - docker_remove_all
+        - cloud_image
 
+    # Pull down docker base images, build a layered image, run it, then
+    # remove the container.  But we keep the image around to run later.
+    # Run 'atomic run/stop' tests prior to running 'docker run' test so
+    # the built images can be run later.
     - role: docker_pull_base_image
       tags:
         - docker_pull_base_image
+        - cloud_image
 
     - role: docker_build_httpd
       tags:
         - docker_build_httpd
+        - cloud_image
 
-    - { role: atomic_run_verify, container: "{{ g_httpd_name }}", tags: ['atomic_run_verify'] }
+    - { role: atomic_run_verify, container: "{{ g_httpd_name }}", tags: ['atomic_run_verify','cloud_image'] }
 
-    - { role: atomic_stop_verify, container: "{{ g_httpd_name }}", tags: ['atomic_stop_verify'] }
+    - { role: atomic_stop_verify, container: "{{ g_httpd_name }}", tags: ['atomic_stop_verify','cloud_image'] }
 
     - role: docker_rm_httpd_container
       tags:
         - docker_rm_httpd_container
+        - cloud_image
 
     - role: docker_run_httpd
       tags:
         - docker_run_httpd
+        - cloud_image
 
     - role: docker_rm_httpd_container
       tags:
         - docker_rm_httpd_container
+        - cloud_image
 
     # Install, run and uninstall cockpit using atomic command
     - role: atomic_installation_verify
       tags:
         - atomic_installation_verify
+        - cloud_image
 
     # Upgrade and reboot
     - role: rpm_ostree_upgrade
@@ -210,7 +242,15 @@
       tags:
         - atomic_host_check
 
-    # we remove any subscriptions after the upgrade to verify that
+    # Setup facts again. (Need to use the 'always_run' option to ensure the
+    # role runs again)
+    - role: osname_set_fact
+      tags:
+        - osname_set_fact
+        - cloud_image
+      always_run: yes
+
+    # We remove any subscriptions after the upgrade to verify that
     # 'rpm-ostree status' with the 'unconfigured-state' field present.
     # https://bugzilla.redhat.com/show_bug.cgi?id=1421867
     - role: redhat_unsubscribe
@@ -219,20 +259,24 @@
       tags:
         - redhat_unsubscribe
 
+    # Compare 'atomic host status' and 'rpm-ostree status' again
     - role: atomic_host_status_verify
       stop_daemon: true
       tags:
         - atomic_host_status_verify
 
+    # Re-subscribe
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
       tags:
         - redhat_subscribe
 
+    # Verify correct SELinux labels again
     - role: selinux_verify
       tags:
         - selinux_verify
 
+    # Verify configuring SELinux file contexts again
     - role: semanage_add_verify
       tags:
         - semanage_add_verify
@@ -246,6 +290,7 @@
       package: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
+        - cloud_image
 
     # Check admin unlock overlayfs is no longer there after upgrade
     - role: overlayfs_verify_missing
@@ -258,25 +303,26 @@
       tags:
         - package_verify_missing
 
-    # Check that /tmp is properly setup
+    # Check that /tmp is properly setup again
     - role: tmp_check_perms
       tags:
         - tmp_check_perms
 
-    # Check that the RPM database is functional
+    # Check that the RPM database is functional again
     - role: rpmdb_verify
       tags:
         - rpmdb_verify
 
     # Verify that the new users, /etc changes, and /var additions are still
     # present after the upgrade
-    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present'] }
+    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present','cloud_image'] }
 
     - role: etc_verify_changes
       tags:
         - etc_verify_changes
+        - cloud_image
 
-    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
+    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present','cloud_image'] }
 
     # Add more users and more files to /var ahead of the rollback
     - { role: user_add, ua_uid: "{{ g_uid2 }}", tags: ['user_add'] }
@@ -293,10 +339,6 @@
         - atomic_installation_verify
 
     # Run the previously created docker layered image, then remove the container and the image.
-    - role: osname_set_fact
-      tags:
-        - osname_set_fact
-
     - { role: atomic_run_verify, container: "{{ g_httpd_name }}", tags: ['atomic_run_verify'] }
 
     - { role: atomic_stop_verify, container: "{{ g_httpd_name }}", tags: ['atomic_stop_verify'] }
@@ -305,14 +347,6 @@
       tags:
         - docker_rm_httpd_container
 
-    - role: docker_run_httpd
-      tags:
-        - docker_run_httpd
-
-    - role: docker_rm_httpd_container
-      tags:
-        - rm_httpd_container
-
     - role: docker_rmi_httpd_image
       tags:
         - docker_rmi_httpd_image
@@ -320,18 +354,12 @@
     - role: docker_remove_all
       tags:
         - docker_remove_all
+        - cloud_image
 
+    # Validate 'atomic' commands again.
     - role: atomic_pull_verify
       tags:
         - atomic_pull_verify
-
-    - role: docker_remove_all
-      tags:
-        - docker_remove_all
-
-    - role: atomic_installation_verify
-      tags:
-        - atomic_installation_verify
 
     - role: docker_remove_all
       tags:
@@ -391,12 +419,12 @@
       tags:
         - package_verify_present
 
-    # Check that /tmp is properly setup
+    # Check that /tmp is properly setup yet again
     - role: tmp_check_perms
       tags:
         - tmp_check_perms
 
-    # Check that the RPM database is functional
+    # Check that the RPM database is functional yet again
     - role: rpmdb_verify
       tags:
         - rpmdb_verify
@@ -423,3 +451,4 @@
       when: ansible_distribution == 'RedHat'
       tags:
         - redhat_unsubscribe
+        - cloud_image
