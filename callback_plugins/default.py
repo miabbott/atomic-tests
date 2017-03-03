@@ -48,6 +48,7 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
     def __init__(self, *args, **kwargs):
         # pylint: disable=non-parent-init-called
         BASECLASS.__init__(self, *args, **kwargs)
+        self._play = None
         self.failed_task = []
         self.result_file = os.environ.get('AHT_RESULT_FILE')
 
@@ -74,8 +75,6 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
     def v2_runner_on_failed(self,result, ignore_errors=False):
         '''Save last failure'''
         self.failed_task = result
-        if self._play.strategy == 'free' and self._last_task_banner != result._task._uuid:
-            self._print_task_banner(result._task)
 
         delegated_vars = result._result.get('_ansible_delegated_vars', None)
         if 'exception' in result._result:
@@ -88,7 +87,8 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
 
             self._display.display(msg, color=C.COLOR_ERROR)
 
-        self._handle_warnings(result._result)
+            # finally, remove the exception from the result so it's not shown every time
+            del result._result['exception']
 
         if result._task.loop and 'results' in result._result:
             self._process_items(result)
@@ -99,7 +99,7 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
             else:
                 self._display.display("fatal: [%s]: FAILED! => %s" % (result._host.get_name(), self._dump_results(result._result)), color=C.COLOR_ERROR)
 
-        if ignore_errors:
+        if result._task.ignore_errors:
             self._display.display("...ignoring", color=C.COLOR_SKIP)
 
     def v2_playbook_on_stats(self, stats):
@@ -129,7 +129,6 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
 
         self._display.display("", screen_only=True)
 
-
         # Save result to file if environment variable exists
         if self.result_file is not None:
             if self.failed_task:
@@ -139,3 +138,8 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
                                                   self._dump_results(self.failed_task._result)))
             else:
                 open(self.result_file, 'w').close()
+
+
+    def v2_playbook_on_play_start(self, play):
+        self._play = play.name
+        self.playbook_on_play_start(play.name)
