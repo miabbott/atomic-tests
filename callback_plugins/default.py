@@ -73,7 +73,9 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
 
     def v2_runner_on_failed(self,result, ignore_errors=False):
         '''Save last failure'''
-        self.failed_task = result
+        if ignore_errors is False:
+            self.failed_task = result
+
         if self._play.strategy == 'free' and self._last_task_banner != result._task._uuid:
             self._print_task_banner(result._task)
 
