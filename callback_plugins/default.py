@@ -74,7 +74,7 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
 
     def v2_runner_on_failed(self,result, ignore_errors=False):
         '''Save last failure'''
-        if ignore_errors is False:
+        if ignore_errors is not True:
             self.failed_task = result
 
         delegated_vars = result._result.get('_ansible_delegated_vars', None)
