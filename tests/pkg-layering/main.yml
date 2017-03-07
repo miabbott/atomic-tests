@@ -335,8 +335,7 @@
         msg: "Error is incorrect"
       when: "'package \\'{{ g_deployed_pkg }}\\' is already in the deployment' not in already.stderr"
 
-
-- name: Package Layering - Negative Test - Installing non-root ownership package
+- name: Package Layering - Installing non-root ownership package
   hosts: all
   become: yes
 
@@ -346,17 +345,30 @@
   vars_files:
     - vars.yml
 
-  tasks:
-    - name: Attempt to install package with non-root ownership
-      command: rpm-ostree install {{ g_nonroot_pkg }}
-      register: nonroot
-      failed_when: nonroot.rc != 1
+  roles:
+    - role: rpm_ostree_install
+      packages: httpd
+      reboot: true
 
-    - name: Fail if error message is incorrect
-      fail:
-        msg: "Error is incorrect"
-      when: "'Non-root ownership currently unsupported' not in nonroot.stderr"
+    - role: reboot
 
+  post_tasks:
+    - name: start httpd service
+      service:
+        name: httpd
+        state: started
+
+    - name: Check page on port 80
+      command: curl http://localhost
+
+    - name: Uninstall httpd
+      command: rpm-ostree uninstall httpd
+
+    - include: '../../common/ans_reboot.yaml'
+
+    - include: verify_package_not_deployed.yml
+      vars:
+        package: httpd
 
 - name: Package Layering - Negative Test - Installing without sufficient privileges
   hosts: all
@@ -374,8 +386,3 @@
       register: unprivileged
       become: false
       failed_when: unprivileged.rc != 1
-
-    - name: Verify error message
-      fail:
-        msg: "Error message was incorrect"
-      when: "'Rejected send message' not in unprivileged.stderr"
