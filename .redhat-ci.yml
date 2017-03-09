@@ -12,4 +12,4 @@ packages:
 
 tests:
   - ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
-  - ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml
+  - ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml --skip-tags selinux_verify
