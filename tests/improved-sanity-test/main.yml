@@ -38,7 +38,12 @@
 
   roles:
     # This playbook requires Ansible 2.1 and an Atomic Host
-    - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check','cloud_image'] }
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "1"
+      tags:
+        - ansible_version_check
+        - cloud_image
 
     - role: atomic_host_check
       tags:
@@ -72,6 +77,7 @@
     - role: selinux_boolean
       tags:
         - selinux_boolean
+        - cloud_image
 
     # Subscribe if the system is RHEL
     - role: redhat_subscription
@@ -138,9 +144,17 @@
 
     # Add users, make changes to /etc, and add things to /var before the
     # the system is upgraded
-    - { role: user_add, ua_uid: "{{ g_uid1 }}", tags: ['user_add','cloud_image'] }
+    - role: user_add
+      ua_uid: "{{ g_uid1 }}"
+      tags:
+        - user_add
+        - cloud_image
 
-    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present','cloud_image'] }
+    - role: user_verify_present
+      uvp_uid: "{{ g_uid1 }}"
+      tags:
+        - user_verify_present
+        - cloud_image
 
     - role: etc_modify
       tags:
@@ -152,9 +166,19 @@
         - etc_verify_changes
         - cloud_image
 
-    - { role: var_add_files, vaf_filename: "{{ g_file1 }}", vaf_dirname: "{{ g_dir1 }}", tags: ['var_add_files','cloud_image'] }
+    - role: var_add_files
+      vaf_filename: "{{ g_file1 }}"
+      vaf_dirname: "{{ g_dir1 }}"
+      tags:
+        - var_add_files
+        - cloud_image
 
-    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present','cloud_image'] }
+    - role: var_files_present
+      vfp_filename: "{{ g_file1 }}"
+      vfp_dirname: "{{ g_dir1 }}"
+      tags:
+        - var_files_present
+        - cloud_image
 
     # Validate 'atomic pull', 'atomic scan' works correctly.
     # Remove images after test of each command.
@@ -192,9 +216,17 @@
         - docker_build_httpd
         - cloud_image
 
-    - { role: atomic_run_verify, container: "{{ g_httpd_name }}", tags: ['atomic_run_verify','cloud_image'] }
+    - role: atomic_run_verify
+      container: "{{ g_httpd_name }}"
+      tags:
+        - atomic_run_verify
+        - cloud_image
 
-    - { role: atomic_stop_verify, container: "{{ g_httpd_name }}", tags: ['atomic_stop_verify','cloud_image'] }
+    - role: atomic_stop_verify
+      container: "{{ g_httpd_name }}"
+      tags:
+        - atomic_stop_verify
+        - cloud_image
 
     - role: docker_rm_httpd_container
       tags:
@@ -240,7 +272,11 @@
 
   roles:
     # This playbook requires Ansible 2.1 and an Atomic Host
-    - { role: ansible_version_check, avc_major: "2", avc_minor: "0", tags: ['ansible_version_check'] }
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "0"
+      tags:
+        - ansible_version_check
 
     - role: atomic_host_check
       tags:
@@ -285,10 +321,11 @@
       tags:
         - semanage_add_verify
 
+    # Verify the SELinux boolean changes
     - role: selinux_boolean_verify
       tags:
         - selinux_boolean_verify
-
+        - cloud_image
     - role: docker_pull_run_remove
       tags:
         - docker_pull_run_remove
@@ -323,23 +360,46 @@
 
     # Verify that the new users, /etc changes, and /var additions are still
     # present after the upgrade
-    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present','cloud_image'] }
+    - role: user_verify_present
+      uvp_uid: "{{ g_uid1 }}"
+      tags:
+        - user_verify_present
+        - cloud_image
 
     - role: etc_verify_changes
       tags:
         - etc_verify_changes
         - cloud_image
 
-    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present','cloud_image'] }
+    - role: var_files_present
+      vfp_filename: "{{ g_file1 }}"
+      vfp_dirname: "{{ g_dir1 }}"
+      tags:
+        - var_files_present
+        - cloud_image
 
     # Add more users and more files to /var ahead of the rollback
-    - { role: user_add, ua_uid: "{{ g_uid2 }}", tags: ['user_add'] }
+    - role: user_add
+      ua_uid: "{{ g_uid2 }}"
+      tags:
+        - user_add
 
-    - { role: user_verify_present, uvp_uid: "{{ g_uid2 }}", tags: ['user_verify_present'] }
+    - role: user_verify_present
+      uvp_uid: "{{ g_uid2 }}"
+      tags:
+        - user_verify_present
 
-    - { role: var_add_files, vaf_filename: "{{ g_file2 }}", vaf_dirname: "{{ g_dir2 }}", tags: ['var_add_files'] }
+    - role: var_add_files
+      vaf_filename: "{{ g_file2 }}"
+      vaf_dirname: "{{ g_dir2 }}"
+      tags:
+        - var_add_files
 
-    - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
+    - role: var_files_present
+      vfp_filename: "{{ g_file2 }}"
+      vfp_dirname: "{{ g_dir2 }}"
+      tags:
+        - var_files_present
 
     # Install, run and uninstall cockpit using atomic command
     - role: atomic_installation_verify
@@ -347,9 +407,15 @@
         - atomic_installation_verify
 
     # Run the previously created docker layered image, then remove the container and the image.
-    - { role: atomic_run_verify, container: "{{ g_httpd_name }}", tags: ['atomic_run_verify'] }
+    - role: atomic_run_verify
+      container: "{{ g_httpd_name }}"
+      tags:
+        - atomic_run_verify
 
-    - { role: atomic_stop_verify, container: "{{ g_httpd_name }}", tags: ['atomic_stop_verify'] }
+    - role: atomic_stop_verify
+      container: "{{ g_httpd_name }}"
+      tags:
+        - atomic_stop_verify
 
     - role: docker_rm_httpd_container
       tags:
@@ -400,7 +466,11 @@
 
   roles:
     # This playbook requires Ansible 2.1 and an Atomic Host
-    - { role: ansible_version_check, avc_major: "2", avc_minor: "1", tags: ['ansible_version_check'] }
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "1"
+      tags:
+        - ansible_version_check
 
     - role: atomic_host_check
       tags:
@@ -443,16 +513,30 @@
         - etc_verify_changes
 
     # Verify first user added is still present in original tree
-    - { role: user_verify_present, uvp_uid: "{{ g_uid1 }}", tags: ['user_verify_present'] }
+    - role: user_verify_present
+      uvp_uid: "{{ g_uid1 }}"
+      tags:
+        - user_verify_present
 
     # Verify first files dropped in /var are still in original tree
-    - { role: var_files_present, vfp_filename: "{{ g_file1 }}", vfp_dirname: "{{ g_dir1 }}", tags: ['var_files_present'] }
+    - role: var_files_present
+      vfp_filename: "{{ g_file1 }}"
+      vfp_dirname: "{{ g_dir1 }}"
+      tags:
+        - var_files_present
 
     # Verify that the newest user is not present in the previous tree
-    - { role: user_verify_missing, uvm_uid: "{{ g_uid2 }}", tags: ['user_verify_missing'] }
+    - role: user_verify_missing
+      uvm_uid: "{{ g_uid2 }}"
+      tags:
+        - user_verify_missing
 
     # Verify the most recent changes to /var are present
-    - { role: var_files_present, vfp_filename: "{{ g_file2 }}", vfp_dirname: "{{ g_dir2 }}", tags: ['var_files_present'] }
+    - role: var_files_present
+      vfp_filename: "{{ g_file2 }}"
+      vfp_dirname: "{{ g_dir2 }}"
+      tags:
+        - var_files_present
 
     # cleanup our subscriptions because we are nice people
     - role: redhat_unsubscribe
