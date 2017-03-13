@@ -1,35 +1,26 @@
 ---
-- name: Determine we have builtin kube
-  command: rpm -q kubelet
-  changed_when: false
-  failed_when: false
-  register: rpmq_kubelet
-
-- name: Set the builtin kube fact
+  # These values were pulled from RHBZ #1398427
+- name: Set facts for role
   set_fact:
-    have_builtin_kube: rpmq_kubelet.rc == 0
+    test_dir: /var/opt/quest/vas/vasd
+    test_dir_match: "/var/opt/quest/vas/vasd(/.*)?"
+    test_context: httpd_config_t
 
-- name: Check for presence of container_file_t type
-  command: seinfo --type=container_file_t
-  register: seinfo
-  ignore_errors: True
+- name: Retrieve original context
+  shell: "semanage fcontext -l | grep {{ test_dir|quote }}"
+  register: orig_context
 
-- name: Set SELinux type to be used
-  set_fact:
-    selinux_type: '{{ "container_file_t" if seinfo.rc == 0 else "svirt_sandbox_file_t" }}'
-    dir_match: '/var/lib/kubelet(/.*)?'
-  when: have_builtin_kube
+  # NB: this may return an error message on Fedora that looks like:
+  # 'libsemanage.dbase_llist_query: could not query record value (No such file or directory).'
+  # However, the operation will still be successful.  ¯\_(ツ)_/¯
+- name: Configure new SELinux context
+  command: semanage fcontext -m -t {{ test_context }} {{ test_dir_match }}
 
-- name: Set fcontext for /var/lib/kubernetes
-  command: semanage fcontext -a -t {{ selinux_type }} {{ dir_match }}
-  when: have_builtin_kube
+- name: Retrieve modified context
+  shell: "semanage fcontext -l | grep {{ test_dir|quote }}"
+  register: mod_context
 
-- name: Verify fcontext is set
-  shell: semanage fcontext --list | grep '{{ dir_match }}'
-  register: output
-  when: have_builtin_kube
-
-- name: Fail selinux type is not in semanage output
+- name: Fail if modified context is not correct
   fail:
-    msg: "Could not find {{ selinux_type }} in output"
-  when: "{{ selinux_type }} not in output.stdout and output is defined"
+    msg: "The SELinux context does not appear to be changed!"
+  when: test_context not in mod_context.stdout or orig_context.stdout == mod_context.stdout
