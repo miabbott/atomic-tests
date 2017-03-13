@@ -78,13 +78,11 @@
   register: find_default_t
   with_items: "{{ mountpoints }}"
 
-# Until RHBZ #1381588 is fixed, we are commenting out this test rather than
-# excluding the whole role from being run by various executors.
-#- name: Fail if a file/dir is found with 'default_t' label
-#  fail:
-#    msg: "The file {{ item.item }} had an SELinux label of 'default_t'"
-#  when: "{{ item.stdout | length }} != 0"
-#  with_items: "{{ find_default_t.results }}"
+- name: Fail if a file/dir is found with 'default_t' label
+  fail:
+    msg: "The file {{ item.item }} had an SELinux label of 'default_t'"
+  when: "{{ item.stdout | length }} != 0"
+  with_items: "{{ find_default_t.results }}"
 
 - name: Look for files/dir with 'file_t' label
   command: find {{ item }} -context '*:file_t:*'

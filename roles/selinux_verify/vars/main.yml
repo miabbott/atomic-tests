@@ -23,9 +23,11 @@ etc_files:
       - '/etc/shadow-'
     label: 'system_u:object_r:shadow_t:s0'
 
+
+# Until RHBZ #1381588 is fixed, we are removing the `/sysroot` entry from
+# this list.
 mountpoints:
   - '/boot'
-  - '/sysroot'
   - '/usr'
   - '/var'
 
