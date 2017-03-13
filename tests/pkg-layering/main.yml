@@ -1,7 +1,7 @@
 ---
 # vim: set ft=ansible:
 #
-# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
+# !!!NOTE!!! This playbook was tested using Ansible 2.2; it is recommended
 # that the same version is used.
 #
 # This playbook is actually multiple playbooks contained in a single file.
@@ -54,6 +54,13 @@
             g_epel_pkg is undefined
 
   roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'

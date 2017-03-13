@@ -2,17 +2,10 @@
 #
 #  This role sets up kubernetes apiserver, controller-mgr, and scheduler pods
 #
-#  - name: pull {{ item }}
-#    command: docker pull registry.access.redhat.com/rhel7/{{ item }}
-#    with_items:
-#      - kubernetes-apiserver
-#      - kubernetes-controller-mgr
-#      - kubernetes-scheduler
-
   - name: pull kubernetes api-server, controller-mgr, scheduler
-    docker:
-      image: registry.access.redhat.com/rhel7/{{ item }}
-      state: present
+    command: docker pull registry.access.redhat.com/rhel7/{{ item }}
+    register: pull
+    failed_when: "'registry.access.redhat.com/rhel7/{{ item }}' not in pull.stdout"
     with_items:
       - kubernetes-apiserver
       - kubernetes-controller-mgr

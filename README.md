@@ -48,6 +48,19 @@ platforms with little changes necessary.
 fails (for the most part).  Thus, if something fails during the execution,
 that is a good indication that something broke.
 
+
+### Virtual Environment
+The preferred environment to run the playbooks is using a virtual environment.
+This will ensure the correct version of Ansible is installed and will not
+interfere with your current workspace.
+
+To setup a virtualenv, follow the steps below after cloning atomic-host-tests:
+
+`pip install virtualenv`
+`virtualenv my_env`
+`source my_env/bin/activate`
+`pip install -r requirements.txt`
+
 ### Running Playbooks
 All the playbooks should be able to be run without any extra options on the
 command line.  Like so:
@@ -61,9 +74,8 @@ Additionally, certain variables are required to be configured for each test and
 the required variables can vary between tests.  There are sensible defaults
 provided, but it is up to the user to configure them as they see fit.
 
-**NOTE**:  Playbooks are developed and tested using Ansible 2.1.  Ansible 2.2
-should also work, but it is not guaranteed.  Please do not use any version of
-Ansible earlier than 2.1.
+**NOTE**:  Playbooks are developed and tested using Ansible 2.2.  Older versions
+will not work.
 
 ### Vagrant
 

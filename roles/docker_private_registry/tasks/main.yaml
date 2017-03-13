@@ -1,19 +1,19 @@
 ---
 #
 #  This role sets up and creates an insecure private registry on the localhost
-#  at port 5000. 
+#  at port 5000.
 #
   - name: Fail if ansible_docker0.ipv4.address is not defined
-    fail: 
+    fail:
       msg: "ansible_docker0.ipv4.address it not defined!"
     when: ansible_docker0.ipv4.address is not defined
     run_once: true
 
   - name: edit /etc/sysconfig/docker file to add private registry
-    replace: 
-      dest=/etc/sysconfig/docker 
-      regexp='^ADD_REGISTRY=\'--add-registry registry.access.redhat.com\'' 
-      replace='ADD_REGISTRY=\'--add-registry {{ ansible_docker0.ipv4.address }}:5000 --add-registry registry.access.redhat.com\''
+    replace:
+      dest=/etc/sysconfig/docker
+      regexp="^ADD_REGISTRY='--add-registry registry.access.redhat.com'"
+      replace="ADD_REGISTRY='--add-registry {{ ansible_docker0.ipv4.address }}:5000 --add-registry registry.access.redhat.com'"
 
   - name: edit /etc/sysconfig/docker file to enable insecure registry
     replace:
@@ -22,8 +22,8 @@
       replace='INSECURE_REGISTRY=\'--insecure-registry {{ ansible_docker0.ipv4.address }}:5000\''
 
   - name: stop docker
-    service: 
-      name=docker 
+    service:
+      name=docker
       state=stopped
 
   - name: start docker
@@ -31,15 +31,5 @@
       name=docker
       state=started
 
-#  - name: wait for docker restart to complete
-#    pause: seconds=30
-
   - name: create private registry
-    docker:
-      name: registry
-      image: registry:2
-      pull: missing
-      state: reloaded
-      ports: 
-        - 5000:5000
-      restart_policy: always
+    command: docker run -d -p 5000:5000 --restart=always --name registry registry:2

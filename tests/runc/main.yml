@@ -1,7 +1,7 @@
 ---
 # vim: set ft=ansible:
 #
-# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
+# !!!NOTE!!! This playbook was tested using Ansible 2.2; it is recommended
 # that the same version is used.
 #
 # This playbook is a basic functional test for runc.  It configures the
@@ -32,6 +32,13 @@
     - vars.yml
 
   roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
     - role: runc_version_check
       runc_version: "{{ g_runc_version }}"
       tags:
@@ -103,8 +110,8 @@
         - name: Add --signature-verification=false to docker config
           replace:
             dest: /etc/sysconfig/docker
-            regexp: "^OPTIONS=\'"
-            replace: "OPTIONS=\'--signature-verification=false "
+            regexp: "^OPTIONS='"
+            replace: "OPTIONS='--signature-verification=false "
 
         - name: Restart docker service
           service:

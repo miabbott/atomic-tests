@@ -2,7 +2,7 @@
 #
 # This role creates the docker webserver and database images, then tags and 
 # pushes the images to a private registry that is setup in another role.
-# 
+#
 # Two files containing the are copied to the device under test.  Each Dockerfile
 # is modified specifically to pull down its own base OS, mariadb package, and
 # apache package.
@@ -19,9 +19,9 @@
     run_once: true
 
 # Red Hat
-  - name: copy mariadb_cont.tgz and web_cont_2.tgz 
-    copy: 
-      src=roles/docker_build_tag_push/files/rhelah/{{ item }} 
+  - name: copy mariadb_cont.tgz and web_cont_2.tgz
+    copy:
+      src=roles/docker_build_tag_push/files/rhelah/{{ item }}
       dest=/root
       owner=root
       group=root
@@ -31,9 +31,9 @@
       - web_cont_2.tgz
     when: ansible_distribution == "RedHat"
 
-# Fedora 
+# Fedora
   - name: copy mariadb_cont.tgz and web_cont_2.tgz
-    copy: 
+    copy:
       src=roles/docker_build_tag_push/files/fedora/{{ item }}
       dest=/root
       owner=root
@@ -46,7 +46,7 @@
 
 # CentOS
   - name: copy mariadb_cont.tgz and web_cont_2.tgz
-    copy: 
+    copy:
       src=roles/docker_build_tag_push/files/centos/{{ item }}
       dest=/root
       owner=root
@@ -59,18 +59,18 @@
 
 # Common build, tag, push
   - name: untar db file
-    unarchive: 
-      src=/root/mariadb_cont.tgz 
-      dest=/root/ 
+    unarchive:
+      src=/root/mariadb_cont.tgz
+      dest=/root/
       copy=no
 
   - name: build db docker image
     command: docker build -t {{ ansible_docker0.ipv4.address}}:5000/dbforweb:latest /root/db
 
   - name: verify tag
-    docker:
-      image: '{{ ansible_docker0.ipv4.address }}:5000/dbforweb'
-      state: present
+    command: docker images
+    register: images
+    failed_when: "'{{ ansible_docker0.ipv4.address }}:5000/dbforweb' not in images.stdout"
 
   - name: push db to private registry
     command: docker push {{ ansible_docker0.ipv4.address }}:5000/dbforweb:latest
@@ -79,24 +79,24 @@
     command: docker rmi -f {{ ansible_docker0.ipv4.address }}:5000/dbforweb
 
   - name: download and untar web file
-    unarchive: 
-      src=/root/web_cont_2.tgz 
-      dest=/root/ 
+    unarchive:
+      src=/root/web_cont_2.tgz
+      dest=/root/
       copy=no
 
   - name: change IP address in action file before building
-    replace: 
-      dest=/root/web/action 
-      regexp='172.17.42.1' 
+    replace:
+      dest=/root/web/action
+      regexp='172.17.42.1'
       replace={{ ansible_docker0.ipv4.address }}
 
   - name: build web docker image
     command: docker build -t {{ ansible_docker0.ipv4.address }}:5000/webwithdb:latest /root/web
 
-  - name: verify tag
-    docker:
-      image: '{{ ansible_docker0.ipv4.address }}:5000/dbforweb'
-      state: present
+  - name: Verify dbforweb tag
+    command: docker images
+    register: images
+    failed_when: "'{{ ansible_docker0.ipv4.address }}:5000/webwithdb' not in images.stdout"
 
   - name: push web to private registry
     command: docker push {{ ansible_docker0.ipv4.address }}:5000/webwithdb:latest

@@ -61,6 +61,13 @@
             g_rpm_name_2 is undefined
 
   roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'

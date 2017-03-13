@@ -1,7 +1,7 @@
 ---
 # vim: set ft=ansible:
 #
-# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
+# !!!NOTE!!! This playbook was tested using Ansible 2.2; it is recommended
 # that the same version is used.
 #
 # This playbook tests the basic functions of docker or docker-latest. These
@@ -45,10 +45,10 @@
         - "'docker-latest' not in pkgs.stdout"
 
   roles:
-    # This playbook requires Ansible 2.1 and an Atomic Host
+    # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
       avc_major: "2"
-      avc_minor: "1"
+      avc_minor: "2"
       tags:
         - ansible_version_check
 

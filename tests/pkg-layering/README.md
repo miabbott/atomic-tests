@@ -19,7 +19,7 @@ Negative Testing
   - Verify that install/uninstall operations cannot be performed by unprivileged users
 
 ### Prerequisites
-  - Ansible version 2+ (the playbook was tested using Ansible 2.1)
+  - Ansible version 2+ (the playbook was tested using Ansible 2.2)
 
   - Configure subscription data (if used)
 
