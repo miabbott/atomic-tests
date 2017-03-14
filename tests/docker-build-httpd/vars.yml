@@ -1,0 +1,28 @@
+base_images:
+  - docker.io/alpine
+  - docker.io/busybox
+  - docker.io/centos
+  - docker.io/debian
+  - docker.io/httpd
+  - registry.fedoraproject.org/fedora:24
+  - registry.fedoraproject.org/fedora:25
+  - docker.io/nginx
+  - docker.io/ubuntu
+rhel_base_images:
+  - registry.access.redhat.com/rhel6
+  - registry.access.redhat.com/rhel7
+  - registry.access.redhat.com/rhel7-atomic
+image_names:
+  - alpine_httpd
+  - apache_httpd
+  - busybox_httpd
+  - centos_httpd
+  - debian_httpd
+  - fedora24_httpd
+  - fedora25_httpd
+  - nginx_httpd
+  - ubuntu_httpd
+rhel_image_names:
+  - rhel6_httpd
+  - rhel7_httpd
+  - rhel7-atomic_httpd

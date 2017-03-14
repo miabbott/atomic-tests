@@ -1,0 +1,81 @@
+---
+# vim: set ft=ansible:
+#
+# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
+# that the same version is used.
+#
+# This playbook aims to verify that the changes to the Atomic Host platform
+# do not disrupt the ability for users to build/run containers built on top
+# of various base images.  The base images from Docker Hub were selected
+# based on 'popularity' (aka number of pulls).
+#
+# Each base image is used to build an httpd container, which is then run,
+# and the content returned by the container is verified to be correct.
+# Afterwards, the container and build image are removed from the system.
+#
+- name: Docker build httpd test
+  hosts: all
+  become: yes
+
+  # This is a hack.  Using the 'redhat_subscription' role as an 'include' was
+  # throwing an error about the 'subscription_file' variable not being
+  # defined, despite there being 'roles/redhat_subscription/vars/main.yaml'
+  # with the variable defined there.  This kind of short-circuits the role
+  # by providing the value at the playbook level.
+  vars:
+    subscription_file: 'roles/redhat_subscription/files/subscription_data.csv'
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Fail if variables are not defined
+      fail:
+        msg: "Required variables are not defined.  Please check tests/docker-build-httpd/vars.yml."
+      when: base_images is undefined or image_names is undefined
+
+    - name: Fail if RHEL variables are not defined
+      fail:
+        msg: "Required RHEL variables are not defined.  Please check tests/docker-build-httpd/vars.yml"
+      when: (rhel_base_images is undefined or rhel_image_names is undefined) and
+            ansible_distribution == "RedHat"
+
+    - include: roles/redhat_subscription/tasks/main.yaml
+      when: ansible_distribution == "RedHat"
+      tags:
+        - redhat_subscription
+
+    - name: Create working directory
+      command: mktemp -d
+      register: mktemp
+
+    - name: Copy Dockerfiles
+      synchronize:
+        src: files/
+        dest: "{{ mktemp.stdout }}/"
+        recursive: yes
+
+    - name: Pull all the upstream base images
+      command: "docker pull {{ item }}"
+      with_items: "{{ base_images }}"
+
+    - name: Pull the Red Hat base images
+      command: "docker pull {{ item }}"
+      with_items: "{{ rhel_base_images }}"
+      when: ansible_distribution == "RedHat"
+
+  tasks:
+      # I would have used a 'block' of 'roles' here, but that is not
+      # compatible with the 'with_items' loop control, so I stuck all
+      # the tasks into a single role file and used an 'include:'
+      # statement on that file.
+    - include: tasks/build_run_remove.yml base_dir={{ mktemp.stdout }} image_name={{ item }}
+      with_items: "{{ image_names }}"
+
+    - include: tasks/build_run_remove.yml base_dir={{ mktemp.stdout }} image_name={{ item }}
+      with_items: "{{ rhel_image_names }}"
+      when: ansible_distribution == "RedHat"
+
+    - include: roles/redhat_unsubscribe/tasks/main.yml
+      when: ansible_distribution == "RedHat"
+

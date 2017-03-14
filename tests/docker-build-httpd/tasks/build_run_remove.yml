@@ -1,0 +1,44 @@
+---
+# vim: set ft=ansible:
+#
+# There is some duplicate tasks in here that can be found in other roles.
+# However, because of how 'roles' and 'with_items' work together, all the
+# tasks needed to be stuck into a single role that is actually used via
+# 'include:' statement.
+#
+- name: Build the httpd image
+  command: "docker build --pull --rm -t {{ image_name }} -f {{ base_dir }}/{{ image_name }}/Dockerfile {{ base_dir }}/{{ image_name }}"
+
+- name: Run the httpd image
+  command: "docker run -d -p 80:80 --name {{ image_name }} {{ image_name }}"
+
+- name: Wait for port 80
+  wait_for:
+    port: 80
+    delay: 5
+
+- name: Test connectivity
+  get_url:
+    url: http://localhost:80
+    dest: "{{ base_dir }}/index"
+  register: geturl
+  retries: 5
+  delay: 3
+  until: geturl | succeeded
+
+- name: Test the content from httpd container
+  command: "grep 'SUCCESS {{ image_name }}' {{ base_dir }}/index"
+
+- name: Cleanup content
+  file:
+    path: "{{ base_dir }}/index"
+    state: absent
+
+- name: Stop the httpd container
+  command: "docker stop {{ image_name }}"
+
+- name: Remove the httpd container
+  command: "docker rm {{ image_name }}"
+
+- name: Remove the httpd image
+  command: "docker rmi {{ image_name }}"
