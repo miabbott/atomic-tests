@@ -96,9 +96,14 @@
     # Install package using package layering
     - role: rpm_ostree_install
       packages: "{{ g_pkg }}"
-      reboot: true
+      reboot: false
       tags:
         - rpm_ostree_install
+        - cloud_image
+
+    - role: reboot
+      tags:
+        - reboot
         - cloud_image
 
     - role: rpm_ostree_install_verify
