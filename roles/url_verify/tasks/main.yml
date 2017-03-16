@@ -1,0 +1,14 @@
+---
+# vim: set ft=ansible:
+#
+# Retrieves a URL to a destination
+#
+- name: Fail if url or destination is undefined
+  fail:
+    msg: "url or destination is undefined"
+  when: url is undefined or destination is undefined
+
+- name: Get URI {{ url }}
+  get_url:
+    url: "{{ url }}"
+    dest: "{{ destination }}"

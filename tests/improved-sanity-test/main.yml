@@ -96,15 +96,33 @@
     # Install package using package layering
     - role: rpm_ostree_install
       packages: "{{ g_pkg }}"
-      reboot: true
+      reboot: false
       tags:
         - rpm_ostree_install
+        - cloud_image
+
+    - role: reboot
+      tags:
+        - reboot
         - cloud_image
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
+        - cloud_image
+
+    - role: httpd_start
+      port: 8080
+      tags:
+        - httpd_start
+        - cloud_image
+
+    - role: url_verify
+      url: http://localhost:8080
+      destination: /dev/null
+      tags:
+        - url_verify
         - cloud_image
 
     # Verify admin unlock by installing an RPM
@@ -335,6 +353,19 @@
       package: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
+        - cloud_image
+
+    - role: httpd_start
+      port: 8080
+      tags:
+        - httpd_start
+        - cloud_image
+
+    - role: url_verify
+      url: http://localhost:8080
+      destination: /dev/null
+      tags:
+        - url_verify
         - cloud_image
 
     # Check admin unlock overlayfs is no longer there after upgrade

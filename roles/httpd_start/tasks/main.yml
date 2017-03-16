@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# configures httpd port and starts service
+#
+- name: Change port in http conf file
+  replace:
+    dest: /etc/httpd/conf/httpd.conf
+    regexp: '^Listen 80$'
+    replace: 'Listen {{ port }}'
+  when: port is defined
+
+- name: Start httpd
+  service:
+    name: httpd
+    state: started
