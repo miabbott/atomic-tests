@@ -9,3 +9,9 @@ g_hostname: 'myhostname'
 g_rpm_name: "fpaste"
 g_pkg: "wget"
 g_seboolean: "virt_use_nfs"
+# These variables are used by the 'semanage_fcontext_mod' and
+# 'semanage_fcontext_verify' roles.  The values were pulled from
+# RHBZ #1398427
+g_semanage_test_dir: "/var/opt/quest/vas/vasd"
+g_semanage_test_dir_match: "/var/opt/quest/vas/vasd(/.*)?"
+g_semanage_test_context: "httpd_config_t"

@@ -1,0 +1,12 @@
+---
+- name: Fail if variables are not defined
+  fail:
+    msg: "The required variables (test_dir_match + test_context) are not defined"
+  when: test_dir_match is undefined or
+        test_context is undefined
+
+  # NB: this may return an error message on Fedora that looks like:
+  # 'libsemanage.dbase_llist_query: could not query record value (No such file or directory).'
+  # However, the operation will still be successful.  ¯\_(ツ)_/¯
+- name: Configure new SELinux context
+  command: semanage fcontext -m -t {{ test_context }} {{ test_dir_match }}
