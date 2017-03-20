@@ -1,8 +1,8 @@
 ---
 # vim: set ft=ansible:
 #
-# !!!NOTE!!! This playbook was tested using Ansible 2.1; it is recommended
-# that the same version is used.
+# !!!NOTE!!! This playbook was tested using Ansible 2.2; any other versions
+# are not supported.
 #
 # This playbook aims to verify that the changes to the Atomic Host platform
 # do not disrupt the ability for users to build/run containers built on top
@@ -21,6 +21,9 @@
   hosts: all
   become: yes
 
+  tags:
+    - setup
+
   vars_files:
     - vars.yml
 
@@ -37,8 +40,17 @@
             ansible_distribution == "RedHat"
 
   roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
     - role: redhat_subscription
       when: ansible_distribution == "RedHat"
+      tags:
+        - redhat_subscription
 
   post_tasks:
     - name: Create working directory
@@ -68,6 +80,9 @@
 - name: Docker build httpd - test
   hosts: all
   become: yes
+
+  tags:
+    - tests
 
   vars_files:
     - vars.yml
@@ -100,7 +115,15 @@
   hosts: all
   become: yes
 
+  tags:
+    - teardown
+
   roles:
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
     - role: redhat_unsubscribe
       when: ansible_distribution == "RedHat"
-
+      tags:
+        - redhat_unsubscribe
