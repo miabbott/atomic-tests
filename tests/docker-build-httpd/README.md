@@ -24,7 +24,7 @@ The following base images are tested:
   - docker.io/ubuntu
 
 ### Prerequisites
-  - Ansible version 2.1 (other versions of Ansible are not supported)
+  - Ansible version 2.2 (other versions of Ansible are not supported)
 
   - Configure subscription data (if used)
 
