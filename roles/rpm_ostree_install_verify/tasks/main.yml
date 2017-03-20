@@ -7,7 +7,7 @@
 #  that the binary is available by using which.
 #
 # Parameter:
-#   package - list of name of a single package
+#   package - name of a single package
 #
 # Requirements:
 #  Package must install a binary that is the same as the package name

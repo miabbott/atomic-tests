@@ -99,31 +99,15 @@
       reboot: false
       tags:
         - rpm_ostree_install
-        - cloud_image
 
     - role: reboot
       tags:
         - reboot
-        - cloud_image
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
-        - cloud_image
-
-    - role: httpd_start
-      port: 8080
-      tags:
-        - httpd_start
-        - cloud_image
-
-    - role: url_verify
-      url: http://localhost:8080
-      destination: /dev/null
-      tags:
-        - url_verify
-        - cloud_image
 
     # Verify admin unlock by installing an RPM
     - role: ostree_admin_unlock_hotfix
@@ -353,7 +337,30 @@
       package: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
+
+    - role: rpm_ostree_install
+      packages: httpd
+      reboot: false
+      tags:
+        - rpm_ostree_install
         - cloud_image
+
+    - role: reboot
+      tags:
+        - reboot
+        - cloud_image
+
+    - role: rpm_ostree_install_verify
+      package: "{{ g_pkg }}"
+      tags:
+        - rpm_ostree_install_verify
+
+    - role: rpm_ostree_install_verify
+      package: httpd
+      tags:
+        - rpm_ostree_install_verify
+        - cloud_image
+      always_run: yes
 
     - role: httpd_start
       port: 8080
@@ -517,16 +524,16 @@
       tags:
         - rpm_ostree_install_verify
 
-    # Check admin unlock overlayfs still present
-    - role: overlayfs_verify_present
+    # Check http package is not installed
+    - role: rpm_ostree_uninstall_verify
+      package: httpd
       tags:
-        - overlayfs_verify_present
+        - rpm_ostree_uninstall_verify
 
-    # Verify admin unlocked package still installed
-    - role: package_verify_present
-      rpm_name: "{{ g_rpm_name }}"
+    # Check admin unlock overlayfs missing
+    - role: overlayfs_verify_missing
       tags:
-        - package_verify_present
+        - overlayfs_verify_missing
 
     # Check that /tmp is properly setup yet again
     - role: tmp_check_perms
