@@ -1,4 +1,4 @@
-This playbook tests the basic docker functions.  RHEL and Centos Atomic Host is
+This playbook tests the basic docker functions.  RHEL and CentOS Atomic Host is
 shipped with two version of docker--docker-current and docker-latest.  Docker
 current is the current stable release of docker while docker-latest is the latest
 release of docker available.  The purpose of the docker-latest release is for

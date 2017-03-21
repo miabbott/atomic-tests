@@ -53,7 +53,7 @@
     - role: rpm_ostree_install
       packages: 'gcc python-devel'
       reboot: false
-      when: ansible_distribution == 'RedHat' or "'CentOS' in ansible_distribution"
+      when: "ansible_distribution == 'RedHat' or 'CentOS' in ansible_distribution"
       tags:
         - rpm_ostree_install
 
@@ -71,10 +71,10 @@
   post_tasks:
     - name: Turn on user namespaces
       shell: grubby --args="user_namespace.enable=1" --update-kernel="$(grubby --default-kernel)"
-      when: ("'CentOS' in ansible_distribution" or ansible_distribution == 'Redhat')
+      when: "'CentOS' in ansible_distribution or ansible_distribution == 'RedHat'"
 
     - include: '../../common/ans_reboot.yml'
-      when: ("'CentOS' in ansible_distribution" or ansible_distribution == 'Redhat')
+      when: "'CentOS' in ansible_distribution or ansible_distribution == 'RedHat'"
 
     - include: 'roles/ostree_admin_unlock/tasks/main.yml'
 

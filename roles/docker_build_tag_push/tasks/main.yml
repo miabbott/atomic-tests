@@ -55,7 +55,7 @@
     with_items:
       - mariadb_cont.tgz
       - web_cont_2.tgz
-    when: ansible_distribution == "CentOS"
+    when: "'CentOS' in ansible_distribution"
 
 # Common build, tag, push
   - name: untar db file

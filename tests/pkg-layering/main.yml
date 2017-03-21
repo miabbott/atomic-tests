@@ -296,7 +296,7 @@
     - name: Fail if error not expected
       fail:
         msg: "Command error not expected"
-      when: "'Package \\'{{ g_invalid_pkg }}\\' is not currently requested' not in uninstall.stderr"
+      when: "'\\'{{ g_invalid_pkg }}\\' is not currently requested' not in uninstall.stderr"
 
 
 - name: Package Layering - Negative Test - Installing non-existent package
