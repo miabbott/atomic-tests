@@ -1,4 +1,0 @@
-baseurl,https://cdn.redhat.com
-serverurl,subscription.rhn.redhat.com:443/subscription
-username,username@example.com
-password,yourPa$sW0rd
