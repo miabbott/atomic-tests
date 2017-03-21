@@ -1,4 +1,2 @@
 ---
-# provide an empty iterator when a list is not provided
-# http://docs.ansible.com/ansible/playbooks_conditionals.html#loops-and-conditionals
-- include: ../../../common/ans_reboot.yaml
+- include: ../../../common/ans_reboot.yml

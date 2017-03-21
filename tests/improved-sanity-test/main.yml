@@ -328,7 +328,7 @@
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
       tags:
-        - redhat_subscribe
+        - redhat_subscription
 
     # Verify correct SELinux labels again
     - role: selinux_verify

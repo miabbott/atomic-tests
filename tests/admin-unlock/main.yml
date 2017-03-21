@@ -269,7 +269,7 @@
         msg: "Error message is incorrect"
       when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
 
-    - include: ../../common/ans_reboot.yaml
+    - include: ../../common/ans_reboot.yml
 
 - name: Ostree Admin Unlock - Hotfix Unlock Twice - Error Message
   hosts: all

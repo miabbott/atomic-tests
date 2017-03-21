@@ -26,7 +26,7 @@ found in the repo are currently unmaintained and may not work correctly.
 - [Kubernetes ](tests/k8-cluster/main.yml)
   - Validates standing up a single-node Kubernetes cluster and deploying a
     simple web+DB application
-- [Package Layering](tests/pkg-layering)
+- [Package Layering](tests/pkg-layering/main.yml)
   - Validates the package layering functionality of `rpm-ostree`
 - [System Containers](tests/system-containers/main.yml)
   - Verifies the basic usage of system containers on Atomic Host
@@ -65,7 +65,7 @@ To setup a virtualenv, follow the steps below after cloning atomic-host-tests:
 All the playbooks should be able to be run without any extra options on the
 command line.  Like so:
 
-`# ansible-playbook -i inventory tests/new-tree-smoketest.main.yaml`
+`# ansible-playbook -i inventory tests/improved-sanity-tests/main.yml`
 
 However, some tests do accept extra arguments that can change how the test is
 run; please see the README for each test for details.

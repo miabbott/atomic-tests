@@ -1,6 +1,6 @@
 ---
 #
-# This role creates the docker webserver and database images, then tags and 
+# This role creates the docker webserver and database images, then tags and
 # pushes the images to a private registry that is setup in another role.
 #
 # Two files containing the are copied to the device under test.  Each Dockerfile

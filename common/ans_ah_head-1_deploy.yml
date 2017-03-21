@@ -24,7 +24,7 @@
       delay: 5
       failed_when: "output.rc != 0"
 
-    - include: ans_reboot.yaml
+    - include: ans_reboot.yml
 
     - name: wait for docker service to start
       service:

@@ -15,7 +15,7 @@ Core Functionality
 
     If running against a RHEL Atomic Host, you should provide subscription
     data that can be used by `subscription-manager`.  See
-    [roles/redhat_subscribe/tasks/main.yaml](roles/redhat_subscribe/tasks/main.yaml)
+    [roles/redhat_subscription/tasks/main.yml](roles/redhat_subscription/tasks/main.yml)
     for additional details.
 
   - Configure the required variables to your liking in [tests/docker-swarm/vars.yml](tests/docker-swarm/vars.yml).

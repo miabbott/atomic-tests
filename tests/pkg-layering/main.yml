@@ -271,7 +271,7 @@
     - name: Install {{ g_epel_pkg }} from EPEL
       command: rpm-ostree install {{ g_epel_pkg }}
 
-    - include: ../../common/ans_reboot.yaml
+    - include: ../../common/ans_reboot.yml
 
     - include: verify_package_deployed.yml
       vars:
@@ -371,7 +371,7 @@
     - name: Uninstall httpd
       command: rpm-ostree uninstall httpd
 
-    - include: '../../common/ans_reboot.yaml'
+    - include: '../../common/ans_reboot.yml'
 
     - include: verify_package_not_deployed.yml
       vars:

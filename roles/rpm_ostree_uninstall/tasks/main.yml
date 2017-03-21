@@ -30,7 +30,7 @@
   when: reboot
   ignore_errors: true
 
-- include: ../../../common/ans_reboot.yaml
+- include: ../../../common/ans_reboot.yml
   vars:
     skip_shutdown: true # shutdown was already initiated
   when: reboot

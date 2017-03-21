@@ -9,7 +9,7 @@
 # Expects the following variable to be defined:
 #  - subscription_file
 #
-# NOTE: The 'subscription_file' variable lives in vars/subscription.yaml
+# NOTE: The 'subscription_file' variable lives in roles/redhat_subscription/vars/subscription.yml
 #
 # NOTE: It is suggested that the value of `subscription_file` point to a file
 #       that is in the files directory of (same directory the tasks directory)

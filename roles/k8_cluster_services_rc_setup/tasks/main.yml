@@ -10,28 +10,28 @@
     run_once: true
 
 
-  - name: copy db-rc.yaml, db-service.yaml, webserver-rc.yaml, webserver-service.yaml 
-    copy: 
+  - name: copy db-rc.yml, db-service.yml, webserver-rc.yml, webserver-service.yml
+    copy:
       src=roles/k8_cluster_services_rc_setup/files/{{ item }}
       dest=/root
       owner=root
       group=root
       mode=0644
     with_items:
-      - db-rc.yaml
-      - db-service.yaml
-      - webserver-rc.yaml
-      - webserver-service.yaml
+      - db-rc.yml
+      - db-service.yml
+      - webserver-rc.yml
+      - webserver-service.yml
 
-  - name: insert private registry ip in webserver controller image yaml
+  - name: insert private registry ip in webserver controller image yml
     replace:
-      dest=/root/db-rc.yaml
+      dest=/root/db-rc.yml
       regexp='PRIVATE'
       replace='{{ ansible_docker0.ipv4.address }}'
 
-  - name: insert private registry ip in db controller image yaml
+  - name: insert private registry ip in db controller image yml
     replace:
-      dest=/root/webserver-rc.yaml
+      dest=/root/webserver-rc.yml
       regexp='PRIVATE'
       replace='{{ ansible_docker0.ipv4.address }}'
 
@@ -44,15 +44,15 @@
   - name: create db and webserver service
     command: kubectl create -f /root/{{ item }}
     with_items:
-      - db-service.yaml
-      - webserver-service.yaml
+      - db-service.yml
+      - webserver-service.yml
     ignore_errors: True
 
   - name: create db and webserver replication controller
     command: kubectl create -f /root/{{ item }}
     with_items:
-      - db-rc.yaml
-      - webserver-rc.yaml
+      - db-rc.yml
+      - webserver-rc.yml
     ignore_errors: True
 
   - name: verify db pod is running
@@ -62,12 +62,9 @@
     retries: 12
     delay: 10
 
-  - name: verify webserver-controller is running 
+  - name: verify webserver-controller is running
     shell: kubectl get pods | grep webserver-controller
     register: output
     until: output.stdout.find("Running") > -1
     retries: 12
     delay: 10
-
-
-

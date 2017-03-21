@@ -140,7 +140,7 @@
         msg: "Parameters were not correctly passed in"
       when: "'Hi foo' not in c_output.stdout"
 
-    - include: ../../common/ans_reboot.yaml
+    - include: ../../common/ans_reboot.yml
 
     - name: Verify {{ g_hw_name }} service is active
       command: systemctl is-active {{ g_hw_name }}
