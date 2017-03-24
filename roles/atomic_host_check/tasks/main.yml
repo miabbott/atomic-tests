@@ -11,7 +11,7 @@
     path: "/run/ostree-booted"
   register: s
   changed_when: false
-  always_run: yes
+  check_mode: no
 
 - name: Init the is_atomic fact
   set_fact:

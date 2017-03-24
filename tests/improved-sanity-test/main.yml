@@ -299,13 +299,13 @@
       tags:
         - atomic_host_check
 
-    # Setup facts again. (Need to use the 'always_run' option to ensure the
+    # Setup facts again. (Need to use the 'check_mode: no' option to ensure the
     # role runs again)
     - role: osname_set_fact
       tags:
         - osname_set_fact
         - cloud_image
-      always_run: yes
+      check_mode: no
 
     # We remove any subscriptions after the upgrade to verify that
     # 'rpm-ostree status' with the 'unconfigured-state' field present.
@@ -378,10 +378,10 @@
       tags:
         - rpm_ostree_install_verify
         - cloud_image
-      always_run: yes
+      check_mode: no
 
     - role: httpd_start
-      port: 8080
+      httpd_port: 8080
       tags:
         - httpd_start
         - cloud_image
