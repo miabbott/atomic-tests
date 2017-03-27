@@ -102,6 +102,30 @@
         - docker_pull_run_remove
         - cloud_image
 
+    # Validate 'atomic pull', 'atomic scan' works correctly.
+    # Remove images after test of each command.
+    # Do this ahead of 'ostree admin unlock' because of overlay + SELinux
+    # incompatibility on RHEL. (This should be fixed in 7.4)
+    - role: atomic_pull_verify
+      tags:
+        - atomic_pull_verify
+        - cloud_image
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+        - cloud_image
+
+    - role: atomic_scan_verify
+      tags:
+        - atomic_scan_verify
+        - cloud_image
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+        - cloud_image
+
     # Install package using package layering
     - role: rpm_ostree_install
       packages: "{{ g_pkg }}"
@@ -194,28 +218,6 @@
       vfp_dirname: "{{ g_dir1 }}"
       tags:
         - var_files_present
-        - cloud_image
-
-    # Validate 'atomic pull', 'atomic scan' works correctly.
-    # Remove images after test of each command.
-    - role: atomic_pull_verify
-      tags:
-        - atomic_pull_verify
-        - cloud_image
-
-    - role: docker_remove_all
-      tags:
-        - docker_remove_all
-        - cloud_image
-
-    - role: atomic_scan_verify
-      tags:
-        - atomic_scan_verify
-        - cloud_image
-
-    - role: docker_remove_all
-      tags:
-        - docker_remove_all
         - cloud_image
 
     # Pull down docker base images, build a layered image, run it, then
