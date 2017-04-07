@@ -42,7 +42,7 @@ found in the repo are currently unmaintained and may not work correctly.
   - Validates the package layering functionality of `rpm-ostree`
 - [System Containers](tests/system-containers/main.yml)
   - Verifies the basic usage of system containers on Atomic Host
-- [Runc](test/runc/main.yml)
+- [Runc](tests/runc/main.yml)
   - Verifies basic runc functions
 
 ### Why Ansible?
