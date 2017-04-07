@@ -134,12 +134,10 @@
         - rpm_ostree_install
 
     - role: reboot
+      wait_for_services:
+        - docker
       tags:
-        - reboot
-
-    - role: reboot
-      tags:
-        - reboot
+        - reboot_pre_up_install
         - cloud_image
 
     - role: rpm_ostree_install_verify
@@ -276,7 +274,7 @@
       wait_for_services:
         - docker
       tags:
-        - reboot
+        - reboot_pre_upgrade
 
 - name: Improved Sanity Test - Post-Upgrade
   hosts: all
@@ -367,7 +365,7 @@
 
     - role: reboot
       tags:
-        - reboot
+        - reboot_post_up_install
         - cloud_image
 
     - role: rpm_ostree_install_verify
@@ -510,7 +508,7 @@
       wait_for_services:
         - docker
       tags:
-        - reboot
+        - reboot_post_upgrade
 
 - name: Improved Sanity Test - Post-Rollback
   hosts: all
