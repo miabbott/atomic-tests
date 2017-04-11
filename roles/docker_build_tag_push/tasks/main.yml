@@ -11,6 +11,11 @@
 #
 
 # Need to handle the cases of building the docker containers for each variant
+  - name: Fail if g_osname is undefined
+    fail:
+      msg: "g_osname is undefined"
+    when: g_osname is undefined
+    run_once: true
 
   - name: Fail if ansible_docker0.ipv4.address is not defined
     fail:
@@ -19,53 +24,29 @@
     run_once: true
 
 # Red Hat
-  - name: copy mariadb_cont.tgz and web_cont_2.tgz
-    copy:
-      src=roles/docker_build_tag_push/files/rhelah/{{ item }}
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
-    with_items:
-      - mariadb_cont.tgz
-      - web_cont_2.tgz
+  - name: copy db and web directories
+    synchronize:
+      src: roles/docker_build_tag_push/files/rhel7
+      dest: /tmp
     when: ansible_distribution == "RedHat"
 
 # Fedora
-  - name: copy mariadb_cont.tgz and web_cont_2.tgz
-    copy:
-      src=roles/docker_build_tag_push/files/fedora/{{ item }}
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
-    with_items:
-      - mariadb_cont.tgz
-      - web_cont_2.tgz
+  - name: copy db and web directories
+    synchronize:
+      src: roles/docker_build_tag_push/files/fedora
+      dest: /tmp
     when: ansible_distribution == "Fedora"
 
 # CentOS
-  - name: copy mariadb_cont.tgz and web_cont_2.tgz
-    copy:
-      src=roles/docker_build_tag_push/files/centos/{{ item }}
-      dest=/root
-      owner=root
-      group=root
-      mode=0644
-    with_items:
-      - mariadb_cont.tgz
-      - web_cont_2.tgz
+  - name: copy db and web directories
+    synchronize:
+      src: roles/docker_build_tag_push/files/centos
+      dest: /tmp
     when: "'CentOS' in ansible_distribution"
 
 # Common build, tag, push
-  - name: untar db file
-    unarchive:
-      src=/root/mariadb_cont.tgz
-      dest=/root/
-      copy=no
-
   - name: build db docker image
-    command: docker build -t {{ ansible_docker0.ipv4.address}}:5000/dbforweb:latest /root/db
+    command: docker build -t {{ ansible_docker0.ipv4.address}}:5000/dbforweb:latest /tmp/{{ g_osname }}/db
 
   - name: verify tag
     command: docker images
@@ -78,20 +59,14 @@
   - name: delete tagged dbforweb image
     command: docker rmi -f {{ ansible_docker0.ipv4.address }}:5000/dbforweb
 
-  - name: download and untar web file
-    unarchive:
-      src=/root/web_cont_2.tgz
-      dest=/root/
-      copy=no
-
   - name: change IP address in action file before building
     replace:
-      dest=/root/web/action
+      dest=/tmp/{{ g_osname }}/web/action
       regexp='172.17.42.1'
       replace={{ ansible_docker0.ipv4.address }}
 
   - name: build web docker image
-    command: docker build -t {{ ansible_docker0.ipv4.address }}:5000/webwithdb:latest /root/web
+    command: docker build -t {{ ansible_docker0.ipv4.address }}:5000/webwithdb:latest /tmp/{{ g_osname }}/web
 
   - name: Verify dbforweb tag
     command: docker images

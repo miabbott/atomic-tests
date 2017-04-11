@@ -28,6 +28,10 @@
       tags:
         - ansible_version_check
 
+    - role: osname_set_fact
+      tags:
+        - osname_set_fact
+
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
       tags:

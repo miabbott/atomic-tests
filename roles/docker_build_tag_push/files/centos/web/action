@@ -1,0 +1,28 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import MySQLdb as mdb
+import os
+
+con = mdb.connect(os.getenv('DB_SERVICE_SERVICE_HOST','172.17.42.1'), 'dbuser1', 'redhat', 'gss')
+
+with con:
+
+    cur = con.cursor()
+    cur.execute("SELECT MESSAGE FROM atomic_training")
+
+    rows = cur.fetchall()
+
+    print 'Content-type:text/html\r\n\r\n'
+    print '<html>'
+    print '<head>'
+    print '<title>My Application</title>'
+    print '</head>'
+    print '<body>'
+
+    for row in rows:
+        print '<h2>' + row[0] + '</h2>'
+
+    print '</body>'
+    print '</html>'
+
+    con.close()

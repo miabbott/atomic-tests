@@ -81,7 +81,7 @@
       - kube-proxy.service
       - kubelet.service
 
-  - name: enable docker, kube-rpoxy.service, kubelet.service
+  - name: enable docker, kube-proxy.service, kubelet.service
     service:
       name={{ item }}
       enabled=yes
