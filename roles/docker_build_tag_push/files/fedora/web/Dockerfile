@@ -1,5 +1,5 @@
 # Pull the rhel image from the local repository
-FROM fedora:latest
+FROM registry.fedoraproject.org/fedora:25
 USER root
 
 MAINTAINER Maintainer_Name

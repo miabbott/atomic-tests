@@ -1,5 +1,5 @@
 # Pull the rhel image from the local repository
-FROM centos:latest
+FROM docker.io/centos:7
 USER root
 
 MAINTAINER Maintainer_Name
