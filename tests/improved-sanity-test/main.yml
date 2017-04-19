@@ -330,7 +330,6 @@
       user: bin
       tags:
         - command_privileged_verify
-        - cloud_image
 
     # Compare 'atomic host status' and 'rpm-ostree status' again
     - role: atomic_host_status_verify
