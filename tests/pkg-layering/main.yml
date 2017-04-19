@@ -321,7 +321,7 @@
       when: "'No package' not in nonexist.stderr"
 
 
-- name: Package Layering - Negative Test - Installing existing package
+- name: Package Layering - Installing existing package
   hosts: all
   become: yes
 
@@ -334,13 +334,31 @@
   tasks:
     - name: Attempt to install package that is already in the deployment
       command: rpm-ostree install {{ g_deployed_pkg }}
-      register: already
-      failed_when: already.rc != 1
 
-    - name: Fail if error message is incorrect
+    - include: '../../common/ans_reboot.yml'
+
+    - name: Get rpm-ostree status --json output
+      command: rpm-ostree status --json
+      register: req
+
+    - name: Convert rpm-ostree status output to jinja2 json
+      set_fact:
+        req_json: "{{ req.stdout | from_json }}"
+
+    - name: Set packages when deployment 0 is booted
+      set_fact:
+        req_pkgs: "{{ req_json['deployments'][0]['requested-packages'] if req_json['deployments'][0]['requested-packages'] is defined else {} }}"
+      when: req_json['deployments'][0]['booted']
+
+    - name: Set packages when deployment 1 is booted
+      set_fact:
+        req_pkgs: "{{ req_json['deployments'][1]['requested-packages'] if req_json['deployments'][1]['requested-packages'] is defined else {} }}"
+      when:  req_json['deployments'][1]['booted']
+
+    - name: Fail if {{ g_deployed_pkg }} is not in requested packages
       fail:
-        msg: "Error is incorrect"
-      when: "'package \\'{{ g_deployed_pkg }}\\' is already in the deployment' not in already.stderr"
+        msg: "{{ g_deployed_pkg }} not found in rpm-ostree status output"
+      when: "'{{ g_deployed_pkg }}' not in req_pkgs"
 
 - name: Package Layering - Installing non-root ownership package
   hosts: all
@@ -376,6 +394,22 @@
     - include: verify_package_not_deployed.yml
       vars:
         package: httpd
+
+- name: Package Layering - Negative - Install already layered package
+  hosts: all
+  become: yes
+
+  tags:
+    - install_previously_layered
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+     - name: Install already layered package
+       command: rpm-ostree install {{ g_pkg1 }}
+       register: ros_install
+       failed_when: ros_install.rc == 0
 
 - name: Package Layering - Negative Test - Installing without sufficient privileges
   hosts: all

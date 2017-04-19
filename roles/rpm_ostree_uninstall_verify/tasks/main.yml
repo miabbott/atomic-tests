@@ -30,13 +30,13 @@
 
 - name: Set packages when deployment 0 is booted
   set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][0]['packages'] }}"
-  when: installed_json['deployments'][0]['packages'] is defined and installed_json['deployments'][0]['booted']
+    installed_pkgs: "{{ installed_json['deployments'][0]['packages'] if installed_json['deployments'][0]['packages'] is defined else {} }}"
+  when: installed_json['deployments'][0]['booted']
 
 - name: Set packages when deployment 1 is booted
   set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
-  when: installed_json['deployments'][1]['packages'] is defined and installed_json['deployments'][1]['booted']
+    installed_pkgs: "{{ installed_json['deployments'][1]['packages'] if installed_json['deployments'][1]['packages'] is defined else {} }}"
+  when:  installed_json['deployments'][1]['booted']
 
 - name: Fail if packages not found in rpm-ostree status output
   fail:
