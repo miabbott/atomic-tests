@@ -57,10 +57,11 @@
         - cloud_image
 
     # Verify that rpm-ostree can be run as non-root or sudo
-    - role: rpm_ostree_status
-      become: no
+    - role: command_privileged_verify
+      cmd: rpm-ostree status
+      user: bin
       tags:
-        - rpm_ostree_status
+        - command_privileged_verify
         - cloud_image
 
     # Verify that the output from 'atomic host status' matches 'rpm-ostree status'
@@ -324,10 +325,11 @@
         - redhat_unsubscribe
 
     # Verify that rpm-ostree can be run as non-root or sudo
-    - role: rpm_ostree_status
-      become: no
+    - role: command_privileged_verify
+      cmd: rpm-ostree status
+      user: bin
       tags:
-        - rpm_ostree_status
+        - command_privileged_verify
         - cloud_image
 
     # Compare 'atomic host status' and 'rpm-ostree status' again

@@ -1,0 +1,21 @@
+---
+# vim: set ft=ansible:
+# role: command_unprivileged_verify
+#
+# This role verifies that a <cmd> is unsuccessfully executed
+#   running as <usr>
+#
+# Parameters:
+#  cmd (string) - simple shell command
+#  user (string) - user that runs the command
+#
+- name: Fail if cmd or user is undefined
+  fail:
+    msg: "cmd or user undefined"
+  when: cmd is undefined or
+        user is undefined
+
+- name: Run {{ cmd }} as {{ user }} expecting failure
+  command: runuser -u {{ user }} {{ cmd }}
+  register: ruo
+  failed_when: ruo.rc == 0
