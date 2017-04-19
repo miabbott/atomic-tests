@@ -56,6 +56,13 @@
         - osname_set_fact
         - cloud_image
 
+    # Verify that rpm-ostree can be run as non-root or sudo
+    - role: rpm_ostree_status
+      become: no
+      tags:
+        - rpm_ostree_status
+        - cloud_image
+
     # Verify that the output from 'atomic host status' matches 'rpm-ostree status'
     - role: atomic_host_status_verify
       tags:
@@ -315,6 +322,13 @@
       when: ansible_distribution == 'RedHat'
       tags:
         - redhat_unsubscribe
+
+    # Verify that rpm-ostree can be run as non-root or sudo
+    - role: rpm_ostree_status
+      become: no
+      tags:
+        - rpm_ostree_status
+        - cloud_image
 
     # Compare 'atomic host status' and 'rpm-ostree status' again
     - role: atomic_host_status_verify
