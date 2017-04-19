@@ -345,6 +345,9 @@
       set_fact:
         req_json: "{{ req.stdout | from_json }}"
 
+    # This is a hack for requested-packages being displayed in rpm-ostree v2017.3 that should
+    # be fixed in v2017.4.  Once all streams are at v2017.4 we can fix this.  See
+    # https://github.com/projectatomic/rpm-ostree/pull/670
     - name: Set packages when deployment 0 is booted
       set_fact:
         req_pkgs: "{{ req_json['deployments'][0]['requested-packages'] if req_json['deployments'][0]['requested-packages'] is defined else {} }}"
