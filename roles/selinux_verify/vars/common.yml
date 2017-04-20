@@ -1,0 +1,30 @@
+---
+# Until RHBZ #1428112 is fixed, we are removing the `/sysroot` entry from
+# this list.
+mountpoints:
+  - '/boot'
+  - '/usr'
+  - '/var'
+
+common_files:
+  - { key: '/etc/hosts', value: 'system_u:object_r:net_conf_t:s0' }
+  - { key: '/etc/hosts.allow', value: 'system_u:object_r:net_conf_t:s0' }
+  - { key: '/etc/hosts.deny', value: 'system_u:object_r:net_conf_t:s0' }
+  - { key: '/etc/group', value: 'system_u:object_r:passwd_file_t:s0' }
+  - { key: '/etc/group-', value: 'system_u:object_r:passwd_file_t:s0' }
+  - { key: '/etc/passwd', value: 'system_u:object_r:passwd_file_t:s0' }
+  - { key: '/etc/passwd-', value: 'system_u:object_r:passwd_file_t:s0' }
+  - { key: '/etc/gshadow', value: 'system_u:object_r:shadow_t:s0' }
+  - { key: '/etc/gshadow-', value: 'system_u:object_r:shadow_t:s0' }
+  - { key: '/etc/shadow', value: 'system_u:object_r:shadow_t:s0' }
+  - { key: '/etc/shadow-', value: 'system_u:object_r:shadow_t:s0' }
+  - { key: '/usr/sbin/NetworkManager', value: 'system_u:object_r:NetworkManager_exec_t:s0' }
+  - { key: '/usr/bin/ostree', value: 'system_u:object_r:install_exec_t:s0' }
+  - { key: '/usr/bin/rpm-ostree', value: 'system_u:object_r:install_exec_t:s0' }
+  - { key: '/usr/libexec/rpm-ostreed', value: 'system_u:object_r:install_exec_t:s0' }
+  - { key: '/usr/sbin/sshd', value: 'system_u:object_r:sshd_exec_t:s0' }
+
+common_procs:
+  - { key: 'NetworkManager', value: 'system_u:system_r:NetworkManager_t:s0' }
+  - { key: 'rpm-ostreed', value: 'system_u:system_r:install_t:s0' }
+  - { key: 'sshd', value: 'system_u:system_r:sshd_t:s0' }

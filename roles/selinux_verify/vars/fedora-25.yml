@@ -1,0 +1,16 @@
+---
+distro_files:
+  - { key: '/usr/bin/docker', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/bin/docker-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/bin/dockerd-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/bin/docker-storage-setup', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/libexec/docker/docker-containerd-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/libexec/docker/docker-containerd-shim-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/libexec/docker/docker-ctr-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/libexec/docker/docker-proxy-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/libexec/docker/docker-runc-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+
+distro_procs:
+  - { key: 'docker', value: 'system_u:system_r:container_runtime_t:s0' }
+  - { key: 'docker-containerd', value: 'system_u:system_r:container_runtime_t:s0' }
+
