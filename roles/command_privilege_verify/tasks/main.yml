@@ -1,0 +1,22 @@
+---
+# vim: set ft=ansible:
+# role: command_privilege_verify
+#
+# This role verifies that a <cmd> is can/cannot executed
+#   running as <usr> based on <expect_failure>
+#
+# Parameters:
+#  cmd (string) - simple shell command
+#  user (string) - user that runs the command
+#  expect_failure (boolean) - expect failure or not
+- name: Fail if cmd, user, or expect_failure is undefined
+  fail:
+    msg: "cmd, user, or expect_failure undefined"
+  when: cmd is undefined or
+        user is undefined or
+        expect_failure is undefined
+
+- name: Run {{ cmd }} as {{ user }}
+  command: runuser -u {{ user }} {{ cmd }}
+  register: cmd_output
+  failed_when: (cmd_output.rc == 0 and expect_failure) or (cmd_output.rc != 0 and not expect_failure)
