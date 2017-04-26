@@ -22,26 +22,12 @@
 # the lookup()
 # via http://stackoverflow.com/a/34239020
 #
-  - name: Get the current commit to find the correct origin file to manipulate later...
-    command: rpm-ostree status --json
-    register: rpm_output
-
-  - name: Convert deployment information into jinja2 json
-    set_fact:
-      json: "{{ rpm_output.stdout|from_json }}"
-
-  - name: Set version and commit if deployment 0 is booted
-    set_fact:
-      booted_commit: "{{ json['deployments'][0]['checksum'] }}"
-    when: json['deployments'][0] is defined and json['deployments'][0]['booted']
-
-  - name: Set version and commit if deployment 1 is booted
-    set_fact:
-      booted_commit: "{{ json['deployments'][1]['checksum'] }}"
-    when: json['deployments'][1] is defined and json['deployments'][1]['booted']
+  - name: Get origin file
+    command: ostree admin --print-current-dir
+    register: origin_file
 
   - name: Get refspec from origin file
-    command: grep refspec /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
+    command: grep refspec {{ origin_file.stdout }}.origin
     register: refspec
 
   - name: Fail if subscription_file is not defined
@@ -78,7 +64,7 @@
 
   - name: Revert refspec in origin after susbcription if it not the default refspec
     replace:
-      dest: /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
+      dest: "{{ origin_file.stdout }}.origin"
       regexp: '^refspec.*$'
       replace: "{{ refspec.stdout }}"
     when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
