@@ -30,7 +30,7 @@ The following base images are tested:
 
     If running against a RHEL Atomic Host, you should provide subscription
     data that can be used by `subscription-manager`.  See
-    [roles/redhat_subscribe/tasks/main.yaml](roles/redhat_subscribe/tasks/main.yaml)
+    [roles/redhat_subscription/tasks/main.yaml](roles/redhat_subscription/tasks/main.yaml)
     for additional details.
 
 ### Running the Playbook

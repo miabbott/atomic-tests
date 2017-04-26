@@ -430,3 +430,30 @@
       register: unprivileged
       become: false
       failed_when: unprivileged.rc != 1
+
+
+- name: Package Layering - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Uninstall all packages
+      command: rpm-ostree uninstall {{ g_pkg1 }} {{ g_epel_pkg }} {{ g_deployed_pkg }}
+
+    - include: '../../common/ans_reboot.yml'
+
+  roles:
+    - role: rpm_ostree_cleanup_all
+      tags:
+        - rpm_ostree_cleanup_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe

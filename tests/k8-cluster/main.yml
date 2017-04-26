@@ -56,3 +56,25 @@
   post_tasks:
     - name: check if everything works!
       shell: curl http://localhost:80/cgi-bin/action | grep "RedHat rocks"
+
+
+- name: Kubernetes Cluster - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  roles:
+    - role: k8_remove_all
+      tags:
+        - k8_remove_all
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe

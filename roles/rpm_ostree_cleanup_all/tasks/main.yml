@@ -1,0 +1,5 @@
+---
+# vim: set ft=ansible:
+#
+- name: Cleanup everything
+  command: rpm-ostree cleanup -rpmb

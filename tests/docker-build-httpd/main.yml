@@ -14,7 +14,7 @@
 # Afterwards, the container and build image are removed from the system.
 #
 # In order to use less 'hacks', the playbook is actually multiple playbooks
-# that are divided into setup, tests, and teardown.  As such, this playbook
+# that are divided into setup, tests, and cleanup.  As such, this playbook
 # is meant to be run in its entirety and not separately.
 #
 - name: Docker build httpd - setup
@@ -111,12 +111,12 @@
       when: ansible_distribution == "RedHat"
 
 
-- name: Docker build httpd - teardown
+- name: Docker build httpd - Cleanup
   hosts: all
   become: yes
 
   tags:
-    - teardown
+    - cleanup
 
   roles:
     - role: docker_remove_all

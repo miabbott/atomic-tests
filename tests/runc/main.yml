@@ -137,3 +137,31 @@
         'exit status 1' in result.stdout or
         'error' in result.stdout or
         'Traceback' in result.stdout
+
+- name: runc - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    - role: rpm_ostree_rollback
+      tags:
+        - rpm_ostree_rollback
+
+    - role: reboot
+      tags:
+        - reboot
+
+    - role: rpm_ostree_cleanup_all
+      tags:
+        - rpm_ostree_cleanup_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe

@@ -102,6 +102,19 @@
       tags:
         - docker_rmi_httpd_image
 
+- name: Docker - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  roles:
     - role: docker_remove_all
       tags:
-        - docker_remove_all2
+        - docker_remove_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe

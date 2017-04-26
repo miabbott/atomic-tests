@@ -183,3 +183,20 @@
       fail:
         msg: "Swarm is not inactive"
       when: "'Swarm: inactive' not in di.stdout"
+
+- name: Docker Swarm - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  roles:
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe

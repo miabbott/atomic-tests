@@ -1,0 +1,27 @@
+---
+- name: Remove all the manifests
+  file:
+    path: "/etc/kubernetes/manifests/{{ item }}"
+    state: absent
+  with_items:
+    - apiserver-pod.json
+    - controller-mgr-pod.json
+    - scheduler-pod.json
+
+- name: Disable services
+  service:
+    name: "{{ item }}"
+    enabled: no
+    state: stopped
+  with_items:
+    - kube-proxy
+    - kubelet
+
+- name: Remove all services
+  command: kubectl delete svc --all
+
+- name: Remove all RCs
+  command: kubectl delete rc --all
+
+- name: Remove all pods
+  command: kubectl delete po --all
