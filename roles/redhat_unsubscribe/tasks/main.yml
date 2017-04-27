@@ -8,23 +8,9 @@
 # all the subscriptions.
 #
 - block:
-  - name: Get the current commit to find the correct origin file to manipulate later...
-    command: rpm-ostree status --json
-    register: rpm_output
-
-  - name: Convert deployment information into jinja2 json
-    set_fact:
-      json: "{{ rpm_output.stdout|from_json }}"
-
-  - name: Set version and commit if deployment 0 is booted
-    set_fact:
-      booted_commit: "{{ json['deployments'][0]['checksum'] }}"
-    when: json['deployments'][0] is defined and json['deployments'][0]['booted']
-
-  - name: Set version and commit if deployment 1 is booted
-    set_fact:
-      booted_commit: "{{ json['deployments'][1]['checksum'] }}"
-    when: json['deployments'][1] is defined and json['deployments'][1]['booted']
+  - name: Get origin file
+    command: ostree admin --print-current-dir
+    register: origin_file
   when:
     - unconfigured_state is defined
     - unconfigured_state
@@ -42,7 +28,7 @@
 
 - name: Insert 'unconfigured-state' field
   lineinfile:
-    dest: /ostree/deploy/rhel-atomic-host/deploy/{{ booted_commit }}.0.origin
+    dest: "{{ origin_file.stdout }}.origin"
     line: 'unconfigured-state=This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.'
     insertafter: EOF
   when:
