@@ -359,7 +359,7 @@
     - name: Fail when rootfs dir exists for rootfs container
       fail:
         msg: "/var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs exists"
-      when: hwr.stat.exists == True
+      when: hwr.stat.exists != True
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
       vars:
