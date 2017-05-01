@@ -53,9 +53,9 @@
 
     - name: Set facts
       set_fact:
-        etcd_image: 'gscrivano/etcd'
+        etcd_image: 'registry.fedoraproject.org/f25/etcd'
         etcd_name: 'etcd'
-        flannel_image: 'gscrivano/flannel'
+        flannel_image: 'registry.fedoraproject.org/f25/flannel'
         flannel_name: 'flannel'
       when: ansible_distribution != 'RedHat'
 
