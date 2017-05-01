@@ -559,3 +559,19 @@
     - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
       vars:
         image: "{{ g_hw_image }}"
+
+
+- name: System Containers - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    - role: atomic_images_delete_all
+      tags:
+        - atomic_images_delete_all

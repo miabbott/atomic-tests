@@ -1,0 +1,14 @@
+---
+# vim: set ft=ansible:
+#
+- name: Remove all images
+  command: atomic --assumeyes images delete --all
+  ignore_errors: yes
+
+- name: Prune images
+  command: atomic images prune
+
+- name: Verify no images exist
+  command: atomic images list -q
+  register: ail
+  failed_when: "{{ ail.stdout_lines | length }} > 0"
