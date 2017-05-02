@@ -161,6 +161,10 @@
       tags:
         - rpm_ostree_cleanup_all
 
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
     - role: redhat_unsubscribe
       when: ansible_distribution == 'RedHat'
       tags:
