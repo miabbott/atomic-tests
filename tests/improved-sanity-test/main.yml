@@ -29,6 +29,7 @@
 - name: Improved Sanity Test - Pre-Upgrade
   hosts: all
   become: yes
+  force_handlers: true
 
   tags:
     - pre_upgrade
@@ -43,6 +44,12 @@
       avc_minor: "2"
       tags:
         - ansible_version_check
+        - cloud_image
+
+    - role: handler_notify_on_failure
+      handler_name: h_get_journal
+      tags:
+        - handler_notify_on_failure
         - cloud_image
 
     - role: atomic_host_check
@@ -288,6 +295,7 @@
 - name: Improved Sanity Test - Post-Upgrade
   hosts: all
   become: yes
+  force_handlers: true
 
   tags:
     - post_upgrade
@@ -303,6 +311,13 @@
       tags:
         - ansible_version_check
         - cloud_image
+
+    - role: handler_notify_on_failure
+      handler_name: h_get_journal
+      tags:
+        - handler_notify_on_failure
+        - cloud_image
+      check_mode: no
 
     - role: atomic_host_check
       tags:
@@ -530,6 +545,7 @@
 - name: Improved Sanity Test - Post-Rollback
   hosts: all
   become: yes
+  force_handlers: true
 
   tags:
     - post_rollback
@@ -545,6 +561,13 @@
       tags:
         - ansible_version_check
         - cloud_image
+
+    - role: handler_notify_on_failure
+      handler_name: h_get_journal
+      tags:
+        - handler_notify_on_failure
+        - cloud_image
+      check_mode: no
 
     - role: atomic_host_check
       tags:

@@ -1,0 +1,44 @@
+---
+# vim: set ft=ansible:
+#
+# handler_notify_on_failure - This task will notify all handlers listening
+#   for a <handler_name> to run on failure of the playbook.  Below are the
+#   required guidelines for using the handler on failure.
+#
+#   force_handlers: true must be added to every play in a playbook
+#
+#   This role must be called once per pre_task, post_tasks, roles, or play.
+#
+#   To add a handler to run on failure the handler task must:
+#     - Have when: aht_result == "1"
+#     - Have listen: <handler_name>
+#
+#   Note: For multiple tasks, make sure each task has the same
+#         listen: <handle_name>
+#
+#   Handlers can be added to ../handlers/main.yml if it is generic and
+#   can be re-used.  For handlers specific to your playbook, create a
+#   yml file with the handlers, add a handler section to your playbook,
+#   and use include to pull the handlers in.
+#
+#     i.e.  handlers:
+#             - include: 'my_handlers.yml'
+#
+# parameters:
+#   handler_name (the unique name the handler is listening for)
+#
+
+- name: fail if handler_name is undefined
+  fail:
+    msg: "handler_name is undefined"
+  when: handler_name is undefined
+
+- name: Notify test status handler
+  command: /bin/true
+  notify:
+    - h_get_status
+
+- name: Notify {{ handler_name }}
+  command: /bin/true
+  notify:
+    - "{{ handler_name }}"

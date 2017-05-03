@@ -1,0 +1,37 @@
+---
+#
+# This file is a collection of generic handlers that could be used in multiple
+# playbooks.  Please use the h_get_journal handler as a template for other
+# reusable handlers or to create a playbook specific handler in that is included
+# in your playbook.
+#
+- name: Get test status from environment variable
+  set_fact:
+    aht_result: "{{ lookup('env', 'AHT_FAILURE') }}"
+  listen: h_get_status
+
+# h_get_journal handler
+- name: Get playbook name
+  shell:  echo {{ playbook_dir }} | awk -F/ '{print $NF}'
+  register: playbook_name
+  listen: h_get_journal
+  when: aht_result == "1"
+
+- name: Set journal name
+  set_fact:
+    journal_name: "{{ playbook_name.stdout }}-{{ inventory_hostname }}-journal"
+  listen: h_get_journal
+  when: aht_result == "1"
+
+- name: Get journal
+  shell: journalctl -r -b > /tmp/{{ journal_name }}
+  listen: h_get_journal
+  when: aht_result == "1"
+
+- name: Retrieve journal
+  synchronize:
+    mode: pull
+    dest: ./{{ journal_name }}
+    src: /tmp/{{ journal_name }}
+  listen: h_get_journal
+  when: aht_result == "1"

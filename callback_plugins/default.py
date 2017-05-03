@@ -84,8 +84,9 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
             self._display.display("fatal: [%s]: UNREACHABLE! => %s" % (result._host.get_name(), self._dump_results(result._result)), color=C.COLOR_UNREACHABLE)
 
     def v2_runner_on_failed(self,result, ignore_errors=False):
-        '''Save last failure'''
+        # Save last failure and set environment variable
         if ignore_errors is not True:
+            os.environ["AHT_FAILURE"] = "1"
             self.failed_task = result
 
         if self._play.strategy == 'free' and self._last_task_banner != result._task._uuid:
