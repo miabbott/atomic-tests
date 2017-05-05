@@ -14,28 +14,16 @@
 #
 - name: Set cockpit container name for RHELAH
   set_fact:
-    cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws:latest"
+    cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
   when: ansible_distribution == "RedHat"
 
 - name: Set cockpit container name for Fedora/CentOS
   set_fact:
-    cockpit_cname: "docker.io/cockpit/ws:latest"
+    cockpit_cname: "registry.fedoraproject.org/f25/cockpit"
   when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
 
-- name: Pull the cockpit container for inspection
-  command: docker pull {{ cockpit_cname }}
-
-- name: Get the version of the cockpit-ws rpm in the container
-  command: docker run --rm {{ cockpit_cname }} rpm --queryformat '%{VERSION}\n' -q cockpit-ws
-  register: cockpit_version
-
-- name: Install cockpit container
-  command: atomic install {{ cockpit_cname }}
-  when: "{{ cockpit_version|int }} > 126"
-
-- name: Install cockpit container (interactive)
-  shell: python -c "import pty; pty.spawn(['atomic', 'install', '{{ cockpit_cname }}'])"
-  when: "{{ cockpit_version|int }} <= 126"
+- name: Install cockpit container with tag
+  command: "atomic install {{ cockpit_cname }}:latest"
 
 - name: Check for /etc/pam.d/cockpit
   stat:
@@ -47,8 +35,8 @@
     msg: "Cockpit installation failed"
   when: install_file.stat.exists == False
 
-- name: Run cockpit container
-  command: atomic run {{ cockpit_cname }}
+- name: Run cockpit container with tag
+  command: "atomic run {{ cockpit_cname }}:latest"
 
 - name: Verify port 9090 is open
   wait_for:
@@ -58,13 +46,59 @@
 - name: Verify cockpit webpage is up
   shell: curl -k "https://localhost:9090" | grep "Log in"
 
+- name: Get cockpit container ID
+  command: docker ps -q
+  register: cockpit_cid
+
+- name: Stop the cockpit container
+  command: "atomic stop {{ cockpit_cid.stdout }}"
+
 - name: Uninstall cockpit container
   shell: atomic uninstall {{ cockpit_cname }}
-  when: "{{ cockpit_version|int }} > 126"
 
-- name: Uninstall cockpit container (interactive)
-  shell: python -c "import pty; pty.spawn(['atomic', 'uninstall', '{{ cockpit_cname }}'])"
-  when: "{{ cockpit_version|int }} <= 126"
+- name: Check for /etc/pam.d/cockpit file
+  stat:
+    path: /etc/pam.d/cockpit
+  register: uninstall_file
+
+- name: Fail if /etc/pam.d/cockpit file is found
+  fail:
+    msg: "Cockpit uninstall failed"
+  when: uninstall_file.stat.exists == True
+
+- name: Install cockpit container without tag
+  command: atomic install {{ cockpit_cname }}
+
+- name: Check for /etc/pam.d/cockpit
+  stat:
+    path: /etc/pam.d/cockpit
+  register: install_file
+
+- name: Fail if /etc/pam.d/cockpit file is not found
+  fail:
+    msg: "Cockpit installation failed"
+  when: install_file.stat.exists == False
+
+- name: Run cockpit container without tag
+  command: "atomic run {{ cockpit_cname }}"
+
+- name: Verify port 9090 is open
+  wait_for:
+    port: 9090
+    timeout: 30
+
+- name: Verify cockpit webpage is up
+  shell: curl -k "https://localhost:9090" | grep "Log in"
+
+- name: Get cockpit container ID
+  command: docker ps -q
+  register: cockpit_cid
+
+- name: Stop the cockpit container
+  command: "atomic stop {{ cockpit_cid.stdout }}"
+
+- name: Uninstall cockpit container without tag
+  shell: atomic uninstall {{ cockpit_cname }}
 
 - name: Check for /etc/pam.d/cockpit file
   stat:
