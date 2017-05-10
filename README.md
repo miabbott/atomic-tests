@@ -93,6 +93,55 @@ provided, but it is up to the user to configure them as they see fit.
 **NOTE**:  Playbooks are developed and tested using Ansible 2.2.  Older versions
 will not work.
 
+### Log Options
+By default Ansible logs to stdout.  Atomic host tests has a custom callback
+plugin that makes the output more human readable.  In addition there are a few
+custom log options described below.
+
+#### Capture failure details
+
+If the environment variable AHT_RESULT_FILE is set, Ansible will save the
+details of the failed task into file named after the value of the environment
+variable in the current working directory.
+
+```
+export AHT_RESULT_FILE=my_failure_file
+```
+
+In this example the failure details will be saved to ./my_failure_file
+
+#### Capture journal on failure
+
+Ansible handlers are used to capture the journal on failure.  This feature can
+be enabled using a role or an include which must be called in every block of
+pre_tasks, post_tasks, tasks, roles, or plays.  Force_handlers must be set to
+true regardless of which method is used.
+
+```
+force_handlers: true
+```
+
+##### To use journal capture as role:
+```
+- role: handler_notify_on_failure
+  handler_name: h_get_journal
+```
+
+##### To use journal capture as include:
+```
+- include: 'atomic-host-tests/roles/handler_notify_on_failure/task/main.yml'
+  handler_name: h_get_journal
+```
+
+In addition, the handler must be included since using include doesn't automatically
+pull in the handler.  This is typically done at the end of the block.
+
+```
+handlers:
+  - include: 'atomic-host-tests/roles/handler_notify_on_failure/handlers/main.yml'
+```
+**NOTE** The path should be relative to the path of the playbook
+
 ### Vagrant
 
 You can see how the playbooks would run by using the supplied
