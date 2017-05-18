@@ -1,0 +1,137 @@
+---
+
+# All plays expect passed-in variables from the command-line
+# e.g. ansible-playbook ... --extra-vars=@vars.yml
+
+- name: docker-rpm - setup
+  hosts: all
+  # Fedora hosts need python installed first
+  gather_facts: False
+  tags: "setup"
+  vars:
+    empty: [Null,[],{},'']
+  pre_tasks:
+    - name: Python is installed when missing
+      raw: "type -P python || $(type -P dnf || type -P yum) install -y python"
+      args:
+        executable: "/bin/bash"
+    - name: Gather facts
+      setup:
+    - name: A RHEL or Fedora host is required
+      assert:
+        that: 'ansible_distribution in ["RedHat","Fedora"]'
+  roles:
+    # This playbook requires Ansible 2.2
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags: "ansible_version_check"
+
+    - role: redhat_subscription
+      when: "ansible_distribution == 'RedHat'"
+      tags: "redhat_subscription"
+
+    - role: yumrepos
+      when: enable_rh_repos | default() not in empty or
+            yum_repos | default() not in empty
+
+    - role: installed
+      install_rpms: "{{ fedora_install_rpms if ansible_distribution == 'Fedora' else rhel_install_rpms }}"
+      all_updated: True
+
+
+- name: docker-rpm - build
+  hosts: builders
+  tags:
+    - build
+  vars:
+    empty: [Null,[],{},'']
+  roles:
+
+    - git_repo_cloned
+
+    - rpmdistro_gitoverlay
+
+
+
+##### TODO: Make it (below) chooch
+
+
+
+- name: Docker - Functional Tests
+  hosts: testers
+
+  tags:
+    - functional
+
+  roles:
+    - role: osname_set_fact
+      tags:
+        - osname_set_fact
+
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: docker_latest_setup
+      tags:
+        - docker_latest_setup
+      when: g_docker_latest
+
+    - role: docker_pull_base_image
+      tags:
+        - docker_pull_base_image
+
+    - role: docker_build_httpd
+      tags:
+        - docker_build_httpd
+
+    - role: docker_run_httpd
+      tags:
+        - docker_run_httpd
+
+    - role: docker_rm_httpd_container
+      tags:
+        - docker_rm_httpd_container
+
+    - role: docker_rmi_httpd_image
+      tags:
+        - docker_rmi_httpd_image
+
+- name: Docker - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  pre_tasks:
+    - block:
+      - name: Stop and disable docker-latest
+        service:
+          name: docker-latest
+          enabled: no
+          state: stopped
+
+      - name: Revert docker-latest binary
+        replace:
+          dest: /etc/sysconfig/docker
+          regexp: 'DOCKERBINARY=/usr/bin/docker-latest'
+          replace: '#DOCKERBINARY=/usr/bin/docker-latest'
+
+      - name: Re-enable docker
+        service:
+          name: docker
+          enabled: yes
+          state: started
+      when: g_docker_latest
+
+  roles:
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe

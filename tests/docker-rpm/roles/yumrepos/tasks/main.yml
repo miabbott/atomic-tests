@@ -1,0 +1,36 @@
+---
+
+- assert:
+    that:
+        - 'empty is defined'
+        - 'ansible_distribution in ["RedHat","Fedora","CentOS"]'
+        - >
+            disable_all_rh_repos in [True,False] or
+            enable_rh_repos | default() not in empty or
+            yum_repos | default() not in empty
+
+# There are situations where default repositories are broken
+- name: All RH repositories are disabled in subscription manager
+  command: /usr/sbin/subscription-manager repos --disable=*
+  when: ansible_distribution == "RedHat" and
+        disable_all_rh_repos | default(False)
+
+- name: Select RH repos are enabled
+  command: /usr/sbin/subscription-manager repos --enable={{ item }}
+  when: ansible_distribution == "RedHat"
+  with_items: '{{ enable_rh_repos | default([]) }}'
+
+- name: yum repository is setup
+  yum_repository:
+    name: "{{ item.name | mandatory }}"
+    baseurl: "{{ item.baseurl }}"
+    description: "Ansible added {{ item.name | mandatory }} repo"
+    gpgcheck: "{{ item.gpgcheck | default(True) }}"
+    exclude: "{{ item.excludepkgs | default(omit) }}"
+    includepkgs: "{{ item.includepkgs | default(omit) }}"
+    metadata_expire: 900  # quarter-hour
+    protect: "{{ item.protect | default(False) }}"
+    # Subscription manager can't disable non-redhat repos.
+    enabled: True
+    state: present
+  with_items: '{{ yum_repos | default([])}}'

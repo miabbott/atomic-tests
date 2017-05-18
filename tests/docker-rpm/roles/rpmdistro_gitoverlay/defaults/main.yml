@@ -1,0 +1,13 @@
+---
+
+# The path containing the rpmdistro-gitoverlay source
+rdgo_src:
+
+# List of shell module option values for building/installing rpmdistro-gitoverlay
+# (default chdir is rdgo_src)
+rdgo_build_cmds:
+  - command: ./autogen.sh
+    creates: configure
+  - command: ./configure --disable-silent-rules --prefix=/usr
+  - command: make install INSTALL="install -p -c"
+    creates: /usr/bin/rpmdistro-gitoverlay

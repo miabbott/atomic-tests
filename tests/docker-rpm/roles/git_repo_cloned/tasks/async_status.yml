@@ -1,0 +1,11 @@
+---
+
+- name: Async job async_result.ansible_job_id completes or times out
+  async_status:
+    jid: "{{ async_result.ansible_job_id }}"
+  failed_when: result | failed
+  register: result
+  until: result.finished | bool
+  # Always at least one retry
+  retries: "{{ (git_op_timeout|int / git_op_status_delay|int) | round(method='ceil')|int }}"
+  delay: "{{ git_op_status_delay|int }}"

@@ -1,0 +1,26 @@
+Copy $(pwd)/.rpmmacros into ~/
+
+source repos assumed to be in ~/repositories/
+dist-git repos assumed to be in ~/repositories/pkgs
+
+To run the script:
+# bash builder.sh -t $BUILDTYPE -p $PACKAGE -u $USER \
+    -r $USER_REPO -b $BRANCH \
+    -d $UPSTREAM_USER -f $UPSTREAM_BRANCH -k $KOJI_TAG
+
+BUILDTYPE: 'tagged' or 'scratch'
+
+PACKAGE: rpm name
+
+USER: PR author's github user id
+
+USER_REPO: repo/fork name
+
+BRANCH: repo/fork branch name
+
+UPSTREAM_USER: PR recipient / upstream's github user id
+
+UPSTREAM_BRANCH: PR destination's branch name
+
+KOJI_TAG: koji tag (NOT NECESSARILY the dist-git branch name)
+In the case of rawhide, KOJI_BRANCH will be "rawhide" and not "master"

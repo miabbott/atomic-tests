@@ -1,0 +1,69 @@
+---
+
+yum_repos:
+    # FIXME: These were used in source playbook (maybe/probably not needed with rpmdistro-gitoverlay)
+    - name: beaker-client
+      baseurl: "https://beaker-project.org/yum/client/Fedora$releasever/"
+      gpgcheck: False
+
+install_rpms:
+    # For convenience
+    - xz
+    - bzip2
+    - vim
+    # Needed for ansible &| playbook
+    - python
+    - git
+    - rsync
+    - curl
+    - wget
+    - dnf
+    - yum
+    # Needed for rpmdistro-gitoverlay
+    # FIXME: Some python/mock stuff seems to be missing? (import errors at runtime)
+    - autoconf
+    - automake
+    - libtool
+    - pygobject2
+    - PyYAML
+    - pygobject3
+    - python-six
+    - rpm-build
+    - mock
+    - yum-plugin-priorities
+    - pyrpkg
+    - glib2
+    - fedpkg
+    - gcc
+    - make
+    - libsolv
+    # Needed for building rpms
+    - rpm-build
+
+# List of dictionaries, with options to the git ansible module.
+git_ops:
+    - repo: "https://github.com/cgwalters/rpmdistro-gitoverlay.git"
+      dest: "{{ ansible_user_dir }}/repositories/rpmdistro-gitoverlay"
+    # FIXME: These were used in source playbook (maybe/probably not needed with rpmdistro-gitoverlay)
+    - repo: "https://src.fedoraproject.org/git/rpms/docker.git"
+      dest: "{{ ansible_user_dir }}/docker_{{ ansible_distribution }}"
+    - repo: "https://github.com/docker/docker.git"
+      dest: "{{ ansible_user_dir }}/repositories/docker"
+    - repo: "https://github.com/projectatomic/docker-storage-setup.git"
+      dest: "{{ ansible_user_dir }}/repositories/docker-storage-setup"
+    - repo: "https://github.com/docker/v1.10-migrator.git"
+      dest: "{{ ansible_user_dir }}/repositories/v1.10-migrator"
+    - repo: "https://github.com/projectatomic/docker-novolume-plugin.git"
+      dest: "{{ ansible_user_dir }}/repositories/docker-novolume-plugin"
+    - repo: "https://github.com/projectatomic/rhel-push-plugin.git"
+      dest: "{{ ansible_user_dir }}/repositories/rhel-push-plugin"
+    - repo: "https://github.com/projectatomic/docker-lvm-plugin.git"
+      dest: "{{ ansible_user_dir }}/repositories/docker-lvm-plugin"
+    - repo: "https://github.com/opencontainers/runc.git"
+      dest: "{{ ansible_user_dir }}/repositories/runc"
+    - repo: "https://github.com/docker/containerd.git"
+      dest: "{{ ansible_user_dir }}/repositories/containerd"
+
+rdgo_src: "{{ ansible_user_dir }}/repositories/rpmdistro-gitoverlay"
+
+g_docker_latest: true
