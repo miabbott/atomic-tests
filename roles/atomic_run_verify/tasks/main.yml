@@ -22,4 +22,4 @@
 - name: Fail if container is not running
   fail:
     msg="Container is not Up or Created in docker ps -a output"
-  when: (dps.stdout.find("Up") == -1 and dps.std.outfind("Created") == -1)
+  when: (dps.stdout.find("Up") == -1 and dps.stdout.find("Created") == -1)
