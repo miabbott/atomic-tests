@@ -43,6 +43,7 @@
       --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
       --username="$USERNAME"
       --password="$PASSWORD"
+      {{ lookup('csvfile', 'extra file={} delimiter=,'.format(subscription_file)) | default('') }}
     environment:
       USERNAME: "{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
       PASSWORD: "{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
