@@ -41,8 +41,11 @@
       subscription-manager register --auto-attach --force
       --baseurl="{{ lookup('csvfile', 'baseurl file={} delimiter=,'.format(subscription_file)) }}"
       --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
-      --username="{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
-      --password="{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
+      --username="$USERNAME"
+      --password="$PASSWORD"
+    environment:
+      USERNAME: "{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
+      PASSWORD: "{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
     register: result
     until: result.rc == 0
     retries: 3
