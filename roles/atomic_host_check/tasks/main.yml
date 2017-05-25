@@ -8,7 +8,7 @@
 #
 
 - name: Determine is_atomic True/False
-  include: '{{ playbook_dir }}/common/set_is_atomic.yml'
+  include: '{{ playbook_dir }}/../common/set_is_atomic.yml'
 
 - name: Fail if system is not an Atomic Host
   fail:
