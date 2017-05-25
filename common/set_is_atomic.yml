@@ -1,0 +1,23 @@
+---
+# vim: set ft=ansible:
+#
+# Common check included by various other roles, sets ``is_atomic`` True/False.
+#
+# Logic borrowed from:
+# https://github.com/kubernetes/contrib/blob/master/ansible/roles/common/tasks/main.yml
+#
+- name: Determine if Atomic Host
+  stat:
+    path: "/run/ostree-booted"
+  register: s
+  changed_when: false
+  check_mode: no
+
+- name: Init the is_atomic fact
+  set_fact:
+    is_atomic: false
+
+- name: Set the is_atomic fact
+  set_fact:
+    is_atomic: true
+  when: s.stat.exists

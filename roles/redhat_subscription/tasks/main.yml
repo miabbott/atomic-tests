@@ -22,11 +22,10 @@
 # the lookup()
 # via http://stackoverflow.com/a/34239020
 
-  - name: status of /usr/bin/ostree is known
-    shell: type -Pf /usr/bin/ostree | /bin/true
-    register: ostree_path
+  - name: Determine is_atomic True/False
+    include: '{{ playbook_dir }}/common/set_is_atomic.yml'
 
-  - block:  # when: ostree_path.stdout | bool
+  - block:
 
     - name: Get origin file
       command: ostree admin --print-current-dir
@@ -36,7 +35,7 @@
       command: grep refspec {{ origin_file.stdout }}.origin
       register: refspec
 
-    when: ostree_path.stdout | bool
+  when: is_atomic
 
   - name: Fail if subscription_file is not defined
     fail:
@@ -79,5 +78,5 @@
       dest: "{{ origin_file.stdout }}.origin"
       regexp: '^refspec.*$'
       replace: "{{ refspec.stdout }}"
-    when: ostree_path.stdout | bool and
-          refspec.stdout.find("refspec=rhel-atomic-host") == -1
+      when: is_atomic and
+            refspec.stdout.find("refspec=rhel-atomic-host") == -1
