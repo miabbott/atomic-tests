@@ -35,7 +35,7 @@
       command: grep refspec {{ origin_file.stdout }}.origin
       register: refspec
 
-  when: is_atomic
+    when: is_atomic
 
   - name: Fail if subscription_file is not defined
     fail:
