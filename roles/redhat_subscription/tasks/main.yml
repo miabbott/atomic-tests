@@ -22,10 +22,21 @@
 # the lookup()
 # via http://stackoverflow.com/a/34239020
 
-- name: Atomic-host specific pre-sub.man. tasks are included
-  include: '{{ role_dir }}/tasks/atomic_pre.yml'
-    static: True
-    when: is_atomic  # depends on: atomic_host_check
+  - name: status of /usr/bin/ostree is known
+    shell: type -Pf /usr/bin/ostree | /bin/true
+    register: ostree_path
+
+  - block:  # when: ostree_path.stdout | bool
+
+    - name: Get origin file
+      command: ostree admin --print-current-dir
+      register: origin_file
+
+    - name: Get refspec from origin file
+      command: grep refspec {{ origin_file.stdout }}.origin
+      register: refspec
+
+    when: ostree_path.stdout | bool
 
   - name: Fail if subscription_file is not defined
     fail:
@@ -59,7 +70,14 @@
       --enable rhel-7-server-optional-rpms
       --enable rhel-7-server-extras-rpms
 
-- name: Atomic-host specific post-sub.man. tasks are included
-    include: '{{ role_dir }}/tasks/atomic_post.yml'
-    static: True
-    when: is_atomic  # depends on: atomic_host_check
+  - name: Mask and stop rhsmcertd
+    shell: >
+      systemctl mask rhsmcertd && systemctl stop rhsmcertd
+
+  - name: Revert refspec in origin after susbcription if it not the default refspec
+    replace:
+      dest: "{{ origin_file.stdout }}.origin"
+      regexp: '^refspec.*$'
+      replace: "{{ refspec.stdout }}"
+    when: ostree_path.stdout | bool and
+          refspec.stdout.find("refspec=rhel-atomic-host") == -1
