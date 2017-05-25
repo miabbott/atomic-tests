@@ -23,7 +23,7 @@
 # via http://stackoverflow.com/a/34239020
 
   - name: Determine is_atomic True/False
-    include: '{{ playbook_dir }}/../common/set_is_atomic.yml'
+    include: '../../common/set_is_atomic.yml'
 
   - block:
 
