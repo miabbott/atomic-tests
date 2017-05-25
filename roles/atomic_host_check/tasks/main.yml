@@ -5,7 +5,11 @@
 #
 # Logic borrowed from:
 # https://github.com/kubernetes/contrib/blob/master/ansible/roles/common/tasks/main.yml
-#
+
+- assert:
+    that:
+      - 'fail_if_not_atomic_host in [True,False]'
+
 - name: Determine if Atomic Host
   stat:
     path: "/run/ostree-booted"
@@ -25,5 +29,4 @@
 - name: Fail if system is not an Atomic Host
   fail:
     msg: "The system is not an Atomic Host"
-  when: not is_atomic
-
+  when: not is_atomic and fail_if_not_atomic_host
