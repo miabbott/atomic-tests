@@ -1,0 +1,11 @@
+---
+# vim: set ft=ansible:
+#
+
+  - name: Get origin file
+    command: ostree admin --print-current-dir
+    register: origin_file
+
+  - name: Get refspec from origin file
+    command: grep refspec {{ origin_file.stdout }}.origin
+    register: refspec

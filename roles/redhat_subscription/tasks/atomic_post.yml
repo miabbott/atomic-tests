@@ -1,0 +1,10 @@
+---
+# vim: set ft=ansible:
+#
+
+  - name: Revert refspec in origin after susbcription if it not the default refspec
+    replace:
+      dest: "{{ origin_file.stdout }}.origin"
+      regexp: '^refspec.*$'
+      replace: "{{ refspec.stdout }}"
+    when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
