@@ -1,3 +1,15 @@
+### Submitting Issues
+
+Please feel free to submit a new issue to highlight a problem with the tests
+or to start a discussion about a feature or test you would like to add.  We
+don't want to waste anyone's time, so these early discussions can be useful
+to figuring out the right approach for a new feature or test.
+
+When submitting an issue about a problem with the tests, please be specific
+about the circumstances of the problem.  Verbose output from a playbook run
+is usually most helpful.  You can include the relevant snippet in the issue
+and link to the full logs on a pastebin service such as https://fpaste.org
+
 ### Submitting Patches
 
 We welcome PRs to this project.  Please have a look at `git log` and try
@@ -9,6 +21,13 @@ Before submitting any PRs, you should verify that the changes you have
 made will successfully run on CentOS Atomic Host, Fedora Atomic Host, and
 RHEL Atomic Host.  If you don't have access to RHEL Atomic Host, please
 note it in a comment to your PR.
+
+During the PR review process, please use separate commits when making
+requested changes to your outstanding PR.  It is useful to preserve the
+history of the changes to a PR during the review process.  Please don't
+force-push a new commit on your PR unless absolutely necessary.  The use
+of `git commit --fixup` is encouraged as it can make squashing commits
+easier.  
 
 ### Reviewing Patches
 
