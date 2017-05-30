@@ -27,7 +27,9 @@ requested changes to your outstanding PR.  It is useful to preserve the
 history of the changes to a PR during the review process.  Please don't
 force-push a new commit on your PR unless absolutely necessary.  The use
 of `git commit --fixup` is encouraged as it can make squashing commits
-easier.  
+easier.
+
+For more details about contributing to the repo, please see [How To Contribute](/docs/howto_contribute.md).
 
 ### Reviewing Patches
 
