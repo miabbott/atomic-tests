@@ -1,0 +1,571 @@
+---
+# vim: set ft=ansible:
+#
+#   This is a general test suite for rpm-ostree that exercises several of the
+# rpm-ostree subcommands.  These tests assume the atomic host is provisioned
+# with the latest version.  These tests are meant to be run in succession.
+#
+- name: rpm-ostree - Setup
+  hosts: all
+  become: yes
+
+  tags:
+    - setup
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+#####################################################################################
+#
+# rpm-ostree deploy version
+#   - validates deploying by version string
+#   - validates cleanup of rollback deployment
+#
+#####################################################################################
+
+- name: rpm-ostree - deploy by version
+  hosts: all
+  become: yes
+
+  tags:
+    - deploy_version
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Get current refspec
+      shell: cat $(ostree admin --print-current-dir).origin | grep refspec | cut -d= -f2
+      register: refspec
+
+    - name: Get json ouput from rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Set current version
+      set_fact:
+         head_version: "{{ ross_json['deployments'][0]['version'] if ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['version'] }}"
+
+    - name: Pull last two commits
+      command: ostree pull --subpath /usr/share/rpm --depth=1 {{ refspec.stdout }}
+      register: osp
+      until: osp.rc == 0
+      retries: 5
+      delay: 5
+
+    - name: Get HEAD-1 version
+      shell: ostree log {{ refspec.stdout }} | grep Version | tail -1 | cut -d' ' -f2
+      register: hmo_version
+
+    - name: Deploy version {{ hmo_version.stdout }}
+      command: rpm-ostree deploy {{ hmo_version.stdout }}
+      register: ros_deploy
+      until: ros_deploy.rc == 0
+      retries: 5
+      delay: 5
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_version: "{{ hmo_version.stdout }}"
+
+    - name: Rollback to head
+      command: rpm-ostree rollback
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_version: "{{ head_version }}"
+
+    - name: Cleanup deployments
+      command: rpm-ostree cleanup -r
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_version: "{{ head_version }}"
+      deployments: 1
+
+
+#####################################################################################
+#
+# rpm-ostree deploy commit id
+#   - validates deploying by commit id
+#   - validates cleanup of rollback deployment
+#
+#####################################################################################
+
+- name: rpm-ostree - deploy by commit
+  hosts: all
+  become: yes
+
+  tags:
+    - deploy_commit
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Get current refspec
+      shell: cat $(ostree admin --print-current-dir).origin | grep refspec | cut -d= -f2
+      register: refspec
+
+    - name: Get json ouput from rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Set current commit version
+      set_fact:
+         head_csum: "{{ ross_json['deployments'][0]['checksum'] if ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['checksum'] }}"
+
+    - name: Pull last two commits
+      command: ostree pull --subpath /usr/share/rpm --depth=1 {{ refspec.stdout }}
+      register: osp
+      until: osp.rc == 0
+      retries: 5
+      delay: 5
+
+    - name: Get HEAD-1 checksum
+      shell: ostree log {{ refspec.stdout }} | grep ^commit | tail -1 | cut -d' ' -f2
+      register: hmo_csum
+
+    - name: Deploy checksum {{ hmo_csum.stdout }}
+      command: rpm-ostree deploy {{ hmo_csum.stdout }}
+      register: ros_deploy
+      until: ros_deploy.rc == 0
+      retries: 5
+      delay: 5
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_checksum: "{{ hmo_csum.stdout }}"
+
+    - name: Rollback to head
+      command: rpm-ostree rollback
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_checksum: "{{ head_csum }}"
+
+    - name: Cleanup rollback
+      command: rpm-ostree cleanup -r
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_checksum: "{{ head_csum }}"
+      deployments: 1
+
+
+
+#####################################################################################
+#
+# rpm-ostree cleanup test
+#   - validates cleanup of pending deployments
+#
+#####################################################################################
+
+- name: rpm-ostree - cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup_pending
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Get current refspec
+      shell: cat $(ostree admin --print-current-dir).origin | grep refspec | cut -d= -f2
+      register: refspec
+
+    - name: rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Set current version
+      set_fact:
+         head_version: "{{ ross_json['deployments'][0]['version'] if ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['version'] }}"
+
+    - name: Pull last two commits
+      command: ostree pull --subpath /usr/share/rpm --depth=1 {{ refspec.stdout }}
+      register: osp
+      until: osp.rc == 0
+      retries: 5
+      delay: 5
+
+    - name: Get HEAD-1 version
+      shell: ostree log {{ refspec.stdout }} | grep Version | tail -1 | cut -d' ' -f2
+      register: hmo_version
+
+    - name: Deploy version {{ hmo_version.stdout }}
+      command: rpm-ostree deploy {{ hmo_version.stdout }}
+      register: ros_deploy
+      until: ros_deploy.rc == 0
+      retries: 5
+      delay: 5
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_version: "{{ head_version }}"
+      unbooted_version: "{{ hmo_version.stdout }}"
+      deployments: 2
+
+    - name: Delete pending deployment
+      command: rpm-ostree cleanup -p
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_version: "{{ head_version }}"
+      deployments: 1
+
+#####################################################################################
+#
+# rpm-ostree upgrade + rebase
+#   - simulates an upgrade and rebases to origin
+#
+#####################################################################################
+
+- name: rpm-ostree - upgrade and rebase
+  hosts: all
+  become: yes
+
+  tags:
+    - upgrade_rebase
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    # get refspec and commit id and set as facts
+    - name: Get current refspec
+      shell: cat $(ostree admin --print-current-dir).origin | grep refspec | cut -d= -f2
+      register: refspec
+
+    - name: Set origin file
+      command: ostree admin --print-current-dir
+      register: current_dir
+
+    - name: Get json output from rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Set current commit version
+      set_fact:
+         head_csum: "{{ ross_json['deployments'][0]['checksum'] if ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['checksum'] }}"
+
+    - name: Create local branch
+      command: ostree refs --create local-branch {{ head_csum }}
+
+    - name: Update origin file
+      command: sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g' {{ current_dir.stdout }}.origin
+
+    - name: Print file contents
+      command: cat {{ current_dir.stdout }}.origin
+
+    - name: Commit new local branch
+      command: ostree commit -b local-branch --tree=ref=local-branch --add-metadata-string version=test
+      register: new_commit
+
+    - include: roles/rpm_ostree_upgrade/tasks/main.yml
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_checksum: "{{ new_commit.stdout }}"
+      booted_version: "test"
+
+    - name: Rebase back to original deployment
+      command: rpm-ostree rebase {{ refspec.stdout }} {{ head_csum }}
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_checksum: "{{ head_csum }}"
+
+    - name: Cleanup
+      command: rpm-ostree cleanup -rpmb
+
+#####################################################################################
+#
+# rpm-ostree upgrade + rebase + install + uninstall
+#   - simulates an upgrade and rebases to origin with install/uninstall
+#
+#####################################################################################
+
+- name: rpm-ostree - upgrade and rebase + install and uninstall
+  hosts: all
+  become: yes
+
+  tags:
+    - upgrade_rebase_install_uninstall
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Get current refspec
+      shell: cat $(ostree admin --print-current-dir).origin | grep refspec | cut -d= -f2
+      register: refspec
+
+    - name: Set origin file
+      command: ostree admin --print-current-dir
+      register: current_dir
+
+    - name: Get json output from rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Set current commit version
+      set_fact:
+         head_csum: "{{ ross_json['deployments'][0]['checksum'] if ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['checksum'] }}"
+
+    - name: Create local branch
+      command: ostree refs --create local-branch {{ head_csum }}
+
+    - name: Update origin file
+      command:  sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g' {{ current_dir.stdout }}.origin
+
+    - name: Print file contents
+      command: cat {{ current_dir.stdout }}.origin
+
+    - name: Commit new local branch
+      command: ostree commit -b local-branch --tree=ref=local-branch --add-metadata-string version=test
+      register: new_commit
+
+    - name: Upgrade
+      command: rpm-ostree upgrade --install {{ g_pkg }}
+      register: ros_upgrade
+      until: ros_upgrade.rc == 0
+      retries: 5
+      delay: 5
+
+    - include: ../../common/ans_reboot.yml
+
+    - name: Get rpm-ostree status output
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Fail if checksum is not same as base checksum
+      fail:
+        msg: "Checksums do not match.  Expected: {{ new_commit.stdout }}.  Actual: {{ ross_json['deployments'][0]['base-checksum'] }}"
+      when: new_commit.stdout != ross_json['deployments'][0]['base-checksum']
+
+    - include: roles/rpm_ostree_install_verify/tasks/main.yml
+      vars:
+        package: "{{ g_pkg }}"
+
+    - name: Rebase back to original deployment
+      command: rpm-ostree rebase {{ refspec.stdout }} {{ head_csum }}
+
+    - include: ../../common/ans_reboot.yml
+
+    - name: Get rpm-ostree status output
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Fail if checksum is not same as base checksum
+      fail:
+        msg: "Checksums do not match.  Expected: {{ new_commit.stdout }}.  Actual: {{ ross_json['deployments'][0]['base-checksum'] }}"
+      when: head_csum != ross_json['deployments'][0]['base-checksum']
+
+    - include: roles/rpm_ostree_install_verify/tasks/main.yml
+      vars:
+        package: "{{ g_pkg }}"
+
+    - name: Get current refspec
+      shell: cat $(ostree admin --print-current-dir).origin | grep refspec | cut -d= -f2
+      register: refspec
+
+    - name: Get json output from rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Pull last two commits
+      command: ostree pull --subpath /usr/share/rpm --depth=1 {{ refspec.stdout }}
+      register: osp
+      until: osp.rc == 0
+      retries: 5
+      delay: 5
+
+    - name: Get HEAD-1 checksum
+      shell: ostree log {{ refspec.stdout }} | grep ^commit | tail -1 | cut -d' ' -f2
+      register: hmo_csum
+
+    - name: Deploy checksum {{ hmo_csum.stdout }}
+      command: rpm-ostree deploy {{ hmo_csum.stdout }} --uninstall {{ g_pkg }}
+      register: ros_deploy
+      until: ros_deploy.rc == 0
+      retries: 5
+      delay: 5
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_uninstall_verify/tasks/main.yml
+      vars:
+        package: "{{ g_pkg }}"
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_version: "{{ hmo_version.stdout }}"
+
+    - include: roles/rpm_ostree_upgrade/tasks/main.yml
+
+    - include: ../../common/ans_reboot.yml
+
+    - include: roles/rpm_ostree_uninstall_verify/tasks/main.yml
+      vars:
+        package: "{{ g_pkg }}"
+
+    - include: roles/rpm_ostree_status_verify/tasks/main.yml
+      booted_checksum: "{{ head_csum }}"
+
+    - name: Cleanup
+      command: rpm-ostree cleanup -rpmb
+
+#####################################################################################
+#
+# rpm-ostree initramfs
+#   - test client side initramfs
+#
+#####################################################################################
+
+- name: rpm-ostree - upgrade and rebase + install and uninstall
+  hosts: all
+  become: yes
+
+  tags:
+    - initramfs
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Create initramfs file
+      file:
+        path: /etc/rpmostree-initramfs-testing-file
+        state: touch
+
+    - name: Enable initramfs
+      command: rpm-ostree initramfs --enable --arg="-I" --arg="/etc/rpmostree-initramfs-testing-file"
+
+    - include: ../../common/ans_reboot.yml
+
+    - name: Get json output from rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros_status
+
+    - name: Convert to json
+      set_fact:
+         ross_json: "{{ ros_status.stdout | from_json }}"
+
+    - name: Fail if initramfs deployment is not booted
+      fail:
+        msg: Initramfs is not booted
+      when: not ross_json['deployments'][0]['booted']
+
+    - name: Fail if initramfs is not enabled
+      fail:
+        msg: Initramfs is not enabled
+      when: not ross_json['deployments'][0]['regenerate-initramfs']
+
+    - name: Fail if initramfs does not have two arguments
+      fail:
+        msg: "Incorrect number of arguments.  Expected: 2.  Actual: {{ ross_json['deployments'][0]['initramfs-args'] | length }}"
+      when: "{{ ross_json['deployments'][0]['initramfs-args'] | length }} != 2"
+
+    - name: Fail if first initramfs argument is not set
+      fail:
+        msg: "Initramfs args are incorrect.  Expected -I.  Actual {{ ross_json['deployments'][0]['initramfs-args'][0] }}"
+      when: "'-I' not in ross_json['deployments'][0]['initramfs-args'][0]"
+
+    - name: Fail if second initramfs argument is not set
+      fail:
+        msg: "Initramfs args are incorrect.  Expected /etc/rpmostree-initramfs-testing-file.  Actual {{ ross_json['deployments'][0]['initramfs-args'][1] }}"
+      when: "'/etc/rpmostree-initramfs-testing-file' not in ross_json['deployments'][0]['initramfs-args'][1]"
+
+    - name: set osname
+      set_fact:
+        osname: "{{ ross_json['deployments'][0]['osname'] }}"
+
+    - name: Get bootloader entry
+      shell: grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf | sed -e 's,initrd ,/boot/,'
+      register: initramfs
+
+    - name: Check initramfs file
+      command: test -n {{ initramfs.stdout }}
+
+    - name: Get contents of initramfs
+      command: lsinitrd {{ initramfs.stdout }}
+      register: lsinitrd
+
+    - name: Fail if contents of initramfs is incorrect
+      fail:
+        msg: "Expected /etc/rpmostree-initramfs-testing-file in initramfs"
+      when: "'/etc/rpmostree-initramfs-testing-file' not in lsinitrd.stdout"
+
+    - name: Disable initramfs
+      command: rpm-ostree initramfs --disable
+
+    - include: ../../common/ans_reboot.yml
+
+    - name: Get bootloader entry
+      shell: grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf | sed -e 's,initrd ,/boot/,'
+      register: initramfs_disabled
+
+    - name: Check initramfs file
+      command: test -n {{ initramfs_disabled.stdout }}
+
+    - name: Get contents of initramfs
+      command: lsinitrd {{ initramfs_disabled.stdout }}
+      register: lsinitrd
+
+    - name: Fail if contents of initramfs is incorrect
+      fail:
+        msg: "Expected /etc/rpmostree-initramfs-testing-file not in initramfs"
+      when: "'/etc/rpmostree-initramfs-testing-file' in lsinitrd.stdout"
+
+    - name: Clean up deployments
+      command: rpm-ostree cleanup -rpmb

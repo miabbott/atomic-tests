@@ -1,0 +1,15 @@
+Test Coverage:
+* rpm-ostree cleanup
+* rpm-ostree deploy
+* rpm-ostree rebase
+* rpm-ostree rollback
+* rpm-ostree status
+* rpm-ostree upgrade
+* rpm-ostree reload
+* rpm-ostree initramfs
+
+Not Covered:
+* rpm-ostree compose
+* rpm-ostree db
+* rpm-ostree install
+* rpm-ostree uninstall
