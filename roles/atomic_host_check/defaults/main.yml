@@ -1,0 +1,4 @@
+---
+
+# Set false if role should NOT fail when is_atomic == False
+fail_if_not_atomic_host: True
