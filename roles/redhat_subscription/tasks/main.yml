@@ -36,6 +36,10 @@
     when: subscription_file is not defined
     run_once: true
 
+  - name: Set extra args
+    set_fact:
+      extra_args: "{{ lookup('csvfile', 'extra file={} delimiter=,'.format(subscription_file)) if lookup('csvfile', 'extra file={} delimiter=,'.format(subscription_file)) != [] else '' }}"
+
   - name: Register with subscription-manager
     command: >
       subscription-manager register --auto-attach --force
@@ -43,7 +47,7 @@
       --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
       --username="$USERNAME"
       --password="$PASSWORD"
-      {{ lookup('csvfile', 'extra file={} delimiter=,'.format(subscription_file)) | default('') }}
+      {{ extra_args }}
     environment:
       USERNAME: "{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
       PASSWORD: "{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
