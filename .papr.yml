@@ -1,0 +1,41 @@
+cluster:
+  hosts:
+    - name: testnode
+      distro: centos/7/atomic/alpha
+      ostree:
+        branch: centos-atomic-host/7/x86_64/devel/smoketested
+  container:
+    image: registry.fedoraproject.org/fedora:25
+
+context: centos/7/atomic/smoketested
+
+packages:
+  - ansible
+
+tests:
+  - ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
+  - ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml
+
+---
+inherit: true
+
+cluster:
+  hosts:
+    - name: testnode
+      distro: fedora/25/atomic
+  container:
+    image: registry.fedoraproject.org/fedora:25
+
+context: fedora/25/atomic
+
+---
+inherit: true
+
+cluster:
+  hosts:
+    - name: testnode
+      distro: centos/7/atomic
+  container:
+    image: registry.fedoraproject.org/fedora:25
+
+context: centos/7/atomic
