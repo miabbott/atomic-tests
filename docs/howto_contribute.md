@@ -1,3 +1,17 @@
+### Before We Get Started...
+
+This document assumes that you have some basic familiarity with the following
+topics:
+
+  - general `git` usage
+  - submitting and reviewing pull requests (PRs) on GitHub
+  - general Ansible usage (tasks, roles, playbooks)
+  - have previously read though [CONTRIBUTING.md](https://github.com/projectatomic/atomic-host-tests/blob/master/CONTRIBUTING.md)
+
+The intention is for the repo to not have any exotic requirements and be
+relatively easy to use and to contribute to.  If you feel this is not the
+case, feel free to open an [issue](https://github.com/projectatomic/atomic-host-tests/issues/new) to discuss how it can be improved.
+
 ### A Brief Introduction to the Repo
 
 At the top-level of the repository, we have five directories.  Of these five
@@ -22,6 +36,22 @@ of the repo, so that we can re-use the roles across multiple tests.
 
 The `tests` directory contains playbooks which execute tests using a mix
 of roles and tasks.
+
+### Setting up your Environment/Tools
+
+As stated in the opening of this doc, the repo does not have any exotic
+requirements and should be easy to use and develop for.
+
+You are free to use any code editor that you are most familiar with, as long
+as it does not cause any breakage in the roles/tests or distrupts the overall
+style of the repo.
+
+That being said, `vim` users would probably be interested in the the
+[Ansible plugin](https://github.com/pearofducks/ansible-vim) which enables syntax highlighting.
+This `vim` plugin is also why many of the `.yml` files in the repo have the
+following comment at the head of file:
+
+`# vim: set ft=ansible:`
 
 ### Writing Your First Role
 
@@ -295,15 +325,72 @@ of the playbook.
 Additionally, you may include an `info.txt` file that minimially describes
 the tests covered in your playbook and those features that are not covered.
 
+### Following Established Style
+
+The [CONTRIBUTING.md](https://github.com/projectatomic/atomic-host-tests/blob/master/CONTRIBUTING.md) doc points out that the members of the repo try to follow the best
+practices and style guidelines that are used by the [openshift-ansible](https://github.com/openshift/openshift-ansible) project.
+The are noted here again:
+
+  - [OpenShift Ansible Best Practices](https://github.com/openshift/openshift-ansible/blob/master/docs/best_practices_guide.adoc#ansible)
+  - [OpenShift Ansible Style Guide](https://github.com/openshift/openshift-ansible/blob/master/docs/style_guide.adoc#ansible)
+
+You should familiarize yourself with these practices and rules, and try to
+follow them as you work on your own changes.
+
+The enforcement of these best practices and rules is not stringent, but be
+aware that changes may be requested to comply where it makes sense.
+
+Generally, the YAML structure used in the repo favors the 'multi-line' approach
+when writing out tasks or roles:
+
+```yaml
+- name: my task
+  module_name:
+    arg1: "val1"
+    arg2: "val2"
+  when: something == "foobar"
+  register: output_var
+```
+
+If you need to run a command that has multiple arguments, you can break them
+across multiple lines:
+
+```yaml
+- name: long command
+  command: >
+    long_foobar -v
+    --arg1 val1
+    --arg2 val2
+    --arg3 val3
+    some_file_name
+```
+
+Finally, on the subject of tabs vs. spaces, the repo uses spaces throughout.
+
 ### Asking for Feedback
 
 There are two ways to solicit feedback about your work.  First, you can open
-an issue in the repo to discuss how you would like to test a certain feature.
-This allows other contributors to weigh in on the design of the test and
-provide some pointers on how to best accomplish your goals.
+an issue in the repo to discuss how you would like to test a certain feature
+or to discuss some changes you would like to make to a repo/test. This allows
+other contributors to weigh in on the proposed changes and provide some
+feedback on how to best accomplish your goals.
 
 If you feel your work is ready to be reviewed, you can submit your changes
 as a pull request and wait for feedback from the contributors.
 
-We strive to be friendly and helpful with contributors, so do not be afraid
-to ask for help or guidance at any point during the process.
+#### PR Submission Checklist
+
+If your pull request makes any changes to the roles or tests of the repo, the
+following checklist may be useful to follow in order to minimize any extra
+changes that may be requested:
+
+- [ ] role/test has successfully run against the following platforms
+  - [ ] Fedora 25 Atomic Host
+  - [ ] CentOS 7 Atomic Host
+  - [ ] [CentOS AH Continuous](https://wiki.centos.org/SpecialInterestGroup/Atomic/Devel) or [Fedora AH Continuous](https://pagure.io/fedora-atomic-host-continuous)
+  - [ ] RHEL 7 Atomic Host (if available)
+- [ ] best effort was made to make changes meet [best practices](https://github.com/openshift/openshift-ansible/blob/master/docs/best_practices_guide.adoc#ansible) and [style guidelines](https://github.com/openshift/openshift-ansible/blob/master/docs/style_guide.adoc#ansible)
+- [ ] commit message clearly explains changes and rationale for changes
+
+The members of this repo strive to be friendly and helpful with contributors,
+so do not be afraid to ask for help or guidance at any point during the process.
