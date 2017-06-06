@@ -11,8 +11,6 @@ Core Functionality
   - rpm-ostree upgrade
   - rpm-ostree reload
   - rpm-ostree initramfs
-  - rpm-ostree install
-  - rpm-ostree uninstall
 
 To be Covered
   - rpm-ostree db

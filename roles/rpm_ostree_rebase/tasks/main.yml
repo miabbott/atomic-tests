@@ -6,6 +6,12 @@
 #     remote_name (required) name for remote
 #     remote_url (required) remote url
 #     refspec (required) remote refspec
+- name: Fail if remote_name, remote_url, or refspec is not defined
+  fail:
+    msg: "remote_name, remote_url, or refspec is not defined"
+  when: remote_name is undefined or
+        remote_url is undefined or
+        refspec is undefined
 
 - name: Add remote
   command: ostree remote add --no-gpg-verify {{ remote_name }} {{ remote_url }}
