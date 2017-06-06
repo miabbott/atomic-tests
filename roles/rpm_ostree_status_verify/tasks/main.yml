@@ -7,9 +7,9 @@
 #   deployment (int) - index of deployment to verify
 #   expected (dict) - a dict of expected key/value pairs
 #
-- name: Fail if deployment or validate is undefined
+- name: Fail if deployment or expected is undefined
   fail:
-    msg: "deployment or validate is undefined"
+    msg: "deployment or expected is undefined"
   when: expected is undefined or
         deployment is undefined
 
@@ -56,43 +56,3 @@
   when: ros_json['deployments'][deployment][item.key] is undefined or
         ros_json['deployments'][deployment][item.key] != item.value
   with_dict: "{{ expected }}"
-
-#- name: Set booted version and checksum
-#  set_fact:
-#     ros_booted_version: "{{ ross_json['deployments'][0]['version'] if ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['version'] }}"
-#     ros_booted_checksum: "{{ ross_json['deployments'][0]['checksum'] if ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['checksum'] }}"
-#
-#- name: Set unbooted version and checksum
-#  set_fact:
-#     ros_unbooted_version: "{{ ross_json['deployments'][0]['version'] if not ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['version'] }}"
-#     ros_unbooted_checksum: "{{ ross_json['deployments'][0]['checksum'] if not ross_json['deployments'][0]['booted'] else ross_json['deployments'][1]['checksum'] }}"
-#  when: "{{ ross_json['deployments'] | length }} > 1"
-#
-#- name: Set number of deployments
-#  set_fact:
-#     ros_deployments: "{{ ross_json['deployments'] | length }}"
-#
-#- name: Verify booted verison
-#  fail:
-#    msg: "Booted version is incorrect.  Expected: {{ booted_version }}.  Actual: {{ ros_booted_version }}"
-#  when: booted_version is defined and booted_version != ros_booted_version
-#
-#- name: Verify booted checksum
-#  fail:
-#    msg: "Booted checksum is incorrect.  Expected: {{ booted_checksum }}.  Actual: {{ ros_booted_checksum }}"
-#  when: booted_checksum is defined and booted_checksum != ros_booted_checksum
-#
-#- name: Verify unbooted version
-#  fail:
-#    msg: "Unbooted version is incorrect.  Expected: {{ unbooted_version }}.  Actual: {{ ros_unbooted_version }}"
-#  when: unbooted_version is defined and unbooted_version != ros_unbooted_version
-#
-#- name: Verify unbooted checksum
-#  fail:
-#    msg: "Unbooted checksum is incorrect.  Expected: {{ unbooted_checksum }}.  Actual: {{ ros_unbooted_checksum }}"
-#  when: unbooted_checksum is defined and unbooted_checksum != ros_unbooted_checksum
-#
-#- name: Verify number of deployments
-#  fail:
-#    msg: "Number of deployments is incorrect.  Expected: {{ deployments }}.  Actual {{ ros_deployments | int }}"
-#  when: deployments is defined and deployments != {{ ros_deployments | int }}
