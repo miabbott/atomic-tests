@@ -4,9 +4,10 @@
 #  This role validates rpm-ostree status output.
 #
 #  Parameters:
-#   deployment (int) - index of deployment to verify
-#   expected (dict) - a dict of expected key/value pairs
-#
+#   deployment (int) REQUIRED - index of deployment to verify
+#   expected (dict) REQUIRED - a dict of expected key/value pairs
+#   num_deployments (int) OPTIONAL - the number of deployments in output
+
 - name: Fail if deployment or expected is undefined
   fail:
     msg: "deployment or expected is undefined"
