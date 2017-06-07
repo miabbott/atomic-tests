@@ -55,85 +55,14 @@ following comment at the head of file:
 
 ### Writing Your First Role
 
-When writing a role for to be used in a test, you should attempt to make it
-fairly generic, so that it can be re-used by other users.  To show this, let's
-look at an existing role which is **NOT** generic and could be modified.
+The main goal when writing a new role for the repo is to create something
+that is generic enough that can be used by other users.  This means that
+the role should have a limited scope in terms of what is intends to do and
+is not unique to your particular test.
 
-The `docker_build_httpd` role was made to support building a specific Docker
-image.  It is shown in its entirety below (from [roles/docker_build_httpd](/roles/docker_build_httpd/tasks/main.yml)):
+As an example, there is a role defined below that verifies the `docker build`
+operation is successful.
 
-```yaml
----
-# vim: set ft=ansible:
-#
-- name: Fail if g_osname not set
-  fail:
-    msg: "The g_osname variable is not defined"
-  when: g_osname is not defined
-
-- name: Fail if g_httpd_name not set
-  fail:
-    msg: "The g_httpd_name variable is not defined"
-  when: g_httpd_name is not defined
-
-- name: Create temp directory for building
-  command: mktemp -d
-  register: m
-
-- name: Set build_dir fact
-  set_fact:
-    build_dir: "{{ m.stdout }}"
-
-- name: Copy Dockerfile to temp directory
-  copy:
-    src: "{{ g_httpd_name }}_Dockerfile"
-    dest: "{{ build_dir }}"
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Copy makecache.sh to temp directory
-  copy:
-    src: makecache.sh
-    dest: "{{ build_dir }}"
-    owner: root
-    group: root
-    mode: 0744
-  when: ansible_distribution != 'RedHat'
-
-- name: Copy rhel_makecache.sh to temp directory
-  copy:
-    src: rhel_makecache.sh
-    dest: "{{ build_dir }}"
-    owner: root
-    group: root
-    mode: 0744
-  when: ansible_distribution == 'RedHat'
-
-- name: Build httpd image
-  command: "docker build -t {{ g_httpd_name }} -f {{ build_dir }}/{{ g_httpd_name }}_Dockerfile {{ build_dir }}"
-
-- name: Get docker images after build
-  command: docker images
-  register: build_images
-
-- name: Fail if httpd image not present
-  fail:
-    msg: "The {{ g_httpd_name }} image is not present"
-  when: "'{{ g_httpd_name }}' not in build_images.stdout"
-```
-
-In this example, the role makes an assumption about the name of the Dockerfile,
-the existence of a `makecache.sh` script, and relies on a global variable
-throughout.
-
-This role could be improved by removing the assumption about the `makecache.sh`
-script, parameterizing more of the tasks, and separating out tasks that
-manipulate files/directories into separate roles/tasks.  The improved version
-should focus on just the `docker build` command.
-
-An improved version would live in `roles/docker_build/tasks/main.yml` and
-could look like this:
 
 ```yaml
 ---
@@ -153,10 +82,11 @@ could look like this:
   failed_when: "'{{ image_name }}' not in docker_images.stdout"
 ```
 
-This completely simplifies the role to handle the building of a Docker image
-when given the required parameters.  In this simplified version, you would
-have to have separate roles/tasks that would handle the creation of any
-required directories and copying the Dockerfile to the host.
+This role is very flexible as it allows users the ability to define the
+location of the Dockerfile, the name of the Dockerfile, and the name of the
+image being built.  Other roles or tasks will need to be used to land the
+Dockerfile on the host, which allows this role to stay simple in its
+definition.
 
 ### Writing Your First Test
 
@@ -180,6 +110,12 @@ Additional directories such as `files`, `templates` or `vars` may be required
 for your test.  Please reference the [Ansible documentation](http://docs.ansible.com/ansible/playbooks_best_practices.html#content-organization) about
 content organization about when and how to use these directories.
 
+During this phase, it would be wise to setup any RHEL subscription data under
+`/roles/redhat_subscription/files`.  The `redhat_subscription` role defaults
+to looking for subscription data in the `/roles/redhat_subscription/files/subscription_data.csv`
+file.  You can use the sample data in [subscription_data.csv.sample](/roles/redhat_subscription/files/subscription_data.csv.sample) to see how
+the file is structured.
+
 #### Playbook Structure + System State
 
 Now we can start developing the actual playbook.  When running an Ansible
@@ -199,34 +135,53 @@ file.
 #### Playbook Sections
 
 All of the playbooks should start with a `name`, `hosts`, and `become`
-declaration.  The name is up to the test developer, but we almost always use
-`hosts: all` and `become: yes`.  The `hosts: all` allows the executor of the
-test some flexibility in how they define the inventory passed to the
-playbook.  And since most of our test operations require root privileges,
-the `become: yes` declaration ensures that we have those privileges.
+declaration.
+
+The `name` is up to the test developer, but should be somewhat descriptive
+of what the test is doing.
+
+For the `host` value, we recommend the following:
+
+`- hosts: "{{ testnodes | default('all') }}"`
+
+This allows users to supply simple inventory data to `ansible-playbook`, but
+retains the flexibility to support multi-node tests in the future.
+(Almost all of the tests in the repo are single-node tests.)
+
+Since most of our test operations require root privileges, the `become: yes`
+declaration ensures that we have those privileges.
 
 The playbook should be tagged via a `tag` value.  This allows the test
 executor the ability to skip the entire playbook, if they were to try to run
-multiple playbooks via a script or other framework.
+multiple playbooks via a script or other framework.  Typically, this value
+is the name of the test being run.
 
 If the playbook requires additional variables to be defined, they can be
 specified via the `vars_files` or `vars` declaration.
 
-Often a tests will require some tasks to be performed that are not covered
-by any existing roles.  In this situation, one would use the `pre_tasks`
-statement to define the tasks that should be executed ahead of the roles.
-
-After any required `pre_tasks` the test should be built using the roles
-available in the top-level directory.
-
-Finally, any tasks that need to be run after the roles can be specified
-in the `post_tasks` section.
+The bulk of your test will then be constructed using the various roles that
+are available in the `roles` directory.  Remember to tag each role with its
+name to allow users running your test to skip roles if they choose to.  (If
+you are re-using the roles multiple times in the same test, you should tag
+each role with a unique value.)
 
 #### Example Playbook
 
 In the example playbook, we are going to copy a couple of Dockerfiles to the
-host and then run the `docker build` command using those files.  Afterwards,
-we will remove the Docker images that have been built.
+host and the use our `docker_build` role to build Docker images with those
+Dockerfiles.  Afterwards, we will remove the Docker images that have been
+built.
+
+Before we start to write out any YAML, it is helpful to start by documenting
+your test in a README.md file.  In addtion to providing useful information to
+users running the tests, it can also help to provide a general structure to
+the test you want to write.
+
+We require new tests to minimally include a README.md that covers which kind
+of testing the playbook will perform, any kind of prerequisites for running
+the playbook, and an example invocation of the playbook.  You can reference
+the [README.md](/tests/improved-sanity-test/README.md) from the `improved-sanity-test`
+as an example.
 
 Since we are going to be copying multiple Dockerfiles, we will need to create
 a `files` directory to hold them.  See below for the directory structure and
@@ -313,17 +268,6 @@ After you have finished with your playbook, it is important to test that it can
 successfully run against the Atomic Host variant of CentOS, Fedora, and RHEL.
 If one of those platforms does not run successfully, you'll need to make the
 necessary adjustments before submitting a pull request with your changes.
-
-### Documenting Your Playbook
-
-After testing your playbook successfully, it would be a good time to write
-up some simple documentation about your playbook/tests.  At a minimum, you
-should include a `README.md` in your test directory that describes the tests
-that are run, any prerequisites for your playbook, and an example invocation
-of the playbook.
-
-Additionally, you may include an `info.txt` file that minimially describes
-the tests covered in your playbook and those features that are not covered.
 
 ### Following Established Style
 
