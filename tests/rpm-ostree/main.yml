@@ -515,11 +515,16 @@
   tasks:
     - name: Create initramfs file
       file:
-        path: /etc/rpmostree-initramfs-testing-file
+        path: /etc/rpmostree-file
         state: touch
 
+    - name: Modify initramfs file
+      lineinfile:
+        dest: /etc/rpmostree-file
+        line: "rpm-ostree-test"
+
     - name: Enable initramfs
-      command: rpm-ostree initramfs --enable --arg="-I" --arg="/etc/rpmostree-initramfs-testing-file"
+      command: rpm-ostree initramfs --enable --arg="-I" --arg="/etc/rpmostree-file"
 
     - include: ../../common/ans_reboot.yml
 
@@ -542,8 +547,8 @@
 
     - name: Fail if second initramfs argument is not set
       fail:
-        msg: "Initramfs args are incorrect.  Expected /etc/rpmostree-initramfs-testing-file.  Actual {{ ros_booted['initramfs-args'][1] }}"
-      when: "'/etc/rpmostree-initramfs-testing-file' not in ros_booted['initramfs-args'][1]"
+        msg: "Initramfs args are incorrect.  Expected /etc/rpmostree-file.  Actual {{ ros_booted['initramfs-args'][1] }}"
+      when: "'/etc/rpmostree-file' not in ros_booted['initramfs-args'][1]"
 
     - name: set osname
       set_fact:
@@ -557,12 +562,13 @@
       command: test -n {{ initrd.stdout }}
 
     - name: Get contents of initrd
-      shell: lsinitrd {{ initrd.stdout }} > lsinitrd.txt
+      command: lsinitrd {{ initrd.stdout }} -f /etc/rpmostree-file
+      register: lsinitrd
 
     - name: Fail if contents of initrd is incorrect
-      command: cat lsinitrd.txt
-      register: lsinitrd
-      failed_when: "'/etc/rpmostree-initramfs-testing-file' not in lsinitrd.stdout"
+      fail:
+        msg: "lsinitrd does not contain the contents of /etc/rpmostree-file"
+      when: "'rpm-ostree-test' not in lsinitrd.stdout"
 
     - name: Disable initramfs
       command: rpm-ostree initramfs --disable
@@ -577,12 +583,13 @@
       command: test -n {{ initrd_disabled.stdout }}
 
     - name: Get contents of initrd
-      shell: lsinitrd {{ initrd_disabled.stdout }} > lsinitrd.txt
+      command: lsinitrd {{ initrd_disabled.stdout }} -f /etc/rpmostree-file
+      register: lsinitrd_disabled
 
     - name: Fail if contents of initramfs is incorrect
-      command: cat lsinitrd.txt
-      register: lsinitrd
-      failed_when: "'/etc/rpmostree-initramfs-testing-file' in lsinitrd.stdout"
+      fail:
+        msg: "Initramfs contains contents of /etc/rpmostree-file"
+      when: "'rpm-ostree-test' in lsinitrd_disabled.stdout"
 
     - name: Clean up deployments
       command: rpm-ostree cleanup -rpmb
