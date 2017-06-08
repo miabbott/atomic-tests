@@ -78,5 +78,5 @@
       dest: "{{ origin_file.stdout }}.origin"
       regexp: '^refspec.*$'
       replace: "{{ refspec.stdout }}"
-      when: is_atomic and
-            refspec.stdout.find("refspec=rhel-atomic-host") == -1
+    when: is_atomic and
+          refspec.stdout.find("refspec=rhel-atomic-host") == -1
