@@ -1,4 +1,0 @@
----
-g_image_name: 'docker.io/httpd'
-g_ports: '80:80'
-g_service_name: 'httpd'

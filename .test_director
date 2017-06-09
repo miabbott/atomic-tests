@@ -8,6 +8,7 @@ if [ ${#NEW_TESTS[@]} -eq 0 ]; then
     ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
     ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml
 else
+    printf '%s\n' "${NEW_TESTS[@]}"
     for NEW_TEST in "${NEW_TESTS[@]}"; do
         ansible-playbook -vi testnode, $NEW_TEST
     done
