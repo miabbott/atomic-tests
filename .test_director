@@ -1,13 +1,14 @@
 #!/bin/bash
 set -xeuo pipefail
 
-NEW_TESTS=$((git diff --name-only master | grep 'tests/.*/main.yml') || true)
+HEAD=${PAPR_COMMIT:-HEAD}
+NEW_TESTS=( $(git diff --name-only origin/master..$HEAD | grep 'tests/.*/main.yml' || true) )
 
-for NEW_TEST in "${NEW_TESTS[@]}"; do
-    if [ -z $NEW_TEST ]; then
-        ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
-        ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml
-    else
+if [ ${#NEW_TESTS[@]} -eq 0 ]; then
+    ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
+    ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml
+else
+    for NEW_TEST in "${NEW_TEST[@]}"; do
         ansible-playbook -vi testnode, $NEW_TEST
-    fi
-done
+    done
+fi
