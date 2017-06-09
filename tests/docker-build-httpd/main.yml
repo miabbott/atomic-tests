@@ -22,7 +22,7 @@
   become: yes
 
   tags:
-    - setup
+    - docker_build_setup
 
   vars_files:
     - vars.yml
@@ -82,7 +82,7 @@
   become: yes
 
   tags:
-    - tests
+    - docker_build_test
 
   vars_files:
     - vars.yml
@@ -103,10 +103,23 @@
       # compatible with the 'with_items' loop control, so I stuck all
       # the tasks into a single role file and used an 'include:'
       # statement on that file.
-    - include: tasks/build_run_remove.yml base_dir={{ working_dir }} image_name={{ item }}
+      #
+      # Added the ability to skip broken images with the 'cli_skipped_images'
+      # variable.  This can be set via the CLI like so:
+      # ansible-playbook -e "cli_skipped_images=busybox_httpd,debian_httpd"
+      #
+    - include: tasks/build_run_remove.yml
+      vars:
+        base_dir: "{{ working_dir }}"
+        image_name: "{{ item }}"
+        skipped_images: "{{ cli_skipped_images | default('') }}"
       with_items: "{{ image_names }}"
 
-    - include: tasks/build_run_remove.yml base_dir={{ working_dir }} image_name={{ item }}
+    - include: tasks/build_run_remove.yml
+      vars:
+        base_dir: "{{ working_dir }}"
+        image_name: "{{ item }}"
+        skipped_images: "{{ cli_skipped_images | default('') }}"
       with_items: "{{ rhel_image_names }}"
       when: ansible_distribution == "RedHat"
 
@@ -116,7 +129,7 @@
   become: yes
 
   tags:
-    - cleanup
+    - docker_build_cleanup
 
   roles:
     - role: docker_remove_all
