@@ -11,6 +11,7 @@ context: centos/7/atomic/smoketested
 
 packages:
   - ansible
+  - git
 
 tests:
   - ./.test_director
