@@ -11,6 +11,9 @@ if [ ${#NEW_TESTS[@]} -eq 0 ]; then
 else
     printf '%s\n' "${NEW_TESTS[@]}"
     for NEW_TEST in "${NEW_TESTS[@]}"; do
-        ansible-playbook -vi testnode, $NEW_TEST
+        # diff may contain deleted tests so only run tests that exist
+        if [ -f $NEW_TEST ]; then
+            ansible-playbook -vi testnode, $NEW_TEST
+        fi
     done
 fi
