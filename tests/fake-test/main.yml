@@ -1,0 +1,202 @@
+---
+# vim: set ft=ansible:
+#
+# !!!NOTE!!! This playbook was tested using Ansible 2.2; it is recommended
+# that the same version is used.
+#
+# This playbook is a basic functional test for docker swarm
+#  - Initialize docker swarm
+#  - Create docker swarm service
+#  - Scale replicas up and down
+#  - Remove service
+#  - Leave swarm
+#
+
+- name: Docker Swarm - Setup
+  hosts: all
+  become: yes
+
+  tags:
+    - setup
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
+    - role: docker_version_check
+      docker_version: 1.12.0
+      tags:
+        - docker_version_check
+
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+  post_tasks:
+    # docker swarm will not work with live restore enabled
+    #  and must be turned off
+    - name: Determine if /etc/docker/daemon.json exists
+      stat:
+        path: /etc/docker/daemon.json
+      register: daemon_file
+
+    - name: Turn off live restore
+      replace:
+        dest: /etc/docker/daemon.json
+        regexp: 'true'
+        replace: 'false'
+      when: daemon_file.stat.exists
+
+    - name: Restart docker service
+      service:
+        name: docker
+        state: restarted
+      when: daemon_file.stat.exists
+
+- name: Docker Swarm - Basic Functional Test
+  hosts: all
+  become: yes
+
+  tags:
+    - basic
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Verify docker swarm is not running
+      command: docker info
+      register: di
+
+    - name: Fail if docker swarm is already running
+      fail:
+        msg: "Docker swarm is already running"
+      when:  "'Swarm: active' in di.stdout"
+
+    - name: Initialize docker swarm
+      command: docker swarm init --advertise-addr 127.0.0.1
+
+    - name: Verify docker swarm is started
+      command: docker info
+      register: di
+
+    - name: Fail if docker swarm is is not active
+      fail:
+        msg: "Docker swarm is not active"
+      when: "'Swarm: active' not in di.stdout"
+
+    - name: Create docker swarm service
+      command: >
+        docker service create
+        --replicas 1
+        --name {{ g_service_name }}
+        -p {{ g_ports }}
+        {{ g_image_name }}
+
+    - name: Verify service is started
+      command: docker service ls
+      register: dsls
+
+    - name: Fail if httpd is not in output
+      fail:
+        msg: "{{ g_service_name }} is not in docker service ls output"
+      when: g_service_name not in dsls.stdout
+
+    - name: Wait for the {{ g_service_name }} container to open port 80
+      wait_for:
+        port: 80
+        timeout: 30
+
+    - name: Run docker ps
+      command: docker ps
+      register: dps
+
+    - name: Fail if docker ps output does not contain {{ g_image_name }}
+      fail:
+        msg: "Docker ps output does not contain {{ g_image_name }}"
+      when: g_image_name not in dps.stdout
+
+    - name: Inspect the {{ g_service_name }} service
+      command: docker inspect {{ g_service_name }}
+      register: dis
+
+    # check image
+    - name: Fail when image is incorrect
+      fail:
+        msg: "Image is incorrect"
+      when: g_image_name not in dis.stdout
+
+    - name: Scale service to 5 instances
+      command: docker service scale {{ g_service_name }}=5
+
+    - name: Check for 5 instances of {{ g_service_name }}
+      shell: docker ps | grep {{ g_image_name }} | wc -l
+      register: num_services
+      until: num_services.stdout == "5"
+      retries: 5
+      delay: 2
+
+    - name: Fail if services did not scale
+      fail:
+        msg: "Service did not scale to 5 instances"
+      when: num_services.stdout != "5"
+
+    - name: Scale service back to 1 instance
+      command: docker service scale {{ g_service_name }}=1
+
+    - name: Check for 1 instance of {{ g_service_name }}
+      shell: docker ps | grep {{ g_image_name }} | wc -l
+      register: num_services
+      until: num_services.stdout == "1"
+      retries: 5
+      delay: 2
+
+    - name: Remove {{ g_service_name }}
+      command: docker service remove {{ g_service_name }}
+
+    - name: Verify {{ g_service_name }} is not longer active
+      command: docker service ls
+      register: dsls
+
+    - name: Fail if {{ g_service_name }} is still in docker service ls output
+      fail:
+        msg: "{{ g_service_name }} should not be in docker service ls output"
+      when: g_service_name in dsls.stdout
+
+    - name: Deactivate swarm
+      command: docker swarm leave --force
+
+    - name: Verify swarm is inactive
+      command: docker info
+      register: di
+
+    - name: Fail if swarm is not inactive
+      fail:
+        msg: "Swarm is not inactive"
+      when: "'Swarm: inactive' not in di.stdout"
+
+- name: Docker Swarm - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  roles:
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe

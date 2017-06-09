@@ -1,0 +1,11 @@
+#!/bin/bash
+set -xeuo pipefail
+
+NEW_TEST=$((git diff --name-only master | grep 'tests/.*/main.yml') || true)
+
+if [ -z $NEW_TEST ]; then
+    ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
+    ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml
+else
+    ansible-playbook -vi testnode, $NEW_TEST
+fi
