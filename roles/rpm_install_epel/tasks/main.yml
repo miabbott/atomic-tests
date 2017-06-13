@@ -2,7 +2,7 @@
 # vim: set ft=ansible:
 #
 # This role will install epel7 from download.fedoraproject.org and
-#  installs it using the rpm command.  This hsould be used after
+#  installs it using the rpm command.  This should be used after
 #  system unlock using ostree admin unlock
 #
 - name: Get EPEL url

@@ -178,7 +178,7 @@
         - cloud_image
 
     - role: package_verify_present
-      rpm_name: "{{ g_rpm_name }}"
+      rpm_name: epel-release
       check_binary: false
       tags:
         - package_verify_present
@@ -432,7 +432,7 @@
 
     # Verify admin unlocked package is removed after upgrade
     - role: package_verify_missing
-      rpm_name: "{{ g_rpm_name }}"
+      rpm_name: epel-release
       tags:
         - package_verify_missing
 
