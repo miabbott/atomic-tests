@@ -57,7 +57,8 @@
     - name: Verify all
       fail:
         msg: "Required variables are not defined.  Check vars.yml file."
-      when: g_rpm_name is undefined or
+      when: g_rpm_url is undefined or
+            g_rpm_name is undefined or
             g_rpm_name_2 is undefined
 
   roles:
@@ -90,10 +91,11 @@
     - role: overlayfs_verify_present
 
     - role: rpm_install
-      rpm_name: "{{ g_rpm_name }}"
+      rpm_url: "{{ g_rpm_url }}"
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
+      check_binary: false
 
     - role: rpm_uninstall
       rpm_name: "{{ g_rpm_name }}"
@@ -102,12 +104,13 @@
       rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
-      rpm_name: "{{ g_rpm_name }}"
+      rpm_url: "{{ g_rpm_url }}"
       tags:
         - second_install
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
+      check_binary: false
       tags:
         - second_verify_present
 
@@ -136,10 +139,11 @@
     - role: overlayfs_verify_present
 
     - role: rpm_install
-      rpm_name: "{{ g_rpm_name }}"
+      rpm_url: "{{ g_rpm_url }}"
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
+      check_binary: false
 
     - role: rpm_uninstall
       rpm_name: "{{ g_rpm_name }}"
@@ -148,12 +152,13 @@
       rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
-      rpm_name: "{{ g_rpm_name }}"
+      rpm_url: "{{ g_rpm_url }}"
       tags:
         - second_install
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
+      check_binary: false
       tags:
         - second_verify_present
 
@@ -163,11 +168,15 @@
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
+      check_binary: false
       tags:
         - third_verify_present
 
-    - role: rpm_install
+    - role: epel_rpm_url
       rpm_name: "{{ g_rpm_name_2 }}"
+
+    - role: rpm_install
+      rpm_url: "{{ epel_rpm_url }}"
       tags:
         - third_install
 
@@ -212,12 +221,8 @@
     - vars.yml
 
   tasks:
-    - name: Get one of the rpms that was downloaded
-      shell: ls /root | grep {{ g_rpm_name }}*
-      register: rpm
-
     - name: Attempt to install rpm
-      command: rpm -i /root/{{ rpm.stdout }}
+      command: rpm -i {{ g_rpm_url }}
       register: attempted_install
       failed_when: attempted_install.rc != 1
 

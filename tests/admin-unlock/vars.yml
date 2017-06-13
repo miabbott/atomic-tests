@@ -1,3 +1,4 @@
 ---
-g_rpm_name: "fping"
-g_rpm_name_2: "fpaste"
+g_rpm_url: 'https://download.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+g_rpm_name: 'epel-release'
+g_rpm_name_2: 'fpaste'
