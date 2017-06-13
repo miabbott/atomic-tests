@@ -5,14 +5,21 @@ set -xeuo pipefail
 HEAD=${PAPR_COMMIT:-HEAD}
 NEW_TESTS=( $(git diff --name-only origin/master..$HEAD | grep 'tests/.*/main.yml' || true) )
 
+# no new tests found, just run improved sanity test
 if [ ${#NEW_TESTS[@]} -eq 0 ]; then
     ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
     ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml
 else
+    # added or modified tests found, iterate through and run each one
     printf '%s\n' "${NEW_TESTS[@]}"
     for NEW_TEST in "${NEW_TESTS[@]}"; do
         # diff may contain deleted tests so only run tests that exist
         if [ -f $NEW_TEST ]; then
+            # improved-sanity-test could be the test that was modified so
+            # deploy head-1 if improved-sanity-test is found
+            if [[ $NEW_TEST == *"improved-sanity-test"* ]]; then
+                ansible-playbook -vi fedora, -u cloud-user common/ans_ah_head-1_deploy.yml
+            fi
             ansible-playbook -vi testnode, $NEW_TEST
         fi
     done
