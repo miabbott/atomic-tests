@@ -18,7 +18,7 @@ else
             # improved-sanity-test could be the test that was modified so
             # deploy head-1 if improved-sanity-test is found
             if [[ $NEW_TEST == *"improved-sanity-test"* ]]; then
-                ansible-playbook -vi fedora, -u cloud-user common/ans_ah_head-1_deploy.yml
+                ansible-playbook -vi testnode, common/ans_ah_head-1_deploy.yml
             fi
             ansible-playbook -vi testnode, $NEW_TEST
         fi
