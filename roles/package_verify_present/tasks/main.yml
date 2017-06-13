@@ -4,9 +4,9 @@
 # Verifies that a package is installed either through package layering or
 #  through rpm package manager.
 #
-# Requirements:
-# - The package installed must have a binary with the same name
-#   i.e. rpm -i htop installs the binary htop
+# Parameters:
+#   rpm_name (required) - string - rpm name
+#   check_binary (optional) boolean - checks that a binary with the same name exists
 #
 - name: Fail if rpm_name is undefined
   fail:
@@ -15,6 +15,7 @@
 
 - name: Check for {{ rpm_name }} binary
   command: command -v {{ rpm_name }}
+  when: check_binary is not defined or check_binary
 
 - name: Check {{ rpm_name }} in rpmdb
   command: rpm -q {{ rpm_name }}

@@ -172,14 +172,14 @@
         - overlayfs_verify_present
         - cloud_image
 
-    - role: rpm_install
-      rpm_name: "{{ g_rpm_name }}"
+    - role: rpm_install_epel
       tags:
-        - rpm_install
+        - rpm_install_epel
         - cloud_image
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
+      check_binary: false
       tags:
         - package_verify_present
         - cloud_image

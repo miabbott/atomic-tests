@@ -6,7 +6,7 @@ g_uid2: '3001'
 g_file2: 'commit2'
 g_dir2: 'qe2'
 g_hostname: 'myhostname'
-g_rpm_name: "fpaste"
+g_rpm_name: "epel-release"
 g_pkg: "wget"
 g_seboolean: "virt_use_nfs"
 # These variables are used by the 'semanage_fcontext_mod' and
