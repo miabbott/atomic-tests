@@ -1,9 +1,7 @@
 #!/bin/bash
 set -xeuo pipefail
 
-# check commit
-HEAD=${PAPR_COMMIT:-HEAD}
-NEW_TESTS=( $(git diff --name-only origin/master..$HEAD | grep 'tests/.*/main.yml' || true) )
+NEW_TESTS=( $(git diff --name-only $(git merge-base origin/master HEAD) | grep 'tests/.*/main.yml' || true) )
 
 # no new tests found, just run improved sanity test
 if [ ${#NEW_TESTS[@]} -eq 0 ]; then
