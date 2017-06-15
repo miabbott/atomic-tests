@@ -643,6 +643,12 @@
       tags:
         - var_files_present
 
+    # cleanup any extra deployments
+    - role: rpm_ostree_cleanup_all
+      tags:
+        - rpm_ostree_cleanup_all
+        - cloud_image
+
     # cleanup our subscriptions because we are nice people
     - role: redhat_unsubscribe
       when: ansible_distribution == 'RedHat'
