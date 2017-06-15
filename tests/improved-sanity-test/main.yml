@@ -643,6 +643,15 @@
       tags:
         - var_files_present
 
+    # uninstall and verify that 'httpd' is no longer there
+    # this works even if the 'httpd' RPM wasn't originally installed
+    - role: rpm_ostree_uninstall
+      packages: httpd
+      reboot: yes
+
+    - role: rpm_ostree_uninstall_verify
+      package: httpd
+
     # cleanup any extra deployments
     - role: rpm_ostree_cleanup_all
       tags:
