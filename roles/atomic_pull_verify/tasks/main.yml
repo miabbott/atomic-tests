@@ -9,29 +9,15 @@
 #   - atomic run
 #   - atomic stop
 #
-- name: Get atomic major version
-  shell: atomic --version 2>&1 | cut -d. -f1
-  register: atomic_major
-
-- name: Get atomic minor version
-  shell: atomic --version 2>&1 | cut -d. -f2
-  register: atomic_minor
-
 - name: Pull busybox
   command: atomic pull busybox
-
-- name: Set atomic images command for 1.12 and older
-  set_fact:
-    atomic_images: "atomic images"
-  when: (atomic_minor.stdout|int) < 12 and (atomic_major.stdout|int) == 1
-
-- name: Set atomic images command for 1.12 and newer
-  set_fact:
-    atomic_images: "atomic images list"
-  when: (atomic_minor.stdout|int) >= 12 and (atomic_major.stdout|int) == 1
+  register: apb
+  retries: 5
+  delay: 60
+  until: apb|success
 
 - name: Get atomic images
-  command: "{{ atomic_images }}"
+  command: atomic images list
   register: aio
 
 - name: Fail if busybox is not in atomic images output
