@@ -6,6 +6,10 @@
 - name: Pull the popular images from Docker Hub
   command: "docker pull docker.io/{{ item }}"
   with_items: "{{ popular_images }}"
+  register: dpd
+  retries: 5
+  delay: 60
+  until: dpd|success
 
 - name: Run the popular images
   command: "docker run --rm docker.io/{{ item }} echo 'hello'"

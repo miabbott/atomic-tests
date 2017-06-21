@@ -12,4 +12,8 @@
   when: rpm_url is undefined
 
 - name: Install {{ rpm_url }}
-  command:  rpm -i {{ rpm_url }}
+  command: rpm -i {{ rpm_url }}
+  register: rpmi
+  retries: 5
+  delay: 60
+  until: rpmi|success

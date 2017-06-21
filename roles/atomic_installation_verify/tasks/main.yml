@@ -24,6 +24,10 @@
 
 - name: Install cockpit container with tag
   command: "atomic install {{ cockpit_cname }}:latest"
+  register: aic
+  retries: 5
+  delay: 60
+  until: aic|success
 
 - name: Check for /etc/pam.d/cockpit
   stat:

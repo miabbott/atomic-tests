@@ -21,6 +21,9 @@
 - name: Install openscap
   command: atomic install {{ scanner_image }}
   register: result
+  retries: 5
+  delay: 60
+  until: result|success
 
 - name: Check installation of openscap
   fail:
@@ -31,6 +34,10 @@
   # streams have support for v1 schema manifests
 - name: Pull scanner target
   command: docker pull {{ scanner_target }}
+  register: dps
+  retries: 5
+  delay: 60
+  until: dps|success
 
 - name: Run atomic scan
   command: atomic --debug scan --scanner {{ scanner_type }} {{ scanner_target }}
