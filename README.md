@@ -1,12 +1,14 @@
 Stream | Version/Status | Log File
-:--- | :--- | :---:
+:--- | :---: | :---:
 Centos Atomic Host Continuous | ![cahc status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/cahc/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/cahc/latest/improved-sanity-test.log)
 Fedora Atomic Host Continuous | ![fahc status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fahc/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fahc/latest/improved-sanity-test.log)
 Fedora 24 Atomic Host | ![fedora 24 atomic status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-24-atomic/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-24-atomic/latest/improved-sanity-test.log)
 Fedora 25 Atomic Host | ![fedora 25 atomic status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic/latest/improved-sanity-test.log)
-Fedora 25 Atomic Testing| ![fedora 25 atomic testing status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic-testing/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic-testing/latest/improved-sanity-test.log)
+Fedora 25 Atomic Testing | ![fedora 25 atomic testing status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic-testing/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic-testing/latest/improved-sanity-test.log)
 Fedora 25 Atomic Updates | ![fedora 25 atomic updates status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic-updates/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-25-atomic-updates/latest/improved-sanity-test.log)
 Fedora 26 Atomic Host | ![fedora 26 atomic status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic/latest/improved-sanity-test.log)
+Fedora 26 Atomic Testing | ![fedora 26 atomic testing status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic-testing/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic-testing/latest/improved-sanity-test.log)
+Fedora Rawhide Atomic Host | ![fedora rawhide atomic status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-rawhide/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-rawhide/latest/improved-sanity-test.log)
 
 ---
 
