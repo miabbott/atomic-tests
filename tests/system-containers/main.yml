@@ -397,6 +397,10 @@
         --system
         --name=etcd
         {{ etcd_image }}
+      register: ai_etcd
+      retries: 5
+      delay: 60
+      until: ai_etcd|success
 
     - name: Start etcd
       command: systemctl start etcd
@@ -422,6 +426,10 @@
         --system
         --name=flannel
         {{ flannel_image }}
+      register: ai_flannel
+      retries: 5
+      delay: 60
+      until: ai_flannel|success
 
     - name: Start flannel
       command: systemctl start flannel

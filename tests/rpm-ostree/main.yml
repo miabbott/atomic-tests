@@ -59,9 +59,9 @@
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
       register: osp
-      until: osp.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: ops|success
 
     - name: Get HEAD-1 version
       shell: ostree show $(ostree rev-parse {{ refspec }}^) --print-metadata-key version | tr -d \'
@@ -70,9 +70,9 @@
     - name: Deploy HEAD-1
       command: rpm-ostree deploy {{ hmo_version.stdout }}
       register: ros_deploy
-      until: ros_deploy.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: ros_deploy|success
 
     # reboot
     - include: ../../common/ans_reboot.yml
@@ -139,9 +139,9 @@
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
       register: osp
-      until: osp.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: osp|success
 
     - name: Get HEAD-1 checksum
       shell: ostree rev-parse {{ refspec }}^
@@ -150,9 +150,9 @@
     - name: Deploy HEAD-1
       command: rpm-ostree deploy {{ hmo_csum.stdout }}
       register: ros_deploy
-      until: ros_deploy.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: ros_deploy|success
 
     # reboot
     - include: ../../common/ans_reboot.yml
@@ -218,9 +218,9 @@
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
       register: osp
-      until: osp.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: osp|success
 
     - name: Get HEAD-1 checksum
       command: ostree rev-parse {{ refspec }}^
@@ -229,9 +229,9 @@
     - name: Deploy version HEAD-1
       command: rpm-ostree deploy {{ hmo_csum.stdout }}
       register: ros_deploy
-      until: ros_deploy.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: ros_deploy|success
 
     # verify pending deployment info
     - include: roles/rpm_ostree_status_verify/tasks/main.yml
@@ -321,6 +321,10 @@
 
     - name: Rebase back to original deployment
       command: rpm-ostree rebase {{ refspec }} {{ head_csum }}
+      register: ros_rebase
+      retries: 5
+      delay: 60
+      until: ros_rebase|success
 
     # reboot
     - include: ../../common/ans_reboot.yml
@@ -390,9 +394,9 @@
     - name: Upgrade
       command: rpm-ostree upgrade --install {{ g_pkg }}
       register: ros_upgrade
-      until: ros_upgrade.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: ros_upgrade|success
 
     # reboot
     - include: ../../common/ans_reboot.yml
@@ -435,9 +439,9 @@
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
       register: osp
-      until: osp.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: osp|success
 
     - name: Get HEAD-1 checksum
       command: ostree rev-parse {{ refspec }}^
@@ -446,9 +450,9 @@
     - name: Deploy HEAD-1
       command: rpm-ostree deploy {{ hmo_csum.stdout }} --uninstall {{ g_pkg }}
       register: ros_deploy
-      until: ros_deploy.rc == 0
       retries: 5
-      delay: 5
+      delay: 60
+      until: ros_deploy|success
 
     # reboot
     - include: ../../common/ans_reboot.yml
