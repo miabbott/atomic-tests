@@ -644,29 +644,12 @@
       tags:
         - var_files_present
 
-    # The hacks will continue until...well, forever.
-    # In an Ansible play, variables set in one role are available to other
-    # roles in the same play.  So we make use of this 'feature' by getting
-    # the packages installed in the booted deployment (having high
-    # confidence that the booted deployment here is '0'), which we can then
-    # use to determine if we need to uninstall the 'httpd' package.
-    - role: rpm_ostree_status
-      tags:
-        - rpm_ostree_status
-
+    # use 'all' keyword to remove all installed pacakges
     - role: rpm_ostree_uninstall
-      packages: httpd
+      packages: all
       reboot: true
-      when: "'httpd' in ros_json['deployments'][0]['packages']"
       tags:
         - rpm_ostree_uninstall
-        - cloud_image
-
-    - role: rpm_ostree_uninstall_verify
-      package: httpd
-      when: "'httpd' in ros_json['deployments'][0]['packages']"
-      tags:
-        - rpm_ostree_uninstall_verify
         - cloud_image
 
     # cleanup any extra deployments

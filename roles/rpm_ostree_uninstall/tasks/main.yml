@@ -6,6 +6,7 @@
 #
 # Parameters:
 #  packages - string of one or more packages separated by a space
+#             or use the 'all' keyword to uninstall everything
 #  reboot - boolean - pass -r flag to install command
 #
 
@@ -19,12 +20,46 @@
     msg: "Reboot is not defined"
   when: reboot is undefined
 
-- name: Uninstall {{ packages }}
-  command: rpm-ostree uninstall {{ packages }}
+- block:
+    - name: Get rpm-ostree status
+      command: rpm-ostree status --json
+      register: ros
+
+    - name: Convert to JSON
+      set_fact:
+        ros_json: "{{ ros.stdout|from_json }}"
+
+    - name: Set ros variable if deployment 0 is booted
+      set_fact:
+        ros_booted: "{{ ros_json['deployments'][0] }}"
+        ros_not_booted: "{{ ros_json['deployments'][1] if ros_json['deployments'][1] is defined else false }}"
+      when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
+
+    - name: Set ros variable if deployment 1 is booted
+      set_fact:
+        ros_booted: "{{ ros_json['deployments'][1] }}"
+        ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
+      when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
+
+    - name: Get all installed packages
+      set_fact:
+        all_installed: "{{ ros_booted['packages']|join(' ') }}"
+  when: packages == "all"
+
+# If the 'all_installed' variable is defined, we use that otherwise just use
+# the supplied 'packages' variable.  NOTE: 'all_installed' could be an empty
+# string and we don't check for it because I'm making the wrong assumption
+# that users are well behaved.  ¯\_(ツ)_/¯
+- name: Setup 'rm_packages' variable
+  set_fact:
+    rm_packages: "{{ all_installed if all_installed is defined else packages }}"
+
+- name: Uninstall {{ rm_packages }}
+  command: rpm-ostree uninstall {{ rm_packages }}
   when: not reboot
 
-- name: Uninstall {{ packages }} and reboot
-  command: rpm-ostree uninstall {{ packages }} -r
+- name: Uninstall {{ rm_packages }} and reboot
+  command: rpm-ostree uninstall {{ rm_packages }} -r
   async: 60
   poll: 0
   when: reboot
