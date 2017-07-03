@@ -41,31 +41,35 @@
         ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
       when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
 
+    # If the 'packages' key has a value, we create a list of packages to
+    # uninstall, otherwise skip it
     - name: Get all installed packages
       set_fact:
         all_installed: "{{ ros_booted['packages']|join(' ') }}"
+      when: ros_booted['packages']|length > 0
   when: packages == "all"
 
-# If the 'all_installed' variable is defined, we use that otherwise just use
-# the supplied 'packages' variable.  NOTE: 'all_installed' could be an empty
-# string and we don't check for it because I'm making the wrong assumption
-# that users are well behaved.  ¯\_(ツ)_/¯
+# Check to see if 'all_installed' was defined above, otherwise we use the
+# original value of 'packages'.  It could be 'all', which means we want to
+# uninstall all packages but there were no packages actually installed.
+#
+# Hat tip to @mike-nguyen for the logic to do this
 - name: Setup 'rm_packages' variable
   set_fact:
     rm_packages: "{{ all_installed if all_installed is defined else packages }}"
 
 - name: Uninstall {{ rm_packages }}
   command: rpm-ostree uninstall {{ rm_packages }}
-  when: not reboot
+  when: not reboot and rm_packages != "all"
 
 - name: Uninstall {{ rm_packages }} and reboot
   command: rpm-ostree uninstall {{ rm_packages }} -r
   async: 60
   poll: 0
-  when: reboot
+  when: reboot and rm_packages != "all"
   ignore_errors: true
 
 - include: ../../../common/ans_reboot.yml
   vars:
     skip_shutdown: true # shutdown was already initiated
-  when: reboot
+  when: reboot and rm_packages != "all"
