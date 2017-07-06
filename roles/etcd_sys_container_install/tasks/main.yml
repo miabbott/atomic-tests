@@ -1,0 +1,75 @@
+---
+# vim: set ft=ansible:
+#
+# This role installs etcd system container and verifies installation by setting
+#   and retrieving the /atomic.io/network/config key/pair.  It will optionally
+#   delete the key after
+#
+# Parameters:
+#   delete_key (boolean) - optional parameter to delete key after
+#     verifying the set and get of the key.  This is useful since etcd
+#     keys are preserved even after uninstalling the system container
+#
+
+- name: Set facts
+  set_fact:
+    etcd_image: 'registry.access.redhat.com/rhel7/etcd'
+    etcd_name: 'etcd'
+  when: ansible_distribution == 'RedHat'
+
+- name: Set facts
+  set_fact:
+    etcd_image: 'registry.fedoraproject.org/f25/etcd'
+    etcd_name: 'etcd'
+  when: ansible_distribution != 'RedHat'
+
+- name: Install etcd
+  command: >
+    atomic install
+    --system
+    --name=etcd
+    {{ etcd_image }}
+  register: ai_etcd
+  retries: 5
+  delay: 60
+  until: ai_etcd|success
+
+- name: Start etcd
+  command: systemctl start etcd
+
+- name: Verify etcd is active
+  command: systemctl is-active etcd
+  register: etcd_output
+  failed_when: "'active' not in etcd_output.stdout"
+
+- name: Wait for etcd port to open
+  wait_for:
+    port: 2379
+    timeout: 30
+
+- name: Configure etcd
+  command: >
+    runc exec etcd etcdctl
+    set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'
+  register: set_etcd
+
+- name: Verify etcd settings
+  command: >
+    runc exec etcd etcdctl
+    get /atomic.io/network/config
+  register: get_etcd
+  failed_when: set_etcd.stdout != get_etcd.stdout
+
+- name: Delete key
+  command: >
+    runc exec etcd etcdctl
+    rm /atomic.io/network/config
+  when: delete_key is defined and delete_key
+
+- name: Verify key is deleted
+  command: >
+    runc exec etcd etcdctl
+    get /atomic.io/network/config
+  register: get_etcd
+  failed_when: get_etcd.rc == 0
+  when: delete_key is defined and delete_key

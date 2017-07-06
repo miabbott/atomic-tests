@@ -282,6 +282,11 @@
         - atomic_installation_verify
         - cloud_image
 
+    # Install etcd system container
+    - role: etcd_sys_container_install
+      tags:
+        - etcd_sys_container_install
+
     # Upgrade and reboot
     - role: rpm_ostree_upgrade
       tags:
@@ -388,6 +393,48 @@
       package: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
+
+    # Check etcd system container is still running
+    - role: command
+      cmd: systemctl status etcd
+      output: 'active (running)'
+      tags:
+        - command
+
+    # Uninstall etcd system container
+    - role: atomic_system_uninstall
+      name: etcd
+      tags:
+        - atomic_system_uninstall
+
+    # Verify etcd system container uninstall
+    - role: atomic_system_uninstall_verify
+      image: etcd
+      tags:
+        - atomic_system_uninstall_verify
+
+    # Install etcd system container
+    - role: etcd_sys_container_install
+      delete_key: True
+      tags:
+        - etcd_sys_container_install
+        - cloud_image
+      check_mode: no
+
+    # Uninstall etcd system container
+    - role: atomic_system_uninstall
+      name: etcd
+      tags:
+        - atomic_system_uninstall
+        - cloud_image
+      check_mode: no
+
+    # Verify etcd system container uninstall
+    - role: atomic_system_uninstall_verify
+      image: etcd
+      tags:
+        - atomic_system_uninstall_verify
+        - cloud_image
 
     - role: rpm_ostree_install
       packages: httpd
