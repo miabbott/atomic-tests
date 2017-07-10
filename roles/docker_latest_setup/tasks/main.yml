@@ -10,17 +10,20 @@
     state: stopped
     enabled: no
 
+- name: Change docker binary
+  blockinfile:
+    dest: /etc/sysconfig/docker
+    block: |
+      DOCKERBINARY=/usr/bin/docker-latest
+      DOCKERDBINARY=/usr/bin/dockerd-latest
+      DOCKER_CONTAINERD_BINARY=/usr/bin/docker-containerd-latest
+      DOCKER_CONTAINERD_SHIM_BINARY=/usr/bin/docker-containerd-shim-latest
+
 - name: Enable and start docker-latest service
   service:
     name: docker-latest
     state: started
     enabled: yes
-
-- name: Change docker binary
-  replace:
-    dest: /etc/sysconfig/docker
-    regexp: '#DOCKERBINARY=/usr/bin/docker-latest'
-    replace: 'DOCKERBINARY=/usr/bin/docker-latest'
 
 - name: Get docker version
   command: docker --version

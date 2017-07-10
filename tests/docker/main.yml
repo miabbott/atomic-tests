@@ -121,10 +121,13 @@
           state: stopped
 
       - name: Revert docker-latest binary
-        replace:
+        blockinfile:
           dest: /etc/sysconfig/docker
-          regexp: 'DOCKERBINARY=/usr/bin/docker-latest'
-          replace: '#DOCKERBINARY=/usr/bin/docker-latest'
+          block: |
+            #DOCKERBINARY=/usr/bin/docker-latest
+            #DOCKERDBINARY=/usr/bin/dockerd-latest
+            #DOCKER_CONTAINERD_BINARY=/usr/bin/docker-containerd-latest
+            #DOCKER_CONTAINERD_SHIM_BINARY=/usr/bin/docker-containerd-shim-latest
 
       - name: Re-enable docker
         service:
