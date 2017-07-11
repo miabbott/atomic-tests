@@ -47,6 +47,10 @@
 
 - name: Build httpd image
   command: "docker build -t {{ g_httpd_name }} -f {{ build_dir }}/{{ g_httpd_name }}_Dockerfile {{ build_dir }}"
+  register: db
+  retries: 5
+  delay: 60
+  until: db|success
 
 - name: Get docker images after build
   command: docker images
