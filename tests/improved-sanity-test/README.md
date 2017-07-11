@@ -24,15 +24,20 @@ tests.
 
   - Configure the required variables to your liking in [tests/improved-sanity-tests/vars.yml](tests/improved-sanity-tests/vars.yml).
 
-  - Because these tests are geared towards testing upgrades and rollbacks,
-    the system under test should have a new tree available to upgrade to.
-
 ### Running the Playbook
 
 To run the test, simply invoke as any other Ansible playbook:
 
 ```
 $ ansible-playbook -i inventory tests/improved-sanity-test/main.yml
+```
+
+- By default, the test will run with a synthesized upgrade with no content changes.  There are
+  trade-offs in using this strategy but the advantages for CI are worth it.  This test can still
+  be run with an actual upgrade if one is available.  To do this, run with the following option:
+
+```
+--skip-tags synthesized_upgrade
 ```
 
 *NOTE*: You are responsible for providing a host to run the test against and the

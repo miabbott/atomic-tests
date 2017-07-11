@@ -57,7 +57,9 @@
         - atomic_host_check
         - cloud_image
 
-    # local_repo_setup
+    # Setup local branch and upgrade right away so packages are layered on top of
+    # the local branch.  If the local branch is created before the upgrade later in
+    # the test, it will only contain the origin content of the ostree.
     - role: local_repo_setup
       branch_name: local-branch
       tags:
