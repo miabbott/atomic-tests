@@ -57,6 +57,40 @@
         - atomic_host_check
         - cloud_image
 
+    # local_repo_setup
+    - role: local_repo_setup
+      branch_name: local-branch
+      tags:
+        - local_repo_setup
+        - synthesized_upgrade
+
+    - role: local_repo_commit
+      branch_name: local-branch
+      refspec: local-branch
+      version: test1
+      tags:
+        - local_repo_commit
+        - synthesized_upgrade
+
+    # origin_file_modify
+    - role: origin_file_modify
+      refspec: local-branch
+      tags:
+        - origin_file_modify
+        - synthesized_upgrade
+
+    - role: rpm_ostree_upgrade
+      tags:
+        - rpm_ostree_upgrade_setup
+        - synthesized_upgrade
+
+    - role: reboot
+      wait_for_services:
+        - docker
+      tags:
+        - reboot_setup
+        - synthesized_upgrade
+
     # Set some facts that are used in multiple roles
     - role: osname_set_fact
       tags:
@@ -282,10 +316,21 @@
         - atomic_installation_verify
         - cloud_image
 
+    # new commit
+    - role: local_repo_commit
+      branch_name: local-branch
+      refspec: local-branch
+      version: test2
+      tags:
+        - local_repo_commit
+        - synthesized_upgrade
+      check_mode: no
+
     # Upgrade and reboot
     - role: rpm_ostree_upgrade
       tags:
         - rpm_ostree_upgrade
+      check_mode: no
 
     - role: reboot
       wait_for_services:

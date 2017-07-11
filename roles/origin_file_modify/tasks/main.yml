@@ -1,0 +1,23 @@
+---
+# vim: set ft=ansible:
+#
+# This role modifies the origin file refspec in order to use
+# rpm-ostree upgrade directly
+#
+# Parameters:
+#  refspec (string) - refspec to add to booted origin file
+#
+- name: Fail if refspec is undefined
+  fail:
+    msg: "refspec is undefined"
+  when: refspec is undefined
+
+- name: Get current booted dir
+  command: ostree admin --print-current-dir
+  register: current_dir
+
+- name: Replace current refspec
+  replace:
+    dest: "{{ current_dir.stdout }}.origin"
+    regexp: '^(.*refspec=).*$'
+    replace: '\1{{ refspec }}'
