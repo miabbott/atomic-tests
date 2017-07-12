@@ -44,60 +44,61 @@
       avc_minor: "2"
       tags:
         - ansible_version_check
-        - cloud_image
 
     - role: handler_notify_on_failure
       handler_name: h_get_journal
       tags:
         - handler_notify_on_failure
-        - cloud_image
 
     - role: atomic_host_check
       tags:
         - atomic_host_check
-        - cloud_image
+
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+    - role: booted_deployment_set_fact
+      tags:
+        - booted_deployment_set_fact
 
     # Setup local branch and upgrade right away so packages are layered on top of
     # the local branch.  If the local branch is created before the upgrade later in
     # the test, it will only contain the origin content of the ostree.
-    - role: local_repo_setup
+    - role: local_branch_setup
       branch_name: local-branch
       tags:
-        - local_repo_setup
-        - synthesized_upgrade
+        - local_branch_setup
 
-    - role: local_repo_commit
+    - role: local_branch_commit
       branch_name: local-branch
       refspec: local-branch
       version: test1
       tags:
-        - local_repo_commit
-        - synthesized_upgrade
+        - local_branch_commit
 
     # origin_file_modify
     - role: origin_file_modify
       refspec: local-branch
       tags:
         - origin_file_modify
-        - synthesized_upgrade
 
     - role: rpm_ostree_upgrade
       tags:
         - rpm_ostree_upgrade_setup
-        - synthesized_upgrade
 
     - role: reboot
       wait_for_services:
         - docker
       tags:
         - reboot_setup
-        - synthesized_upgrade
 
     # Set some facts that are used in multiple roles
     - role: osname_set_fact
       tags:
         - osname_set_fact
-        - cloud_image
 
     # Verify that rpm-ostree can be run as non-root or sudo
     - role: command_privilege_verify
@@ -106,19 +107,16 @@
       expect_failure: false
       tags:
         - command_privilege_verify
-        - cloud_image
 
     # Verify that the output from 'atomic host status' matches 'rpm-ostree status'
     - role: atomic_host_status_verify
       tags:
         - atomic_host_status_verify
-        - cloud_image
 
     # Verify SELinux labels are correct
     - role: selinux_verify
       tags:
         - selinux_verify
-        - cloud_image
 
     # Verify that SELinux file contexts can be modified
     - role: semanage_fcontext_mod
@@ -126,33 +124,22 @@
       test_context: "{{ g_semanage_test_context }}"
       tags:
         - semanage_fcontext_mod
-        - cloud_image
 
     - name: semanage_fcontext_verify
       test_dir: "{{ g_semanage_test_dir }}"
       test_context: "{{ g_semanage_test_context }}"
       tags:
         - semanage_fcontext_verify
-        - cloud_image
 
     - role: selinux_boolean
       tags:
         - selinux_boolean
-        - cloud_image
-
-    # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
-      tags:
-        - redhat_subscription
-        - cloud_image
 
     # Verify that 'docker pull' is successful. (Note: this is a different
     # operation than 'atomic pull')
     - role: docker_pull_run_remove
       tags:
         - docker_pull_run_remove
-        - cloud_image
 
     # Validate 'atomic pull', 'atomic scan' works correctly.
     # Remove images after test of each command.
@@ -161,22 +148,18 @@
     - role: atomic_pull_verify
       tags:
         - atomic_pull_verify
-        - cloud_image
 
     - role: docker_remove_all
       tags:
         - docker_remove_all
-        - cloud_image
 
     - role: atomic_scan_verify
       tags:
         - atomic_scan_verify
-        - cloud_image
 
     - role: docker_remove_all
       tags:
         - docker_remove_all
-        - cloud_image
 
     # Install package using package layering
     - role: rpm_ostree_install
@@ -190,7 +173,6 @@
         - docker
       tags:
         - reboot_pre_up_install
-        - cloud_image
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg }}"
@@ -201,37 +183,31 @@
     - role: ostree_admin_unlock_hotfix
       tags:
         - ostree_admin_unlock_hotfix
-        - cloud_image
 
     - role: overlayfs_verify_present
       tags:
         - overlayfs_verify_present
-        - cloud_image
 
     - role: rpm_install
       rpm_url: "{{ g_rpm_url }}"
       tags:
         - rpm_install
-        - cloud_image
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       check_binary: false
       tags:
         - package_verify_present
-        - cloud_image
 
     # Check that /tmp has the proper permissions
     - role: tmp_check_perms
       tags:
         - tmp_check_perms
-        - cloud_image
 
     # Check that the RPM database is functional
     - role: rpmdb_verify
       tags:
         - rpmdb_verify
-        - cloud_image
 
     # Add users, make changes to /etc, and add things to /var before the
     # the system is upgraded
@@ -239,37 +215,31 @@
       ua_uid: "{{ g_uid1 }}"
       tags:
         - user_add
-        - cloud_image
 
     - role: user_verify_present
       uvp_uid: "{{ g_uid1 }}"
       tags:
         - user_verify_present
-        - cloud_image
 
     - role: etc_modify
       tags:
         - etc_modify
-        - cloud_image
 
     - role: etc_verify_changes
       tags:
         - etc_verify_changes
-        - cloud_image
 
     - role: var_add_files
       vaf_filename: "{{ g_file1 }}"
       vaf_dirname: "{{ g_dir1 }}"
       tags:
         - var_add_files
-        - cloud_image
 
     - role: var_files_present
       vfp_filename: "{{ g_file1 }}"
       vfp_dirname: "{{ g_dir1 }}"
       tags:
         - var_files_present
-        - cloud_image
 
     # Pull down docker base images, build a layered image, run it, then
     # remove the container.  But we keep the image around to run later.
@@ -278,54 +248,45 @@
     - role: docker_pull_base_image
       tags:
         - docker_pull_base_image
-        - cloud_image
 
     - role: docker_build_httpd
       tags:
         - docker_build_httpd
-        - cloud_image
 
     - role: atomic_run_verify
       container: "{{ g_httpd_name }}"
       tags:
         - atomic_run_verify
-        - cloud_image
 
     - role: atomic_stop_verify
       container: "{{ g_httpd_name }}"
       tags:
         - atomic_stop_verify
-        - cloud_image
 
     - role: docker_rm_httpd_container
       tags:
         - docker_rm_httpd_container
-        - cloud_image
 
     - role: docker_run_httpd
       tags:
         - docker_run_httpd
-        - cloud_image
 
     - role: docker_rm_httpd_container
       tags:
         - docker_rm_httpd_container
-        - cloud_image
 
     # Install, run and uninstall cockpit using atomic command
     - role: atomic_installation_verify
       tags:
         - atomic_installation_verify
-        - cloud_image
 
     # new commit
-    - role: local_repo_commit
+    - role: local_branch_commit
       branch_name: local-branch
       refspec: local-branch
       version: test2
       tags:
-        - local_repo_commit
-        - synthesized_upgrade
+        - local_branch_commit
       check_mode: no
 
     # Upgrade and reboot
@@ -358,13 +319,11 @@
       avc_minor: "2"
       tags:
         - ansible_version_check
-        - cloud_image
 
     - role: handler_notify_on_failure
       handler_name: h_get_journal
       tags:
         - handler_notify_on_failure
-        - cloud_image
       check_mode: no
 
     - role: atomic_host_check
@@ -376,7 +335,6 @@
     - role: osname_set_fact
       tags:
         - osname_set_fact
-        - cloud_image
       check_mode: no
 
     # We remove any subscriptions after the upgrade to verify that
@@ -424,7 +382,6 @@
     - role: selinux_boolean_verify
       tags:
         - selinux_boolean_verify
-        - cloud_image
 
     - role: docker_pull_run_remove
       tags:
@@ -441,12 +398,10 @@
       reboot: false
       tags:
         - rpm_ostree_install
-        - cloud_image
 
     - role: reboot
       tags:
         - reboot_post_up_install
-        - cloud_image
 
     - role: rpm_ostree_install_verify
       package: "{{ g_pkg }}"
@@ -457,21 +412,18 @@
       package: httpd
       tags:
         - rpm_ostree_install_verify
-        - cloud_image
       check_mode: no
 
     - role: httpd_start
       httpd_port: 8080
       tags:
         - httpd_start
-        - cloud_image
 
     - role: url_verify
       url: http://localhost:8080
       destination: /dev/null
       tags:
         - url_verify
-        - cloud_image
 
     # Check admin unlock overlayfs is no longer there after upgrade
     - role: overlayfs_verify_missing
@@ -500,19 +452,16 @@
       uvp_uid: "{{ g_uid1 }}"
       tags:
         - user_verify_present
-        - cloud_image
 
     - role: etc_verify_changes
       tags:
         - etc_verify_changes
-        - cloud_image
 
     - role: var_files_present
       vfp_filename: "{{ g_file1 }}"
       vfp_dirname: "{{ g_dir1 }}"
       tags:
         - var_files_present
-        - cloud_image
 
     # Add more users and more files to /var ahead of the rollback
     - role: user_add
@@ -564,7 +513,6 @@
     - role: docker_remove_all
       tags:
         - docker_remove_all
-        - cloud_image
 
     # Validate 'atomic' commands again.
     - role: atomic_pull_verify
@@ -608,13 +556,11 @@
       avc_minor: "2"
       tags:
         - ansible_version_check
-        - cloud_image
 
     - role: handler_notify_on_failure
       handler_name: h_get_journal
       tags:
         - handler_notify_on_failure
-        - cloud_image
       check_mode: no
 
     - role: atomic_host_check
@@ -697,17 +643,28 @@
       reboot: true
       tags:
         - rpm_ostree_uninstall
-        - cloud_image
+
+    # rebase back to original checkout
+    - role: rpm_ostree_rebase
+      remote_name: "{{ saved_remote_name }}"
+      refspec: "{{ saved_refspec }}"
+      commit: "{{ saved_checksum }}"
+      tags:
+        - rpm_ostree_rebase
+
+    - role: reboot
+      wait_for_services:
+        - docker
+      tags:
+        - reboot_cleanup
 
     # cleanup any extra deployments
     - role: rpm_ostree_cleanup_all
       tags:
         - rpm_ostree_cleanup_all
-        - cloud_image
 
     # cleanup our subscriptions because we are nice people
     - role: redhat_unsubscribe
       when: ansible_distribution == 'RedHat'
       tags:
         - redhat_unsubscribe
-        - cloud_image

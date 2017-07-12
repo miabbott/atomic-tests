@@ -1,7 +1,7 @@
 ---
 # vim: set ft=ansible:
 #
-# This role sets up local repo of the booted deployment
+# This role sets up local branch of the booted deployment
 #
 - name: Fail if branch_name is undefined
   fail:
@@ -16,17 +16,17 @@
   set_fact:
     ros_json: "{{ ros.stdout|from_json }}"
 
-- name: Set current checksum
+- name: Save current booted checksum
   set_fact:
     checksum: "{{ ros_json['deployments'][0]['checksum'] }}"
   when: ros_json['deployments'][0] is defined and
         ros_json['deployments'][0]['booted']
 
-- name: Set current checksum
+- name: Save current booted checksum
   set_fact:
     checksum: "{{ ros_json['deployments'][1]['checksum'] }}"
   when: ros_json['deployments'][1] is defined and
         ros_json['deployments'][1]['booted']
 
-- name: Create local repo
+- name: Create local branch
   command: ostree refs --create {{ branch_name }} {{ checksum }}

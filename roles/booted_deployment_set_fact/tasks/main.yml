@@ -1,0 +1,30 @@
+---
+# vim: set ft=ansible:
+#
+#  This role sets facts for the current booted deployment
+#
+- name: Get rpm-ostree status output
+  command: rpm-ostree status --json
+  register: ros_status
+
+- name: Set json output
+  set_fact:
+     ros_json: "{{ ros_status.stdout | from_json }}"
+
+- name: Set ros variable if deployment 0 is booted
+  set_fact:
+    ros_booted: "{{ ros_json['deployments'][0] }}"
+    ros_not_booted: "{{ ros_json['deployments'][1] if ros_json['deployments'][1] is defined else false }}"
+  when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
+
+- name: Set ros variable if deployment 1 is booted
+  set_fact:
+    ros_booted: "{{ ros_json['deployments'][1] }}"
+    ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
+  when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
+
+- name: Save refspec and checksum
+  set_fact:
+     saved_checksum: "{{ ros_booted['checksum'] }}"
+     saved_refspec: "{{ ros_booted['origin'].split(':')[1] }}"
+     saved_remote_name: "{{ ros_booted['origin'].split(':')[0] }}"

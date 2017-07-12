@@ -32,13 +32,5 @@ To run the test, simply invoke as any other Ansible playbook:
 $ ansible-playbook -i inventory tests/improved-sanity-test/main.yml
 ```
 
-- By default, the test will run with a synthesized upgrade with no content changes.  There are
-  trade-offs in using this strategy but the advantages for CI are worth it.  This test can still
-  be run with an actual upgrade if one is available.  To do this, run with the following option:
-
-```
---skip-tags synthesized_upgrade
-```
-
 *NOTE*: You are responsible for providing a host to run the test against and the
 inventory file for that host.
