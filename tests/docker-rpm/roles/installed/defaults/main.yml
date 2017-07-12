@@ -1,0 +1,19 @@
+---
+
+# Optional, names / URLs of repository-rpms to install
+repo_rpms:
+
+# Mandatory, List of Names / URLs of packages to install / update
+install_rpms:
+
+# Optional, list of repositories to always enable
+enable_repos:
+
+# Optional, list of repositories to disable, unless enabled
+disable_repos:
+
+# Optional, True if all installed packages should also be updated
+all_updated: False
+
+# Optional, timeout in minutes allowed for package install to complete
+install_timeout: 60

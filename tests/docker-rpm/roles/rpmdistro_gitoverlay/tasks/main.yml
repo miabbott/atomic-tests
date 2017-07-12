@@ -1,0 +1,18 @@
+---
+
+- assert:
+    that:
+      - "empty is defined"
+      - "rdgo_src | default() not in empty"
+      - "rdgo_build_cmds | default() not in [None,'',{}]"
+
+# TODO: Better to build/install an rpm?
+- name: Commands to build rpmdistro_gitoverlay are executed
+  shell: '{{ item.command }}'
+  args:
+    chdir: '{{ item.chdir | default(rdgo_src) }}'
+    creates: '{{ item.creates | default(omit) }}'
+    executable: '{{ item.executable | default(omit) }}'
+    removes: '{{ item.removes | default(omit) }}'
+    warn: '{{ item.warn | default(omit) }}'
+  with_items: '{{ rdgo_build_cmds }}'

@@ -1,0 +1,19 @@
+---
+
+- name: git_op's options are fed to git module
+  git:
+    dest: "{{ git_op.dest }}"
+    repo: "{{ git_op.repo }}"
+    depth: "{{ git_op.depth | default(git_def_depth | int) }}"
+    recursive: "{{ git_op['recursive'] | default(omit) }}"
+    reference: "{{ git_op.reference | default(omit) }}"
+    refspec: "{{ git_op.refspec | default(omit) }}"
+    remote: "{{ git_op.remote | default(omit) }}"
+    version: "{{ git_op.version | default(omit) }}"
+  register: result
+  async: "{{ git_op_timeout }}"
+  poll: 0
+
+- name: git_op's result is added into async_results
+  set_fact:
+    async_results: "{{ async_results | union([result]) }}"

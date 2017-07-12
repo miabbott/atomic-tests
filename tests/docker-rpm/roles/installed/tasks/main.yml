@@ -1,0 +1,70 @@
+---
+
+- assert:
+    that:
+        - 'empty is defined'
+        - 'install_rpms is defined'
+        - 'repo_rpms is defined'
+        - 'enable_repos is defined'
+        - 'disable_repos is defined'
+        - 'install_timeout is defined'
+        - 'all_updated in [True,False]'
+        - 'ansible_distribution in ["RedHat","Fedora","CentOS"]'
+
+# Assume repositories are needed to install listed packages (below)
+- name: Repository rpms are installed
+  shell: "$(type -P dnf || type -P yum) install -y {{ item }}"
+  when: item not in empty
+  with_items: "{{ repo_rpms | default([]) }}"
+  # Avoid running into task timeouts.
+  async: "{{ 60 * install_timeout }}"
+  poll: 5
+
+- name: Packages are installed from desired repo set using yum
+  yum:
+    name: '{{ item }}'
+    disablerepo: '{{ disable_repos | join(",") if disable_repos not in empty else omit }}'
+    enablerepo: '{{ enable_repos | join(",") if enable_repos not in empty else omit }}'
+  when: item not in empty and ansible_distribution != 'Fedora'
+  with_items: "{{ install_rpms | default([]) }}"
+  # This could take longer than ssh timeout
+  async: "{{ 60 * install_timeout }}"
+  poll: 5
+
+- name: Packages are installed from desired repo set using dnf
+  dnf:
+    name: '{{ item }}'
+    disablerepo: '{{ disable_repos | join(",") if disable_repos not in empty else omit }}'
+    enablerepo: '{{ enable_repos | join(",") if enable_repos not in empty else omit }}'
+  when: item not in empty and ansible_distribution == 'Fedora'
+  with_items: "{{ install_rpms | default([]) }}"
+  # This could take longer than ssh timeout
+  async: "{{ 60 * install_timeout }}"
+  poll: 5
+
+
+- block:
+
+  - name: Packages are updated from desired repo set using yum
+    yum:
+      name: '*'
+      state: 'latest'
+      disablerepo: '{{ disable_repos | join(",") if disable_repos not in empty else omit }}'
+      enablerepo: '{{ enable_repos | join(",") if enable_repos not in empty else omit }}'
+    when: "ansible_distribution != 'Fedora'"
+    # This could take longer than ssh timeout
+    async: "{{ 60 * install_timeout }}"
+    poll: 5
+
+  - name: Packages are updated from desired repo set using dnf
+    dnf:
+      name: '*'
+      state: 'latest'
+      disablerepo: '{{ disable_repos | join(",") if disable_repos not in empty else omit }}'
+      enablerepo: '{{ enable_repos | join(",") if enable_repos not in empty else omit }}'
+    when: "ansible_distribution == 'Fedora'"
+    # This could take longer than ssh timeout
+    async: "{{ 60 * install_timeout }}"
+    poll: 5
+
+  when: all_updated | default(True)
