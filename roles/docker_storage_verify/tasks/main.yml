@@ -12,16 +12,12 @@
     msg: "The required variables are not defined.  Check files under roles/docker_storage_verify/vars"
   when: driver is undefined
 
-  # Maximum efficiency!  The output from 'docker info' contains a line:
-  #
-  #   Storage Driver: <value>
-  #
-  # So we grab the value, split on the colon + space, and compare the value
-  # to the expected driver.  All in one task!
+  # When all the streams are on docker 1.13, we should start using
+  #  docker info --format  '{{.Driver}}'
 - name: Check Docker storage driver
-  shell: docker info | grep '^Storage Driver'
+  shell: "docker info | grep -oP '(?<=Storage Driver: ).*'"
   register: storage_driver
-  failed_when: "'{{ storage_driver.stdout.split(': ')[1] }}' != '{{ driver }}'"
+  failed_when: "'{{ storage_driver.stdout }}' != '{{ driver }}'"
 
 - name: Check for F25 Docker mount
   command: findmnt /var/lib/docker/devicemapper
