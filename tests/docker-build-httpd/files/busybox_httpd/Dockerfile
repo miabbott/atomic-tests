@@ -1,4 +1,4 @@
-FROM docker.io/busybox
+FROM docker.io/busybox:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.0

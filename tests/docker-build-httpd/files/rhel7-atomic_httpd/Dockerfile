@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/rhel7-atomic
+FROM registry.access.redhat.com/rhel7-atomic:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.0

@@ -1,4 +1,4 @@
-FROM fedora
+FROM registry.fedoraproject.org/fedora:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.2

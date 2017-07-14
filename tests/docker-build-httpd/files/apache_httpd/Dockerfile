@@ -1,4 +1,4 @@
-FROM docker.io/httpd
+FROM docker.io/httpd:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.0

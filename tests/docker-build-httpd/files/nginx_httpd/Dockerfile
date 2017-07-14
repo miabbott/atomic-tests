@@ -1,4 +1,4 @@
-FROM docker.io/nginx
+FROM docker.io/nginx:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.0

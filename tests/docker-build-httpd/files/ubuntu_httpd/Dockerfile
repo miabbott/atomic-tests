@@ -1,4 +1,4 @@
-FROM docker.io/ubuntu
+FROM docker.io/ubuntu:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.3

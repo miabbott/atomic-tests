@@ -1,4 +1,4 @@
-FROM docker.io/alpine
+FROM docker.io/alpine:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.1

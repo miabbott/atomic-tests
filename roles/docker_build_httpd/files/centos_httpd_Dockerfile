@@ -1,4 +1,4 @@
-FROM centos
+FROM registry.centos.org/centos/centos:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.2

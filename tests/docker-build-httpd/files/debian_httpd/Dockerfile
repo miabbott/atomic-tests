@@ -1,4 +1,4 @@
-FROM docker.io/debian
+FROM docker.io/debian:latest
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.2
