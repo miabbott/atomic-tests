@@ -9,17 +9,32 @@
     when: ansible_docker0.ipv4.address is not defined
     run_once: true
 
+  - name: Check for /etc/containers/registries.conf
+    stat:
+      path: /etc/containers/registries.conf
+    register: reg
+
+  - name: add registeries
+    blockinfile:
+      dest: /etc/containers/registries.conf
+      block: |
+        insecure_registries:
+          - {{ ansible_docker0.ipv4.address }}:5000
+    when: reg.stat.exists
+
   - name: edit /etc/sysconfig/docker file to add private registry
     replace:
       dest=/etc/sysconfig/docker
       regexp="^ADD_REGISTRY='--add-registry registry.access.redhat.com'"
       replace="ADD_REGISTRY='--add-registry {{ ansible_docker0.ipv4.address }}:5000 --add-registry registry.access.redhat.com'"
+    when: reg.stat.exists == False
 
   - name: edit /etc/sysconfig/docker file to enable insecure registry
     replace:
       dest=/etc/sysconfig/docker
       regexp='^# INSECURE_REGISTRY=\'--insecure-registry\s?\''
       replace='INSECURE_REGISTRY=\'--insecure-registry {{ ansible_docker0.ipv4.address }}:5000\''
+    when: reg.stat.exists == False
 
   - name: stop docker
     service:
