@@ -1,0 +1,23 @@
+---
+registry: registry.access.redhat.com
+
+image_name_list:
+  - "{{ registry }}/rhel6"
+  - "{{ registry }}/rhel7"
+  - "{{ registry }}/rhel7-init"
+  - "{{ registry }}/rhel7-atomic"
+  - "{{ registry }}/rhel7/rsyslog"
+  - "{{ registry }}/rhel7/sadc"
+  - "{{ registry }}/rhel7/sssd"
+  - "{{ registry }}/rhel7/etcd"
+  - "{{ registry }}/rhel7/flannel"
+  - "{{ registry }}/rhel7/cockpit-ws"
+  - "{{ registry }}/rhel7/kubernetes-apiserver"
+  - "{{ registry }}/rhel7/kubernetes-controller-mgr"
+  - "{{ registry }}/rhel7/kubernetes-scheduler"
+  - "{{ registry }}/rhel7/pod-infrastructure"
+  - "{{ registry }}/rhel7/ipa-server"
+  - "{{ registry }}/rhel7/open-vm-tools"
+  - "{{ registry }}/rhev4/rhevm-guest-agent"
+  - "{{ registry }}/rhel7/rhel-tools"
+  - "{{ registry }}/rhel7/openscap"

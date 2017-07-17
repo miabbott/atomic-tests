@@ -1,0 +1,35 @@
+---
+# vim: set ft=ansible:
+#
+#   This role verifies whether container image doesn't exist CVEs.
+#
+- name: Fail if image is undefined
+  fail:
+    msg: "Image is undefined"
+  when: image is undefined
+
+- name: Set scanner image (RHEL)
+  set_fact:
+    scanner_image: "registry.access.redhat.com/rhel7/openscap"
+
+- name: Install openscap
+  command: atomic --debug install {{ scanner_image }}
+  register: result
+
+- name: Check installation of openscap
+  fail:
+    msg: "Atomic install was unsuccessful"
+  when: "'Installation complete' not in result.stdout"
+
+- name: Run atomic scan
+  command: atomic --debug scan --verbose {{ image }}
+  register: aio
+
+- name: append command output into a list
+  set_fact:
+    result_list: '{{result_list + [aio.stdout]}}'
+
+- name: Catch atomic scan failures
+  fail:
+    msg: "Found new CVEs."
+  when: "'The following issues were found' in aio.stdout"

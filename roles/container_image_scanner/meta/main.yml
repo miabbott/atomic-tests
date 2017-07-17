@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: atomic_pull, image: "{{ image }}" }
+  - { role: atomic_scan, image: "{{ image }}" }
+  - { role: atomic_images_delete, image: "{{ image }}" }

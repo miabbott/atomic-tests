@@ -1,0 +1,79 @@
+---
+# vim: set ft=ansible:
+#
+# !!!NOTE!!! This playbook was tested using Ansible 2.2; it is recommended
+# that the same version is used.
+#
+# This playbook is a basic security test for container images, please see
+#   the tests/images_cve_scanner/vars.yml for image details.
+#     - Pull container image
+#     - Atomic scan specified container image
+#     - Delete specified container image
+#   Note: please also see roles/container_image_scanner/meta/main.yml, because
+#         the default storage of Atomic Host is very limit, and some container
+#         image are very big, we haven't pull all of container image then scan
+#         them together.
+#
+- name: Prepare container images for scanning
+  hosts: all
+  become: yes
+
+  tags:
+    - images_cve_scanner
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+  tasks:
+    - name: init list
+      set_fact:
+        result_list: []
+
+    - include_role:
+        allow_duplicates: yes
+        vars:
+          image: "{{ item }}'"
+        name: container_image_scanner
+      with_items: "{{ image_name_list }}"
+      register: sot
+      ignore_errors: True
+      loop_control:
+        loop_var: image
+
+    - name: Catch atomic scan failures
+      fail:
+        msg: "Found new CVEs."
+      when: "'The following issues were found' in item"
+      with_items:
+        - "{{ result_list }}"
+
+- name: Image scanning - Cleanup
+  hosts: all
+  become: yes
+
+  tags:
+    - cleanup
+
+  roles:
+    - role: docker_remove_all
+      tags:
+        - docker_remove_all
+
+    - role: redhat_unsubscribe
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_unsubscribe
