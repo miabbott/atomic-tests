@@ -73,10 +73,19 @@
     shell: >
       systemctl mask rhsmcertd && systemctl stop rhsmcertd
 
-  - name: Revert refspec in origin after susbcription if it not the default refspec
-    replace:
-      dest: "{{ origin_file.stdout }}.origin"
-      regexp: '^refspec.*$'
-      replace: "{{ refspec.stdout }}"
-    when: is_atomic and
-          refspec.stdout.find("refspec=rhel-atomic-host") == -1
+  - block:
+
+    - name: Revert refspec in origin after susbcription if it not the default refspec
+      replace:
+        dest: "{{ origin_file.stdout }}.origin"
+        regexp: '^refspec.*$'
+        replace: "{{ refspec.stdout }}"
+      when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
+
+    - name: Remove unconfigured state in origin file
+      lineinfile:
+        dest: "{{ origin_file.stdout }}.origin"
+        regexp: '^unconfigured-state.*$'
+        state: absent
+
+    when: is_atomic
