@@ -135,6 +135,11 @@
       tags:
         - selinux_boolean
 
+    # Verify that the Docker storage defaults are correct
+    - role: docker_storage_verify
+      tags:
+        - docker_storage_verify
+
     # Verify that 'docker pull' is successful. (Note: this is a different
     # operation than 'atomic pull')
     - role: docker_pull_run_remove
@@ -387,6 +392,11 @@
     - role: selinux_boolean_verify
       tags:
         - selinux_boolean_verify
+
+    # Verify that the Docker storage defaults haven't changed
+    - role: docker_storage_verify
+      tags:
+        - docker_storage_verify
 
     - role: docker_pull_run_remove
       tags:
