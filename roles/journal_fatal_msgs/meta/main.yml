@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# Use this role to specify any strings or phrases that should be considered
+# fatal if they appear in the journal of a host under test.
+#
+dependencies:
+  # check for SELinux denials
+  - role: journal_search
+    search_string: denied
+    fail_if_found: true
+
+  # check for kernel Oops
+  - role: journal_search
+    search_string: Oops
+    fail_if_found: true

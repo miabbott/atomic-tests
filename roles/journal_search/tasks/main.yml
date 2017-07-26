@@ -1,0 +1,38 @@
+---
+# vim: set ft=ansible:
+#
+# This role will search the journal from the latest boot for the string
+# supplied as an argument.  It can optionally fail if the string is found.
+#
+# Parameters:
+#   search_string (string) - string to search the journal for
+#   fail_if_found (bool) - cause the role to fail if the string is found (optional)
+#
+- name: Fail if the 'search_string' is undefined
+  fail:
+    msg: "The variable 'search_string' is undefined"
+  when: search_string is undefined
+
+- name: Setup "fail_if_found" variable
+  set_fact:
+    fif: "{{ fail_if_found | default(false) | bool }}"
+
+# We hide the stdout of this task, since the journal could be 1000s of lines
+- name: Grab the journal
+  shell: journalctl -b --no-pager
+  register: j
+  no_log: true
+
+- name: Search for string in the journal
+  fail:
+    msg: "Unable to find string '{{ search_string }}' in the journal"
+  when:
+    - not fif
+    - search_string not in j.stdout
+
+- name: Fail if the string was found in the journal
+  fail:
+    msg: "Found the string '{{ search_string }}' in the journal"
+  when:
+    - fif
+    - search_string in j.stdout

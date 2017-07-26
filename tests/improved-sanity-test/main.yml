@@ -54,6 +54,12 @@
       tags:
         - atomic_host_check
 
+    # Before we do anything substantial, let's check the journal to see if
+    # anything blew up on boot
+    - role: journal_fatal_msgs
+      tags:
+        - journal_fatal_msgs_first_boot
+
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
@@ -305,6 +311,11 @@
         - rpm_ostree_upgrade
       check_mode: no
 
+    # Before we reboot, check the journal for anything that blew up
+    - role: journal_fatal_msgs
+      tags:
+        - journal_fatal_msgs_reboot
+
     - role: reboot
       wait_for_services:
         - docker
@@ -346,6 +357,12 @@
       tags:
         - osname_set_fact
       check_mode: no
+
+    # Before we do any additional actions, let's check the journal to see if
+    # anything blew up after reboot
+    - role: journal_fatal_msgs
+      tags:
+        - journal_fatal_msgs_second_boot
 
     # We remove any subscriptions after the upgrade to verify that
     # 'rpm-ostree status' with the 'unconfigured-state' field present.
@@ -589,6 +606,11 @@
       tags:
         - rpm_ostree_rollback
 
+    # Before we reboot, check the journal for anything that blew up
+    - role: journal_fatal_msgs
+      tags:
+        - journal_fatal_msgs_second_reboot
+
     - role: reboot
       wait_for_services:
         - docker
@@ -623,6 +645,12 @@
     - role: atomic_host_check
       tags:
         - atomic_host_check
+
+    # Before we do any additional actions, let's check the journal to see if
+    # anything blew up after reboot
+    - role: journal_fatal_msgs
+      tags:
+        - journal_fatal_msgs_third_boot
 
     - role: selinux_verify
       tags:
@@ -725,3 +753,8 @@
       when: ansible_distribution == 'RedHat'
       tags:
         - redhat_unsubscribe
+
+    # As the final action, check the journal for any fatal problems
+    - role: journal_fatal_msgs
+      tags:
+        - journal_fatal_msgs_final
