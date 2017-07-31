@@ -14,3 +14,9 @@ dependencies:
   - role: journal_search
     search_string: Oops
     fail_if_found: true
+
+  # check for unmapped SELinux contexts
+  # see https://bugzilla.redhat.com/show_bug.cgi?id=1465650#c8
+  - role: journal_search
+    search_string: unmapped
+    fail_if_found: true
