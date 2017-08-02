@@ -7,7 +7,7 @@
 dependencies:
   # check for SELinux denials
   - role: journal_search
-    search_string: denied
+    search_string: 'avc:  denied'
     fail_if_found: true
 
   # check for kernel Oops

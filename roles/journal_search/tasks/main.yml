@@ -17,9 +17,17 @@
   set_fact:
     fif: "{{ fail_if_found | default(false) | bool }}"
 
+#
 # We hide the stdout of this task, since the journal could be 1000s of lines
+# This method is used because if we did something like:
+#
+#  'journalctl -b | grep foo'
+#
+# ...that command itself would show up in the journal because of how Ansible
+# executes commands on the host.
+#
 - name: Grab the journal
-  shell: journalctl -b --no-pager
+  command: journalctl -b --no-pager
   register: j
   no_log: true
 

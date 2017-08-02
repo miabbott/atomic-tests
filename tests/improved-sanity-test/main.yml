@@ -59,6 +59,7 @@
     - role: journal_fatal_msgs
       tags:
         - journal_fatal_msgs_first_boot
+        - journal_fatal_msgs
 
     # Subscribe if the system is RHEL
     - role: redhat_subscription
@@ -315,6 +316,7 @@
     - role: journal_fatal_msgs
       tags:
         - journal_fatal_msgs_reboot
+        - journal_fatal_msgs
 
     - role: reboot
       wait_for_services:
@@ -363,6 +365,7 @@
     - role: journal_fatal_msgs
       tags:
         - journal_fatal_msgs_second_boot
+        - journal_fatal_msgs
 
     # We remove any subscriptions after the upgrade to verify that
     # 'rpm-ostree status' with the 'unconfigured-state' field present.
@@ -610,6 +613,7 @@
     - role: journal_fatal_msgs
       tags:
         - journal_fatal_msgs_second_reboot
+        - journal_fatal_msgs
 
     - role: reboot
       wait_for_services:
@@ -651,6 +655,7 @@
     - role: journal_fatal_msgs
       tags:
         - journal_fatal_msgs_third_boot
+        - journal_fatal_msgs
 
     - role: selinux_verify
       tags:
@@ -758,3 +763,4 @@
     - role: journal_fatal_msgs
       tags:
         - journal_fatal_msgs_final
+        - journal_fatal_msgs
