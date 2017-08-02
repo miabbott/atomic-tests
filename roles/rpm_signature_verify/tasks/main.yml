@@ -1,0 +1,60 @@
+---
+# vim: set ft=ansible:
+#
+# This role will check all the RPMs of a host for a GPG signature.  Currently,
+# it only supports checking for a single GPG signature.
+
+# Including this role allows us to get the refspec which will use to
+# determine if this role works with the host.  The refspec is stored in a
+# fact named 'saved_refspec'.  As stated above, this role only supports
+# streams which use a single GPG key to sign their RPMs.
+- include: '../../booted_deployment_set_fact/tasks/main.yml'
+
+- name: Fail if saved_refspec is not defined
+  fail:
+    msg: "The 'saved_refspec' variable is not defined"
+  when: saved_refspec is undefined
+
+# We don't support autobrew, the continuous streams, or Rawhide
+- name: Set rpm_sig_supported fact
+  set_fact:
+    rpm_sig_supported: true
+  when:
+    - "'buildmaster' not in saved_refspec"
+    - "'continuous' not in saved_refspec"
+    - "'rawhide' not in saved_refspec"
+
+- block:
+    # Even though this whole block is skipped if `rpm_sig_supported` is not defined
+    # this task will still barf if it can't file a file that matches the conditions
+    # below.  So we use the 'skip' to short circuit this problem.
+    - name: Pull in keys used for signing
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "{{ ansible_distribution|lower }}-{{ ansible_distribution_version }}.yml"
+            - "{{ ansible_distribution|lower }}-{{ ansible_distribution_major_version }}.yml"
+            - "{{ ansible_distribution|lower }}.yml"
+          skip: true
+
+    - name: Fail if GPG key is not defined
+      fail:
+        msg: "There is no GPG key provided"
+      when: gpg_key is undefined
+
+    - name: Get RPM signatures
+      shell: rpm -qai | awk '/Signature/ {print substr($NF, length($NF)-16) }' | sort | uniq
+      register: rpm_sig
+
+    - name: Fail if GPG key is not found
+      fail:
+        msg: "RPMs not signed with appropriate GPG key"
+      when: gpg_key not in rpm_sig.stdout
+
+    - name: Fail if more than one GPG key found
+      fail:
+        msg: "Multiple GPG keys found"
+      when: "{{ rpm_sig.stdout|length }} > 17"
+  when:
+    - rpm_sig_supported is defined
+    - rpm_sig_supported

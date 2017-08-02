@@ -61,6 +61,11 @@
         - journal_fatal_msgs_first_boot
         - journal_fatal_msgs
 
+    # Check RPM signatures
+    - role: rpm_signature_verify
+      tags:
+        - rpm_signature_verify
+
     # Subscribe if the system is RHEL
     - role: redhat_subscription
       when: ansible_distribution == 'RedHat'
@@ -366,6 +371,11 @@
       tags:
         - journal_fatal_msgs_second_boot
         - journal_fatal_msgs
+
+    # Check RPM signatures again
+    - role: rpm_signature_verify
+      tags:
+        - rpm_signature_verify
 
     # We remove any subscriptions after the upgrade to verify that
     # 'rpm-ostree status' with the 'unconfigured-state' field present.
