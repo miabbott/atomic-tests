@@ -25,6 +25,8 @@
 
 - name: Save refspec and checksum
   set_fact:
-     saved_checksum: "{{ ros_booted['checksum'] }}"
-     saved_refspec: "{{ ros_booted['origin'].split(':')[1] }}"
-     saved_remote_name: "{{ ros_booted['origin'].split(':')[0] }}"
+    saved_checksum: "{{ ros_booted['checksum'] }}"
+    # If the host is on a local branch, we have to skip splitting the 'origin'
+    # because there is no remote portion
+    saved_refspec: "{{ ros_booted['origin'].split(':')[1] if ':' in ros_booted['origin'] else ros_booted['origin'] }}"
+    saved_remote_name: "{{ ros_booted['origin'].split(':')[0] if ':' in ros_booted['origin'] else '' }}"
