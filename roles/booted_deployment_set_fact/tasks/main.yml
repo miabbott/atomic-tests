@@ -3,6 +3,13 @@
 #
 #  This role sets facts for the current booted deployment
 #
+#  Optionally, you can archive the values to an INI file that will drop into
+#  the current playbook directory.
+#
+- name: Set archive value
+  set_fact:
+    archive: "{{ archive | default('false') }}"
+
 - name: Get rpm-ostree status output
   command: rpm-ostree status --json
   register: ros_status
@@ -29,4 +36,10 @@
     # If the host is on a local branch, we have to skip splitting the 'origin'
     # because there is no remote portion
     saved_refspec: "{{ ros_booted['origin'].split(':')[1] if ':' in ros_booted['origin'] else ros_booted['origin'] }}"
-    saved_remote_name: "{{ ros_booted['origin'].split(':')[0] if ':' in ros_booted['origin'] else '' }}"
+    saved_remote_name: "{{ ros_booted['origin'].split(':')[0] if ':' in ros_booted['origin'] else ros_booted['origin'] }}"
+
+- name: Archive refspec and checksum
+  local_action:
+    template src=archive.j2 dest="{{ playbook_dir }}/archive.ini"
+  when: archive
+  become: false

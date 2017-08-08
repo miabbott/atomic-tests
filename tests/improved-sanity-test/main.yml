@@ -67,7 +67,10 @@
       tags:
         - redhat_subscription
 
+    # the 'archive' option will drop an INI file locally with the value of the
+    # original checksum, refspec, and remote
     - role: booted_deployment_set_fact
+      archive: yes
       tags:
         - booted_deployment_set_fact
 
@@ -733,6 +736,12 @@
       reboot: true
       tags:
         - rpm_ostree_uninstall
+
+    # this will setup the 'saved_*' vars used below during the rebase
+    # using the INI file saved at the beginning of this whole test
+    - role: original_refspec_set_fact
+      tags:
+        - original_refspec_set_fact
 
     # rebase back to original checkout
     - role: rpm_ostree_rebase

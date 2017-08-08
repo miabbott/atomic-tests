@@ -1,0 +1,22 @@
+---
+# vim: set ft=ansible:
+#
+# This role configures some facts based on the presence of an INI file that
+# holds some key=value pairs related to the original deployment on a host
+# under test.  This role is designed to be used after the role
+# `booted_deployment_set_fact` has been run.
+#
+# (I will probably regret making such a specific role...)
+#
+- name: Check for INI file
+  local_action:
+    stat path="{{ playbook_dir }}/archive.ini"
+  register: archive
+  become: false
+
+- name: Set original deployment facts
+  set_fact:
+    saved_checksum: "{{ lookup('ini', 'checksum type=properties file={{ playbook_dir }}/archive.ini') }}"
+    saved_refspec: "{{ lookup('ini', 'refspec type=properties file={{ playbook_dir }}/archive.ini') }}"
+    saved_remote_name: "{{ lookup('ini', 'remote type=properties file={{ playbook_dir }}/archive.ini') }}"
+  when: archive.stat.exists
