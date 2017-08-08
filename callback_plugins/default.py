@@ -63,7 +63,7 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
         output = BASECLASS._dump_results(self, result)  # pylint: disable=protected-access
 
         for key in ['stdout', 'stderr', 'msg']:
-            if key in save and save[key]:
+            if key in save and save[key] and result['_ansible_no_log'] is False:
                 output += '\n\n%s:\n---\n%s\n---' % (key.upper(), save[key])
 
         for key, value in save.items():
