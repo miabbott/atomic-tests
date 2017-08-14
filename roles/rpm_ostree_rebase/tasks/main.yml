@@ -1,39 +1,90 @@
 ---
 # vim: set ft=ansible:
 #
-# This role will rebase to another deployment.  If a remote_url is specified
-# the remote will be added before rebasing
+# This role will rebase to another deployment.  It (should) support
+# the many variations of how the rebase command can be used.
 #
 # rpm-ostree rebase
 #   params:
-#     remote_name (required) name for remote
 #     refspec (required) remote refspec
+#     remote_name (optional) name for remote
 #     remote_url (optional) remote url will trigger adding of remote
 #     commit (optional) rebase to this commit
 #
-- name: Fail if remote_name or refspec is not defined
+- name: Fail if refspec or remote_name is not defined
   fail:
-    msg: "remote_name or refspec is not defined"
-  when: remote_name is undefined or
-        refspec is undefined
+    msg: "refspec is not defined"
+  when: refspec is undefined
 
-- name: Add remote
-  command: ostree remote add --no-gpg-verify {{ remote_name }} {{ remote_url }}
-  when: remote_url is defined
+# Whee!  Nested blocks!  The primary block checks if there is a remote_name
+# defined.  This could be a 'real' remote or it could be an empty string
+# (but unlikely).  Then, if there is a remote_name and a remote_url, we add
+# the remote config.  If the remote_name is not empty, we try to rebase to the
+# remote:refspec or (remote:refspec commit).  Otherwise, we try to rebase to
+# :refspec (or :refspec commit).
+- block:
 
-- name: Rebase
-  command: rpm-ostree rebase {{ remote_name }}:{{ refspec }}
-  register: rebase
-  retries: 5
-  delay: 60
-  until: rebase|success
-  when: commit is undefined
+  # remote_name is not empty, so we assume it is a real remote
+  - block:
+    - name: Add remote
+      command: ostree remote add --if-not-exists --no-gpg-verify {{ remote_name }} {{ remote_url }}
+      when: remote_url is defined
 
-- name: Rebase
-  command: rpm-ostree rebase {{ remote_name }}:{{ refspec }} {{ commit }}
-  register: rebase
-  retries: 5
-  delay: 60
-  until: rebase|success
-  when: commit is defined
+    - name: Rebase to remote:refspec
+      command: rpm-ostree rebase {{ remote_name }}:{{ refspec }}
+      register: rebase
+      retries: 5
+      delay: 60
+      until: rebase|success
+      when: commit is undefined
 
+    - name: Rebase to commit on remote:refspec
+      command: rpm-ostree rebase {{ remote_name }}:{{ refspec }} {{ commit }}
+      register: rebase
+      retries: 5
+      delay: 60
+      until: rebase|success
+      when: commit is defined
+    when: "{{ remote_name|length }} > 0"
+
+  # remote_name is empty, so we assume it is a local branch
+  - block:
+    - name: Rebase to refspec
+      command: rpm-ostree rebase :{{ refspec }}
+      register: rebase
+      retries: 5
+      delay: 60
+      until: rebase|success
+      when: commit is undefined
+
+    - name: Rebase to commit on refspec
+      command: rpm-ostree rebase :{{ refspec }} {{ commit }}
+      register: rebase
+      retries: 5
+      delay: 60
+      until: rebase|success
+      when: commit is defined
+    when: "{{ remote_name|length }} == 0"
+
+  when:
+    - remote_name is defined
+
+# no remote_name defined, so assume it is a local branch
+- block:
+  - name: Rebase to refspec
+    command: rpm-ostree rebase :{{ refspec }}
+    register: rebase
+    retries: 5
+    delay: 60
+    until: rebase|success
+    when: commit is undefined
+
+  - name: Rebase to commit on refspec
+    command: rpm-ostree rebase :{{ refspec }} {{ commit }}
+    register: rebase
+    retries: 5
+    delay: 60
+    until: rebase|success
+    when: commit is defined
+  when:
+    - remote_name is undefined
