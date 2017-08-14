@@ -26,3 +26,14 @@ cluster:
 
 context: fedora/26/atomic
 
+---
+inherit: true
+
+cluster:
+  hosts:
+    - name: testnode
+      distro: centos/7/atomic
+  container:
+    image: registry.fedoraproject.org/fedora:25
+
+context: centos/7/atomic
