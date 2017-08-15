@@ -6,85 +6,43 @@
 #
 # rpm-ostree rebase
 #   params:
-#     refspec (required) remote refspec
-#     remote_name (optional) name for remote
-#     remote_url (optional) remote url will trigger adding of remote
-#     commit (optional) rebase to this commit
+#     refspec (required) - remote refspec
+#     commit (optional) - rebase to this commit
+#     remote_name (optional) - name for remote
+#     remote_url (optional) - remote url will trigger adding of remote
 #
-- name: Fail if refspec or remote_name is not defined
+- name: Fail if refspec is not defined
   fail:
     msg: "refspec is not defined"
   when: refspec is undefined
 
-# Whee!  Nested blocks!  The primary block checks if there is a remote_name
-# defined.  This could be a 'real' remote or it could be an empty string
-# (but unlikely).  Then, if there is a remote_name and a remote_url, we add
-# the remote config.  If the remote_name is not empty, we try to rebase to the
-# remote:refspec or (remote:refspec commit).  Otherwise, we try to rebase to
-# :refspec (or :refspec commit).
-- block:
+# Default to empty strings for everything but the refspec
+- name: Setup facts and assign defaults if needed
+  set_fact:
+    ror_commit: "{{ commit | default('') }}"
+    ror_refspec: "{{ refspec }}"
+    ror_remote_name: "{{ remote_name | default('') }}"
+    ror_remote_url : "{{ remote_url | default('') }}"
 
-  # remote_name is not empty, so we assume it is a real remote
-  - block:
-    - name: Add remote
-      command: ostree remote add --if-not-exists --no-gpg-verify {{ remote_name }} {{ remote_url }}
-      when: remote_url is defined
-
-    - name: Rebase to remote:refspec
-      command: rpm-ostree rebase {{ remote_name }}:{{ refspec }}
-      register: rebase
-      retries: 5
-      delay: 60
-      until: rebase|success
-      when: commit is undefined
-
-    - name: Rebase to commit on remote:refspec
-      command: rpm-ostree rebase {{ remote_name }}:{{ refspec }} {{ commit }}
-      register: rebase
-      retries: 5
-      delay: 60
-      until: rebase|success
-      when: commit is defined
-    when: "{{ remote_name|length }} > 0"
-
-  # remote_name is empty, so we assume it is a local branch
-  - block:
-    - name: Rebase to refspec
-      command: rpm-ostree rebase :{{ refspec }}
-      register: rebase
-      retries: 5
-      delay: 60
-      until: rebase|success
-      when: commit is undefined
-
-    - name: Rebase to commit on refspec
-      command: rpm-ostree rebase :{{ refspec }} {{ commit }}
-      register: rebase
-      retries: 5
-      delay: 60
-      until: rebase|success
-      when: commit is defined
-    when: "{{ remote_name|length }} == 0"
-
+- name: Add the remote
+  command: ostree remote add --if-not-exists --no-gpg-verify {{ ror_remote_name }} {{ ror_remote_url }}
   when:
-    - remote_name is defined
+    - ror_remote_name != ''
+    - ror_remote_url != ''
 
-# no remote_name defined, so assume it is a local branch
-- block:
-  - name: Rebase to refspec
-    command: rpm-ostree rebase :{{ refspec }}
-    register: rebase
-    retries: 5
-    delay: 60
-    until: rebase|success
-    when: commit is undefined
-
-  - name: Rebase to commit on refspec
-    command: rpm-ostree rebase :{{ refspec }} {{ commit }}
-    register: rebase
-    retries: 5
-    delay: 60
-    until: rebase|success
-    when: commit is defined
-  when:
-    - remote_name is undefined
+# Since we default to empty strings for everything but the refspec, we can
+# supply all the arguments to the 'rpm-ostree rebase' command and cover
+# all the necessary permutations.
+#
+# For example:
+#  - remote supplied & no commit supplied -> 'rpm-ostree rebase remote:refspec'
+#  - remote & commit supplied -> 'rpm-ostree rebase remote:refspec commit'
+#  - remote & commit not supplied -> 'rpm-ostree rebase :refspec'
+#  - remote not supplied & commit supplied -> 'rpm-ostree rebase :refspec commit'
+#
+- name: Rebase to new deployment
+  command: rpm-ostree rebase {{ ror_remote_name }}:{{ ror_refspec }} {{ ror_commit }}
+  register: rebase
+  retries: 5
+  delay: 60
+  until: rebase|success
