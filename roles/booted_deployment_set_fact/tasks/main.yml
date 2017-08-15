@@ -3,43 +3,54 @@
 #
 #  This role sets facts for the current booted deployment
 #
-#  Optionally, you can archive the values to an INI file that will drop into
+#  Optionally, you can archive the values to an YAML file that will drop into
 #  the current playbook directory.
 #
 - name: Set archive value
   set_fact:
-    archive: "{{ archive | default('false') }}"
+    bdsf_archive: "{{ archive | default('false') }}"
 
 - name: Get rpm-ostree status output
   command: rpm-ostree status --json
-  register: ros_status
+  register: bdsf_ros_status
 
 - name: Set json output
   set_fact:
-     ros_json: "{{ ros_status.stdout | from_json }}"
+     bdsf_ros_json: "{{ bdsf_ros_status.stdout | from_json }}"
 
 - name: Set ros variable if deployment 0 is booted
   set_fact:
-    ros_booted: "{{ ros_json['deployments'][0] }}"
-    ros_not_booted: "{{ ros_json['deployments'][1] if ros_json['deployments'][1] is defined else false }}"
-  when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
+    bdsf_ros_booted: "{{ bdsf_ros_json['deployments'][0] }}"
+    bdsf_ros_not_booted: "{{ bdsf_ros_json['deployments'][1] if bdsf_ros_json['deployments'][1] is defined else false }}"
+  when: bdsf_ros_json['deployments'][0] is defined and bdsf_ros_json['deployments'][0]['booted']
 
 - name: Set ros variable if deployment 1 is booted
   set_fact:
-    ros_booted: "{{ ros_json['deployments'][1] }}"
-    ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
-  when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
+    bdsf_ros_booted: "{{ bdsf_ros_json['deployments'][1] }}"
+    bsdf_ros_not_booted: "{{ bdsf_ros_json['deployments'][0] if bdsf_ros_json['deployments'][0] is defined else false }}"
+  when: bdsf_ros_json['deployments'][1] is defined and bdsf_ros_json['deployments'][1]['booted']
 
 - name: Save refspec and checksum
   set_fact:
-    saved_checksum: "{{ ros_booted['checksum'] }}"
+    bdsf_saved_checksum: "{{ bdsf_ros_booted['checksum'] }}"
     # If the host is on a local branch, we have to skip splitting the 'origin'
     # because there is no remote portion
-    saved_refspec: "{{ ros_booted['origin'].split(':')[1] if ':' in ros_booted['origin'] else ros_booted['origin'] }}"
-    saved_remote_name: "{{ ros_booted['origin'].split(':')[0] if ':' in ros_booted['origin'] else ros_booted['origin'] }}"
+    bdsf_saved_refspec: "{{ bdsf_ros_booted['origin'].split(':')[1] if ':' in bdsf_ros_booted['origin'] else bdsf_ros_booted['origin'] }}"
+    bdsf_saved_remote_name: "{{ bdsf_ros_booted['origin'].split(':')[0] if ':' in bdsf_ros_booted['origin'] else bdsf_ros_booted['origin'] }}"
 
-- name: Archive refspec and checksum
-  local_action:
-    template src=archive.j2 dest="{{ playbook_dir }}/archive.ini"
-  when: archive
-  become: false
+# If 'bdsf_archve' is true, we setup the following global variables in a YAML
+# file:
+#  - g_archive_checksum
+#  - g_archive_refspec
+#  - g_archive_remote
+- block:
+  - name: Remove existing archive file
+    local_action:
+      file path="{{ playbook_dir }}/bdsf_archive.yml" state=absent
+    become: false
+
+  - name: Archive refspec and checksum
+    local_action:
+      template src=bdsf_archive.j2 dest="{{ playbook_dir }}/bdsf_archive.yml"
+    become: false
+  when: bdsf_archive

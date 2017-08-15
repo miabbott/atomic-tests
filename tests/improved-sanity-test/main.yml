@@ -67,8 +67,8 @@
       tags:
         - redhat_subscription
 
-    # the 'archive' option will drop an INI file locally with the value of the
-    # original checksum, refspec, and remote
+    # The 'archive' option will drop a YAML file into the playbook directory
+    # with the value of the original checksum, refspec, and remote
     - role: booted_deployment_set_fact
       archive: yes
       tags:
@@ -737,17 +737,17 @@
       tags:
         - rpm_ostree_uninstall
 
-    # this will setup the 'saved_*' vars used below during the rebase
-    # using the INI file saved at the beginning of this whole test
-    - role: original_refspec_set_fact
+    # load in the YAML files with archived deployment info
+    - role: load_variables
+      filename: "{{ playbook_dir}}/bdsf_archive.yml"
       tags:
-        - original_refspec_set_fact
+        - load_variables
 
     # rebase back to original checkout
     - role: rpm_ostree_rebase
-      remote_name: "{{ saved_remote_name }}"
-      refspec: "{{ saved_refspec }}"
-      commit: "{{ saved_checksum }}"
+      remote_name: "{{ g_archive_remote_name }}"
+      refspec: "{{ g_archive_refspec }}"
+      commit: "{{ g_archive_checksum }}"
       tags:
         - rpm_ostree_rebase
 

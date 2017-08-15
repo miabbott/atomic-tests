@@ -1,0 +1,13 @@
+---
+# vim: set ft=ansible:
+#
+# This is a generic role that will load in a YAML file which defines variables
+#
+- name: Fail if filename is not defined
+  fail:
+    msg: "Must provide a filename"
+  when: filename is undefined
+
+- name: Load up the variables
+  include_vars:
+    file: "{{ filename }}"
