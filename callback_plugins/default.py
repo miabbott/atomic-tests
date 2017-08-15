@@ -55,6 +55,9 @@ class CallbackModule(DEFAULT_MODULE.CallbackModule):  # pylint: disable=too-few-
         '''Return the text to output for a result.'''
         result['_ansible_verbose_always'] = True
 
+        if '_ansible_no_log' not in result.keys():
+            result['_ansible_no_log'] = False
+
         save = {}
         for key in ['stdout', 'stdout_lines', 'stderr', 'stderr_lines', 'msg']:
             if key in result:
