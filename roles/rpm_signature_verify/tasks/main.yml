@@ -3,26 +3,26 @@
 #
 # This role will check all the RPMs of a host for a GPG signature.  Currently,
 # it only supports checking for a single GPG signature.
-
-# Including this role allows us to get the refspec which will use to
-# determine if this role works with the host.  The refspec is stored in a
-# fact named 'saved_refspec'.  As stated above, this role only supports
-# streams which use a single GPG key to sign their RPMs.
-- include: '../../booted_deployment_set_fact/tasks/main.yml'
-
-- name: Fail if saved_refspec is not defined
+#
+# The role has a dependency on `booted_deployment_set_fact`, which allows us
+# to refer to the fact (bdsf_saved_refspec) set by that role.  We use the fact
+# to determine if we want to actually check the GPG signatures on the host
+# under test.
+#
+- name: Fail if bdsf_saved_refspec is not defined
   fail:
-    msg: "The 'saved_refspec' variable is not defined"
-  when: saved_refspec is undefined
+    msg: "The 'bdsf_saved_refspec' variable is not defined"
+  when: bdsf_saved_refspec is undefined
 
-# We don't support autobrew, the continuous streams, or Rawhide
+# We don't support internal RHELAH autobrew, the continuous streams, or
+# Fedora Rawhide
 - name: Set rpm_sig_supported fact
   set_fact:
-    rpm_sig_supported: true
+    rsv_rpm_sig_supported: "{{ true|default('false') }}"
   when:
-    - "'buildmaster' not in saved_refspec"
-    - "'continuous' not in saved_refspec"
-    - "'rawhide' not in saved_refspec"
+    - "'buildmaster' not in bdsf_saved_refspec"
+    - "'continuous' not in bdsf_saved_refspec"
+    - "'rawhide' not in bdsf_saved_refspec"
 
 - block:
     # Even though this whole block is skipped if `rpm_sig_supported` is not defined
@@ -40,21 +40,19 @@
     - name: Fail if GPG key is not defined
       fail:
         msg: "There is no GPG key provided"
-      when: gpg_key is undefined
+      when: rsv_gpg_key is undefined
 
     - name: Get RPM signatures
       shell: rpm -qai | awk '/Signature/ {print substr($NF, length($NF)-16) }' | sort | uniq
-      register: rpm_sig
+      register: rsv_rpm_sig
 
     - name: Fail if GPG key is not found
       fail:
         msg: "RPMs not signed with appropriate GPG key"
-      when: gpg_key not in rpm_sig.stdout
+      when: rsv_gpg_key not in rsv_rpm_sig.stdout
 
     - name: Fail if more than one GPG key found
       fail:
         msg: "Multiple GPG keys found"
-      when: "{{ rpm_sig.stdout|length }} > 17"
-  when:
-    - rpm_sig_supported is defined
-    - rpm_sig_supported
+      when: rsv_rpm_sig.stdout|length > 17
+  when: rsv_rpm_sig_supported
