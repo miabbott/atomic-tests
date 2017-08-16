@@ -10,6 +10,7 @@ context: fedora/25/atomic
 packages:
   - ansible
   - git
+  - python2-jmespath
 
 tests:
   - ./.test_director
