@@ -91,7 +91,6 @@
     # reboot
     - include: ../../common/ans_reboot.yml
 
-    # verify version after rolling back
     - include: roles/rpm_ostree_status_verify/tasks/main.yml
       deployment: 0
       num_deployments: 2

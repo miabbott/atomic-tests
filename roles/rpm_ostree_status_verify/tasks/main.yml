@@ -7,44 +7,28 @@
 #   deployment (int) REQUIRED - index of deployment to verify
 #   expected (dict) REQUIRED - a dict of expected key/value pairs
 #   num_deployments (int) OPTIONAL - the number of deployments in output
-
+#
 - name: Fail if deployment or expected is undefined
   fail:
     msg: "deployment or expected is undefined"
   when: expected is undefined or
         deployment is undefined
 
-- name: Get rpm-ostree status output
-  command: rpm-ostree status --json
-  register: ros_status
-
-- name: Set json output
-  set_fact:
-     ros_json: "{{ ros_status.stdout | from_json }}"
-
-- name: Set ros variable if deployment 0 is booted
-  set_fact:
-    ros_booted: "{{ ros_json['deployments'][0] }}"
-    ros_not_booted: "{{ ros_json['deployments'][1] if ros_json['deployments'][1] is defined else false }}"
-  when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
-
-- name: Set ros variable if deployment 1 is booted
-  set_fact:
-    ros_booted: "{{ ros_json['deployments'][1] }}"
-    ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
-  when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
-
-- name: Set number of deployments
-  set_fact:
-     ros_num_deployments: "{{ ros_json['deployments'] | length }}"
+# We use 'include:' here instead of a 'meta' dependency because the meta
+# dependency will only be run once if this role is used multiple times in
+# a playbook.
+- name: Pull in the 'rpm_ostree_status' role
+  include: rpm_ostree_status.yml
 
 - name: Verify number of deployments
   fail:
     msg: |
       "Number of deployments is incorrect.
-       Expected: {{ num_deployments }}.
+       Expected: {{ num_deployments }}
        Actual {{ ros_num_deployments }}"
-  when: num_deployments is defined and {{ num_deployments | int }} != {{ ros_num_deployments | int }}
+  when:
+    - num_deployments is defined
+    - num_deployments | int != ros_num_deployments | int
 
 - name: Fail if deployment does not exist
   fail:
@@ -53,7 +37,10 @@
 
 - name:  Fail if deployment {{ deployment }} values are incorrect
   fail:
-    msg: "{{ item.key }} is incorrect or does not exist."
+    msg: |
+      "'{{ item.key }}' is incorrect or does not exist.
+       Expected: {{ item.key }} == {{ item.value }}
+       Actual: {{ item.key }} == {{ ros_json['deployments'][deployment][item.key] }}"
   when: ros_json['deployments'][deployment][item.key] is undefined or
         ros_json['deployments'][deployment][item.key] != item.value
   with_dict: "{{ expected }}"
