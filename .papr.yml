@@ -38,3 +38,15 @@ cluster:
     image: registry.fedoraproject.org/fedora:25
 
 context: centos/7/atomic
+
+---
+inherit: true
+
+cluster:
+  hosts:
+    - name: testnode
+      distro: centos/7/atomic/continuous
+  container:
+    image: registry.fedoraproject.org/fedora:25
+
+context: centos/7/atomic/continuous
