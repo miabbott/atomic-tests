@@ -375,11 +375,6 @@
         - journal_fatal_msgs_second_boot
         - journal_fatal_msgs
 
-    # Check RPM signatures again
-    - role: rpm_signature_verify
-      tags:
-        - rpm_signature_verify
-
     # We remove any subscriptions after the upgrade to verify that
     # 'rpm-ostree status' with the 'unconfigured-state' field present.
     # https://bugzilla.redhat.com/show_bug.cgi?id=1421867
