@@ -16,16 +16,20 @@
 
 # We don't support internal RHELAH autobrew, the continuous streams, or
 # Fedora Rawhide
-- name: Set rpm_sig_supported fact
+- name: Init the rsv_rpm_sig_supported fact
   set_fact:
-    rsv_rpm_sig_supported: "{{ true|default('false') }}"
+    rsv_rpm_sig_supported: false
+
+- name: Set rsv_rpm_sig_supported fact
+  set_fact:
+    rsv_rpm_sig_supported: true
   when:
     - "'buildmaster' not in bdsf_saved_refspec"
     - "'continuous' not in bdsf_saved_refspec"
     - "'rawhide' not in bdsf_saved_refspec"
 
 - block:
-    # Even though this whole block is skipped if `rpm_sig_supported` is not defined
+    # Even though this whole block is skipped if `rsv_rpm_sig_supported` is not defined
     # this task will still barf if it can't file a file that matches the conditions
     # below.  So we use the 'skip' to short circuit this problem.
     - name: Pull in keys used for signing
