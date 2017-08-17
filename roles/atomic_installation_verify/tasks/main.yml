@@ -57,6 +57,9 @@
 - name: Stop the cockpit container
   command: "atomic stop {{ cockpit_cid.stdout }}"
 
+- name: Delete the cockpit container
+  command: atomic --assumeyes containers delete {{ cockpit_cid.stdout }}
+
 - name: Uninstall cockpit container
   shell: atomic uninstall {{ cockpit_cname }}
 
@@ -100,6 +103,9 @@
 
 - name: Stop the cockpit container
   command: "atomic stop {{ cockpit_cid.stdout }}"
+
+- name: Delete container
+  command: atomic --assumeyes containers delete {{ cockpit_cid.stdout }}
 
 - name: Uninstall cockpit container without tag
   shell: atomic uninstall {{ cockpit_cname }}
