@@ -48,7 +48,7 @@
   # process labels.
 - name: Verify common SELinux file labels are correct
   fail:
-    msg: "The file {{ item.item.key }} had an incorrect label of {{ item.stdout }}"
+    msg: "The file {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
   when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_file_labels.results }}"
 
@@ -59,7 +59,7 @@
 
 - name: Verify distribution specific SELinux file labels are correct
   fail:
-    msg: "The file {{ item.item.key }} had an incorrect label of {{ item.stdout }}"
+    msg: "The file {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
   when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_file_labels.results }}"
 
@@ -73,7 +73,7 @@
 
 - name: Verify common SELinux process labels are correct
   fail:
-    msg: "The process {{ item.item.key }} had an incorrect label of {{ item.stdout }}"
+    msg: "The process {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
   when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_proc_labels.results }}"
 
@@ -84,7 +84,7 @@
 
 - name: Verify distribution specific SELinux process labels are correct
   fail:
-    msg: "The process {{ item.item.key }} had an incorrect label of {{ item.stdout }}"
+    msg: "The process {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
   when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_proc_labels.results }}"
 
