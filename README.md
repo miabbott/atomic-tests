@@ -83,7 +83,7 @@ pip install -r requirements.txt
 All the playbooks should be able to be run without any extra options on the
 command line.  Like so:
 
-`# ansible-playbook -i inventory tests/improved-sanity-tests/main.yml`
+`# ansible-playbook -i inventory tests/improved-sanity-test/main.yml`
 
 However, some tests do accept extra arguments that can change how the test is
 run; please see the README for each test for details.
@@ -167,7 +167,7 @@ or
 $ vagrant up cahc
 ```
 
-By default, the Vagrantfile will run the `tests/improved-sanity-tests/main.yml`
+By default, the Vagrantfile will run the `tests/improved-sanity-test/main.yml`
 playbook after Vagrant completes the provisioning of the box.  The playbook
 which is run can be changed by setting the environment variable `PLAYBOOK_FILE`
 to point to a playbook in the repo.
