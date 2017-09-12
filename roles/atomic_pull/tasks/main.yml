@@ -1,18 +1,16 @@
 ---
 # vim: set ft=ansible:
 #
-#  This role pulls container image through the atomic pull
-#    command
+# pulls image with atomic cli
 #
-- name: Fail if image is undefined
+- name: Fail if apl_image is undefined
   fail:
-    msg: "Image is undefined"
-  when: image is undefined
+    msg: "apl_image is not defined"
+  when: apl_image is undefined
 
-- name: Pull container image
-  command: atomic --debug pull {{ image }}
+- name: Set options
+  set_fact:
+    pull_options: "{{ apl_options | default() }}"
 
-- name: Verify image exists
-  command: atomic images list
-  register: ail
-  failed_when: image not in ail.stdout
+- name: Pull image
+  command: atomic pull {{ apl_image }} {{ pull_options }}

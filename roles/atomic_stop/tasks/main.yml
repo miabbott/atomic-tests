@@ -1,0 +1,12 @@
+---
+# vim: set ft=ansible:
+#
+# stops running container with atomic cli
+#
+- name: Fail if as_container is undefined
+  fail:
+    msg: "as_container is not defined"
+  when: as_container is undefined
+
+- name: Stop {{ as_container }}
+  command: atomic stop {{ as_container }}

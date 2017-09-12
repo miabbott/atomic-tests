@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# uninstalls image with atomic cli
+#
+- name: Fail if au_image is undefined
+  fail:
+    msg: "au_image is not defined"
+  when: au_image is undefined
+
+- name: Set options
+  set_fact:
+    au_options: "{{ au_options | default() }}"
+
+- name: Uninstall image
+  command: atomic uninstall {{ au_image }} {{ au_options }}

@@ -1,0 +1,59 @@
+---
+# vim: set ft=ansible:
+#
+# This role verifies the values of an image from atomic images list by
+# comparing the expected_values dictionary.  The entry in the list of
+# images is determined by the repo property.  This role will assume the
+# latest tag unless a tag is passed to this role.
+#
+# Example calling this role:
+#   - role: atomic_images_list_verify
+#     expected:
+#       repo: docker.io/httpd
+#
+- name: Fail if expected_values or expected_values['repo'] is undefined
+  fail:
+    msg: "expected_values or expected_values['repo'] is undefined"
+  when: expected_values is undefined or
+        expected_values['repo'] is undefined
+
+- name: Set facts for role
+  set_fact:
+    ailv_expected: "{{ expected_values }}"
+    ailv_em: "{{ expect_missing | default(false) | bool }}"
+    ailv_ail_jq_match: ""
+    ailv_tag: "{{ expected_values['tag'] | default('latest') }}"
+
+- name: Setup queries
+  set_fact:
+    ailv_repo_query: "[?repo=='{{ ailv_expected['repo'] }}']"
+    ailv_tag_query: "[?tag=='{{ ailv_tag }}']|[0]"
+
+- name: Get matching list entry
+  set_fact:
+    ailv_ail_jq_match: "{{ ail_json | json_query(ailv_repo_query) }}"
+
+- name: Check for tag in list of images that match the repo
+  set_fact:
+    ailv_match: "{{ ailv_ail_jq_match | json_query(ailv_tag_query) }}"
+
+- name: Fail if no matching image entry
+  fail:
+    msg: "No matching image entry or image is in list when it is not supposed to be"
+  when: (ailv_match == True and ailv_em == True) or
+        (ailv_match == False and ailv_em == False)
+
+# There is no way to skip the comparison in the next step if the container
+# is expected to not be in the containers list except setting the expected
+# dictionary to empty
+- name: Set expected for expected missing case
+  set_fact:
+    ailv_expected: {}
+  when: ailv_em
+
+- name: Fail if values are incorrect
+  fail:
+    msg: "Got {{ item.key }}:{{ ailv_match[item.key]}}.  Expected {{ item.key }}:{{ item.value }}"
+  when: ailv_match[item.key] is undefined or
+        item.value != ailv_match[item.key]
+  with_dict: "{{ ailv_expected }}"

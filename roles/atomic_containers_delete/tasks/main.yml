@@ -1,0 +1,10 @@
+---
+# vim: set ft=ansible:
+#
+- name: Fail if acd_container is undefined
+  fail:
+    msg: "acd_container is undefined"
+  when: acd_container is undefined
+
+- name: Remove container {{ acd_container }}
+  command: atomic --assumeyes containers delete {{ acd_container }}

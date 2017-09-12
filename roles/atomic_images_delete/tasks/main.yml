@@ -1,13 +1,14 @@
 ---
 # vim: set ft=ansible:
 #
-#  This role deletes specified container image through the atomic images
-#    delete command
-#
-- name: Fail if image is undefined
+- name: Fail if aid_image is undefined
   fail:
-    msg: "Image is undefined"
-  when: image is undefined
+    msg: "aid_image is undefined"
+  when: aid_image is undefined
 
-- name: Remove specified image
-  command: atomic --debug --assumeyes images delete {{ image }}
+- name: Set options
+  set_fact:
+    del_options: "{{ aid_options | default() }}"
+
+- name: Remove {{ aid_image }}
+  command: atomic --assumeyes images delete {{ aid_image }} {{ del_options }}

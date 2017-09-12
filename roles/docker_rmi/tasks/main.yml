@@ -1,0 +1,16 @@
+---
+#
+#  Removes an image
+#
+
+- name: Fail if drmi_image
+  fail:
+    msg: "drmi_image is not defined"
+  when: drmi_image is undefined
+
+- name: Set optioins
+  set_fact:
+    del_options: "{{ drmi_options | default() }}"
+
+- name: Delete image
+  command: docker rmi {{ drmi_image }} {{ del_options }}

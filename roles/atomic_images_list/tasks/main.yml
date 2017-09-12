@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# list images and save to json
+#
+- name: Set options
+  set_fact:
+    images_list_options: "{{ ail_options | default() }}"
+
+- name: List images with --json
+  command: atomic images list {{ images_list_options }} --json
+  register: ail
+
+- name: Save JSON to variable
+  set_fact:
+    ail_json: "{{ ail.stdout | to_json | from_json }}"

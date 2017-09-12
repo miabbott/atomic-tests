@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# pulls image with docker
+#
+- name: Fail if dp_image is undefined
+  fail:
+    msg: "dp_image is not defined"
+  when: dp_image is undefined
+
+- name: Set options
+  set_fact:
+    pull_options: "{{ dp_options | default() }}"
+
+- name: Pull image
+  command: docker pull {{ dp_image }} {{ pull_options }}

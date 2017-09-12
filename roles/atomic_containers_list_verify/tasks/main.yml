@@ -1,0 +1,55 @@
+---
+# vim: set ft=ansible:
+#
+# This role verifies the values of an image from atomic containers list by
+# comparing the expected_values dictionary.  The unique identifier for the
+# containers is image name
+#
+# Example calling this role:
+#   - role: atomic_containers_list_verify
+#     expected_values:
+#       repo: docker.io/httpd
+#       id: 21340928304932
+#
+- name: Fail if expected_values or expected_values['image_name'] is undefined
+  fail:
+    msg: "expected_values or expected_values['image_name'] is undefined"
+  when: expected_values is undefined or
+        expected_values['image_name'] is undefined
+
+- name: Set role facts
+  set_fact:
+    aclv_expected: "{{ expected_values }}"
+    aclv_em: "{{ expect_missing | default(false) | bool }}"
+    aclv_acl_jq_match: ""
+
+# acl_json comes from the atomic_containers_list role which is a dependency
+# of this role in the meta directory
+- name: Get matching list entry
+  set_fact:
+    aclv_acl_jq_match: "{{ item }}"
+  with_items: "{{ acl_json | json_query(query) }}"
+  vars:
+    query: "[?image_name=='{{ aclv_expected['image_name'] }}']"
+
+- name: Fail if no matching image entry
+  fail:
+    msg: "No matching container or container is in list when it is not supposed to be"
+  when: (aclv_acl_jq_match == "" and not aclv_em) or
+        (aclv_acl_jq_match != "" and aclv_em)
+
+# There is no way to skip the comparison in the next step if the container
+# is expected to not be in the containers list except setting the expected
+# dictionary to empty
+
+- name: Set expected for expected missing case
+  set_fact:
+    aclv_expected: {}
+  when: aclv_em
+
+- name: Fail if values are incorrect
+  fail:
+    msg: "{{ item.key }} is incorrect or does not exist."
+  when: aclv_acl_jq_match[item.key] is undefined or
+        item.value not in aclv_acl_jq_match[item.key]
+  with_dict: "{{ aclv_expected }}"

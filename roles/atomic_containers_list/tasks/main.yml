@@ -1,0 +1,12 @@
+---
+# vim: set ft=ansible:
+#
+# list containers and save to json
+#
+- name: List images with --json
+  command: atomic containers list --json
+  register: acl
+
+- name: Save JSON to variable
+  set_fact:
+    acl_json: "{{ acl.stdout | to_json | from_json }}"

@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# Push image with atomic cli
+#
+- name: Fail if apsh_image is undefined
+  fail:
+    msg: "apsh_image is not defined"
+  when: apsh_image is undefined
+
+- name: Set options
+  set_fact:
+    push_options: "{{ apsh_options | default() }}"
+
+- name: Push image
+  command: atomic push {{ apsh_image }} {{ push_options }}

@@ -1,0 +1,527 @@
+---
+# vim: set ft=ansible:
+#
+- name: Atomic - Setup
+  hosts: all
+  become: yes
+
+  tags:
+    - setup
+
+  vars_files:
+    - vars.yml
+
+  roles:
+    # This playbook requires Ansible 2.2 and an Atomic Host
+    - role: ansible_version_check
+      avc_major: "2"
+      avc_minor: "2"
+      tags:
+        - ansible_version_check
+
+    # Subscribe if the system is RHEL
+    - role: redhat_subscription
+      when: ansible_distribution == 'RedHat'
+      tags:
+        - redhat_subscription
+
+- name: Atomic Fully Qualified Name
+  hosts: all
+  become: yes
+
+  tags:
+    - fq_name
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Set cockpit container name for RHELAH
+      set_fact:
+        cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
+      when: ansible_distribution == "RedHat"
+
+    - name: Set cockpit container name for Fedora/CentOS
+      set_fact:
+        cockpit_cname: "registry.fedoraproject.org/f25/cockpit"
+      when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
+
+  roles:
+    - role: atomic_pull
+      apl_image: "{{ cockpit_cname }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      expect_missing: true
+
+    - role: atomic_install
+      ai_image: "{{ cockpit_cname }}"
+
+    - role: atomic_run
+      ar_image: "{{ cockpit_cname }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      check_mode: false
+
+    - role: atomic_stop
+      as_container: "{{ aclv_acl_jq_match['id'] }}"
+
+    - role: atomic_containers_delete
+      acd_container: "{{ aclv_acl_jq_match['id'] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      expect_missing: true
+
+    - role: atomic_uninstall
+      au_image: "{{ cockpit_cname }}"
+
+    - role: atomic_images_delete
+      aid_image: "{{ ailv_match['id'] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+      expect_missing: true
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      expect_missing: true
+
+- name: Atomic Short Name
+  hosts: all
+  become: yes
+
+  tags:
+    - shortname
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Set cockpit container name for RHELAH
+      set_fact:
+        cockpit_short_name: "rhel7/cockpit-ws"
+        cockpit_fq_name: "registry.access.redhat.com/rhel7/cockpit-ws"
+      when: ansible_distribution == "RedHat"
+
+    - name: Set cockpit container name for Fedora/CentOS
+      set_fact:
+        cockpit_short_name: "cockpit/ws"
+        cockpit_fq_name: "docker.io/cockpit/ws"
+      when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
+
+  roles:
+    - role: atomic_pull
+      apl_image: "{{ cockpit_short_name }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_fq_name }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_short_name }}"
+      expect_missing: true
+
+    - role: atomic_install
+      ai_image: "{{ cockpit_short_name }}"
+
+    - role: atomic_run
+      ar_image: "{{ cockpit_short_name }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_fq_name }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_short_name }}"
+      check_mode: false
+
+    - role: atomic_stop
+      as_container: "{{ aclv_acl_jq_match['id'][:12] }}"
+
+    - role: atomic_containers_delete
+      acd_container: "{{ aclv_acl_jq_match['id'][:12] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_fq_name }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_short_name }}"
+      expect_missing: true
+
+    - role: atomic_uninstall
+      au_image: "{{ cockpit_short_name }}"
+
+    - role: atomic_images_delete
+      aid_image: "{{ ailv_match['id'][:12] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_fq_name }}"
+      expect_missing: true
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_short_name }}"
+      expect_missing: true
+
+- name: Atomic fully qualified container name
+  hosts: all
+  become: yes
+
+  tags:
+    - fq_name_name
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Set cockpit container name for RHELAH
+      set_fact:
+        cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
+      when: ansible_distribution == "RedHat"
+
+    - name: Set cockpit container name for Fedora/CentOS
+      set_fact:
+        cockpit_cname: "registry.fedoraproject.org/f25/cockpit"
+      when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
+
+    - name: Set container name
+      set_fact:
+        cp_name: "cockpit"
+
+  roles:
+    - role: atomic_pull
+      apl_image: "{{ cockpit_cname }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      expect_missing: true
+
+    - role: atomic_install
+      ai_image: "{{ cockpit_cname }}"
+      ai_options: "--name={{ cp_name }}"
+
+    - role: atomic_run
+      ar_image: "{{ cockpit_cname }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      check_mode: false
+
+    - role: atomic_stop
+      as_container: "{{ aclv_acl_jq_match['id'] }}"
+
+    - role: atomic_containers_delete
+      acd_container: "{{ aclv_acl_jq_match['id'] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      expect_missing: true
+
+    - role: atomic_uninstall
+      au_image: "{{ cockpit_cname }}"
+
+    - role: atomic_images_delete
+      aid_image: "{{ ailv_match['id'] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ cockpit_cname }}"
+      expect_missing: true
+
+    - role: atomic_containers_list_verify
+      expected_values:
+        image_name: "{{ cockpit_cname }}"
+      expect_missing: true
+
+- name: Atomic Pull With Tags
+  hosts: all
+  become: yes
+
+  tags:
+    - pull_tags
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Set cockpit container name for RHELAH
+      set_fact:
+        fq_name: "docker.io/busybox"
+        short_name: "busybox"
+        tag: 1
+
+  roles:
+    - role: atomic_pull
+      apl_image: "{{ fq_name }}:{{ tag }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ fq_name }}"
+        tag: "1"
+
+    - role: atomic_images_delete
+      aid_image: "{{ ailv_match['id'] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ fq_name }}"
+      expect_missing: true
+
+    - role: atomic_pull
+      apl_image: "{{ short_name }}:{{ tag }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ fq_name }}"
+        tag: "1"
+
+    - role: atomic_images_delete
+      aid_image: "{{ ailv_match['id'] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ fq_name }}"
+      expect_missing: true
+
+- name: Atomic Pull By Digest
+  hosts: all
+  become: yes
+
+  tags:
+    - pull_digest_simple
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Set image name
+      set_fact:
+        fq_name: "docker.io/busybox"
+        digest: "sha256:29f5d56d12684887bdfa50dcd29fc31eea4aaf4ad3bec43daf19026a7ce69912"
+
+  roles:
+    - name: atomic_pull
+      apl_image: "{{ fq_name }}@{{ digest }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ fq_name }}"
+        tag: "{{ digest|regex_replace('sha256:') }}"
+
+    # Delete the image to return to a clean state
+    - role: atomic_images_delete
+      aid_image: "{{ ailv_match['id'] }}"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ fq_name }}"
+      expect_missing: true
+
+- name: Atomic Pull Storage
+  hosts: all
+  become: yes
+
+  tags:
+    - pull_storage
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Set image name
+      set_fact:
+        fq_name: "docker.io/busybox"
+
+    - name: Delete all images
+      include_role:
+        name: atomic_images_delete_all
+
+    - name: Pull {{ fq_name }} using ostree
+      include_role:
+        name: atomic_pull
+      vars:
+        apl_image: "{{ fq_name }}"
+        apl_options: "--storage=ostree"
+
+    # The TYPE field doesn't show up in the json output so
+    # we must check for ostree in the output of the command
+    - name: Fail if ostree storage not in atomic list output
+      command: atomic images list
+      register: ail_output
+      failed_when: >
+        fq_name not in ail_output.stdout and
+        "ostree" not in ail_output.stdout
+
+    - name: Delete all images
+      include_role:
+        name: atomic_images_delete_all
+
+    - include_role:
+        name: atomic_pull
+      vars:
+        apl_image: "{{ fq_name }}"
+        apl_options: "--storage=docker"
+
+    # The TYPE field doesn't show up in the json output so
+    # we must check for ostree in the output of the command
+    - name: Fail if ostree storage not in atomic list output
+      command: atomic images list
+      register: ail_output
+      failed_when: >
+        fq_name not in ail_output.stdout and
+        "docker" not in ail_output.stdout
+
+- name: Atomic Images Update
+  hosts: all
+  become: yes
+
+  tags:
+    - images_update
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Set image name
+      set_fact:
+        fq_name: "docker.io/alpine"
+        local_name: "{{ ansible_docker0.ipv4.address}}:5000/alpine"
+
+  # Testing images update is a bit tricky since in the docker world, tags don't
+  # follow any versioning--latest doesn't really mean latest.  Docker and skopeo
+  # determine if there is an updated image based on the docker image layers.
+  # In order to test images update, this test uses a private registry and tag
+  # manipulation in order to commit and push new layers to the private registry
+  # then update the image.
+
+  roles:
+    # Setup the private registry
+    - role: docker_private_registry
+
+    # Pull the latest image
+    - role: atomic_pull
+      apl_image: "{{ fq_name }}:latest"
+
+    # Re-tag the image to local name to push it to the private registry
+    - role: docker_tag
+      dt_image: "{{ fq_name }}:latest"
+      dt_tag: "{{ local_name }}:latest"
+
+    # Push the image to the private registry
+    - role: atomic_push
+      apsh_image: "{{ local_name }}:latest"
+      apsh_options: "--anonymous --insecure"
+
+    # Make a change to the original image and get the HOSTNAME to use to
+    # commit the change
+    - role: command
+      cmd: >
+        docker run docker.io/alpine:latest
+        bin/sh -c 'echo hello > /test && printenv HOSTNAME'
+
+    # Commit the changes to the image
+    # Note: cmd_output comes from the command role above
+    - role: docker_commit
+      dc_commit: "{{ cmd_output.stdout }}"
+      dc_image: "{{ fq_name }}:latest"
+
+    # Remove the locally tagged image so we can pull it again from the private
+    # registry
+    - role: docker_rmi
+      drmi_image: "{{ local_name }}:latest"
+      drmi_options: "-f"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ local_name }}"
+        tag: "latest"
+      expect_missing: True
+
+    # Pull the image from the private registry
+    - role: atomic_pull
+      apl_image: "{{ local_name }}:latest"
+
+    # Here is the tag manipulation.  In order to push an update to the private
+    # registry, the new commited image must be tagged with the local name so it
+    # can be pushed to the private registry.  The original image needs to be
+    # saved so it can be tagged back to latest and then get updated from the
+    # private registry.
+    - role: docker_tag
+      dt_image: "{{ local_name }}:latest"
+      dt_tag: "{{ local_name }}:latest-1"
+
+    # The new commit image  needs to be tagged with the private registry name
+    #  so we can push the new layer
+    - role: docker_tag
+      dt_image: "{{ fq_name }}:latest"
+      dt_tag: "{{ local_name }}:latest"
+
+    # Push the new commit to the private registry
+    - role: atomic_push
+      apsh_image: "{{ local_name }}:latest"
+      apsh_options: "--anonymous --insecure"
+
+    # Remove the new commit image
+    - role: docker_rmi
+      drmi_image: "{{ local_name }}:latest"
+      drmi_options: "-f"
+
+    - role: atomic_images_list_verify
+      expected_values:
+        repo: "{{ local_name }}"
+        tag: "latest"
+      expect_missing: true
+
+    # Re-tag the original image back to latest.  At this point, the registry
+    # contains the new layer image and the one locally is one commit behind.
+    # For some reason, the arguments passed to docker_tag get swapped only on
+    # this instance of the call.  It only works if we pass the vars like this.
+    - role: docker_tag
+      vars:
+        dt_image: "{{ local_name }}:latest-1"
+        dt_tag: "{{ local_name }}:latest"
+
+    # Now, the the atomic images update command checks the registry to see if
+    # there is a new image and updates it
+    - role: command
+      cmd: atomic images update {{ local_name }}:latest
+      output: "Writing manifest to image destination"

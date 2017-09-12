@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+# installs image with atomic cli
+#
+- name: Fail if ai_image is undefined
+  fail:
+    msg: "ai_image is not defined"
+  when: ai_image is undefined
+
+- name: Set options
+  set_fact:
+    ai_options: "{{ ai_options | default() }}"
+
+- name: Install image
+  command: atomic install {{ ai_image }} {{ ai_options }}

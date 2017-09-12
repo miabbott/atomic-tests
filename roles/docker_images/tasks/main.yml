@@ -1,0 +1,22 @@
+---
+# vim: set ft=ansible:
+#
+# list images with docker
+#
+- name: Set options
+  set_fact:
+    images_options: "{{ di_options | default() }}"
+
+- name: List images
+  command: docker images {{ images_options }}
+  register: di_images
+  when: di_format is undefined
+
+# The docker format option uses go syntax that also uses double curly braces
+# that conflicts Ansibles variable substitution.  A separate format option was
+# added to work around this.  di_format should be in the form:
+#   {% raw %}'{{.your_format}}'{% endraw %}
+- name: List images
+  command: docker images {{ images_options }} --format={{ di_format }}
+  register: di_images
+  when: di_format is defined
