@@ -226,7 +226,8 @@
       register: attempted_install
       failed_when: attempted_install.rc != 1
 
-    - include: 'roles/rpm_ostree_status/tasks/main.yml'
+    - include_role:
+        name: rpm_ostree_status
 
     - name: Fail if current deployment has unlocked not set to none
       fail:
@@ -247,7 +248,8 @@
     - name: Unlock system
       command: ostree admin unlock
 
-    - include: 'roles/rpm_ostree_status/tasks/main.yml'
+    - include_role:
+        name: rpm_ostree_status
 
     - name: Verify rpm_ostree status is unlocked and set to hotfix
       fail:
@@ -290,7 +292,8 @@
     - name: Unlock system with hotfix
       command: ostree admin unlock --hotfix
 
-    - include: 'roles/rpm_ostree_status/tasks/main.yml'
+    - include_role:
+        name: rpm_ostree_status
 
     - name: Verify rpm_ostree status has unlocked set to hotfix
       fail:

@@ -1,0 +1,5 @@
+---
+allow_duplicates: true
+
+dependencies:
+  - role: rpm_ostree_status

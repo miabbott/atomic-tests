@@ -48,7 +48,8 @@
     - vars.yml
 
   tasks:
-    - include: roles/rpm_ostree_status/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_status
 
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current version and refspec
@@ -78,34 +79,41 @@
     - include: ../../common/ans_reboot.yml
 
     # verify version in deployment 0
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      deployment: 0
-      num_deployments: 2
-      expected:
-        booted: true
-        version: "{{ hmo_version.stdout }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        deployment: 0
+        num_deployments: 2
+        expected:
+          booted: true
+          version: "{{ hmo_version.stdout }}"
 
     # rollback to head
-    - include: roles/rpm_ostree_rollback/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_rollback
 
     # reboot
     - include: ../../common/ans_reboot.yml
 
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      deployment: 0
-      num_deployments: 2
-      expected:
-        version: "{{ head_version }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        deployment: 0
+        num_deployments: 2
+        expected:
+          version: "{{ head_version }}"
 
     - name: Cleanup deployments
       command: rpm-ostree cleanup -r
 
     # verify cleanup
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      deployment: 0
-      num_deployments: 1
-      expected:
-        version: "{{ head_version }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        deployment: 0
+        num_deployments: 1
+        expected:
+          version: "{{ head_version }}"
 
 
 #####################################################################################
@@ -127,7 +135,8 @@
     - vars.yml
 
   tasks:
-    - include: roles/rpm_ostree_status/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_status
 
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
@@ -157,36 +166,43 @@
     - include: ../../common/ans_reboot.yml
 
     # verify booted checksum
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: true
-        checksum: "{{ hmo_csum.stdout }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: true
+          checksum: "{{ hmo_csum.stdout }}"
 
-    - name: Rollback to head
-      include: roles/rpm_ostree_rollback/tasks/main.yml
+    - name: Rollback to HEAD
+      include_role:
+        name: rpm_ostree_rollback
 
     # reboot
     - include: ../../common/ans_reboot.yml
 
-    # verify head checksum is booted
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: true
-        checksum: "{{ head_csum }}"
+    # verify HEAD checksum is booted
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: true
+          checksum: "{{ head_csum }}"
 
     - name: Cleanup rollback
       command: rpm-ostree cleanup -r
 
     # verify rollback cleanup
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 1
-      deployment: 0
-      expected:
-        checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 1
+        deployment: 0
+        expected:
+          checksum: "{{ head_csum }}"
 
 #####################################################################################
 #
@@ -206,7 +222,8 @@
     - vars.yml
 
   tasks:
-    - include: roles/rpm_ostree_status/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_status
 
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
@@ -233,31 +250,37 @@
       until: ros_deploy|success
 
     # verify pending deployment info
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: false
-        checksum: "{{ hmo_csum.stdout }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: false
+          checksum: "{{ hmo_csum.stdout }}"
 
     # verify current deployment info
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 1
-      expected:
-        booted: true
-        checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 1
+        expected:
+          booted: true
+          checksum: "{{ head_csum }}"
 
     - name: Delete pending deployment
       command: rpm-ostree cleanup -p
 
     # verify origin deployment is still there and not deleted
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 1
-      deployment: 0
-      expected:
-        booted: true
-        checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 1
+        deployment: 0
+        expected:
+          booted: true
+          checksum: "{{ head_csum }}"
 
 #####################################################################################
 #
@@ -277,7 +300,8 @@
     - vars.yml
 
   tasks:
-    - include: roles/rpm_ostree_status/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_status
 
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
@@ -316,19 +340,22 @@
         - ansible_distribution_major_version == '26'
 
     # rpm-ostree upgrade
-    - include: roles/rpm_ostree_upgrade/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_upgrade
 
     # reboot
     - include: ../../common/ans_reboot.yml
 
     # verify upgrade info
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        checksum: "{{ new_commit.stdout }}"
-        version: "test"
-        origin: "local-branch"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          checksum: "{{ new_commit.stdout }}"
+          version: "test"
+          origin: "local-branch"
 
     - name: Rebase back to original deployment
       command: rpm-ostree rebase {{ refspec }} {{ head_csum }}
@@ -341,21 +368,25 @@
     - include: ../../common/ans_reboot.yml
 
     # verify rebase back to original refspec
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          checksum: "{{ head_csum }}"
 
     - name: Cleanup
       command: rpm-ostree cleanup -rpmb
 
     # verify cleanup
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 1
-      deployment: 0
-      expected:
-        checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 1
+        deployment: 0
+        expected:
+          checksum: "{{ head_csum }}"
 
 
 #####################################################################################
@@ -376,7 +407,8 @@
     - vars.yml
 
   tasks:
-    - include: roles/rpm_ostree_status/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_status
 
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
@@ -425,15 +457,18 @@
     - include: ../../common/ans_reboot.yml
 
     # verify upgrade info
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: true
-        base-checksum: "{{ new_commit.stdout }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: true
+          base-checksum: "{{ new_commit.stdout }}"
 
     # verify installation of {{ g_pkg }}
-    - include: roles/rpm_ostree_install_verify/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_install_verify
       vars:
         package: "{{ g_pkg }}"
 
@@ -444,20 +479,24 @@
     - include: ../../common/ans_reboot.yml
 
     # verify rebase info
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: true
-        base-checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: true
+          base-checksum: "{{ head_csum }}"
 
     # verify package is still layered
-    - include: roles/rpm_ostree_install_verify/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_install_verify
       vars:
         package: "{{ g_pkg }}"
 
     # refresh rpm-ostree status variables
-    - include: roles/rpm_ostree_status/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_status
 
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
@@ -481,46 +520,55 @@
     - include: ../../common/ans_reboot.yml
 
     # verify package is no longer installed
-    - include: roles/rpm_ostree_uninstall_verify/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_uninstall_verify
       vars:
         package: "{{ g_pkg }}"
 
     # verify deploy with uninstallation info
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: true
-        checksum: "{{ hmo_csum.stdout }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: true
+          checksum: "{{ hmo_csum.stdout }}"
 
     # rpm-ostree upgrade
-    - include: roles/rpm_ostree_upgrade/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_upgrade
 
     # reboot
     - include: ../../common/ans_reboot.yml
 
     # verify package is still not installed
-    - include: roles/rpm_ostree_uninstall_verify/tasks/main.yml
+    - include_role:
+        name: rpm_ostree_uninstall_verify
       vars:
         package: "{{ g_pkg }}"
 
     # verify upgrade info
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: true
-        checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: true
+          checksum: "{{ head_csum }}"
 
     - name: Cleanup
       command: rpm-ostree cleanup -rpmb
 
     # verify cleanup
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 1
-      deployment: 0
-      expected:
-        checksum: "{{ head_csum }}"
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 1
+        deployment: 0
+        expected:
+          checksum: "{{ head_csum }}"
 
 #####################################################################################
 #
@@ -555,12 +603,14 @@
 
     - include: ../../common/ans_reboot.yml
 
-    - include: roles/rpm_ostree_status_verify/tasks/main.yml
-      num_deployments: 2
-      deployment: 0
-      expected:
-        booted: true
-        regenerate-initramfs: true
+    - include_role:
+        name: rpm_ostree_status_verify
+      vars:
+        num_deployments: 2
+        deployment: 0
+        expected:
+          booted: true
+          regenerate-initramfs: true
 
     - name: Fail if initramfs does not have two arguments
       fail:
