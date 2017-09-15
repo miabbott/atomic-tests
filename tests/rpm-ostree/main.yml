@@ -54,8 +54,8 @@
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current version and refspec
       set_fact:
-         head_version: "{{ ros_booted['version'] }}"
-         refspec: "{{ ros_booted['origin'] }}"
+        head_version: "{{ ros_booted['version'] }}"
+        refspec: "{{ ros_booted['origin'] }}"
 
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
@@ -66,10 +66,14 @@
 
     - name: Get HEAD-1 version
       shell: ostree show $(ostree rev-parse {{ refspec }}^) --print-metadata-key version | tr -d \'
-      register: hmo_version
+      register: ostree_show
+
+    - name: Set HEAD-1 fact
+      set_fact:
+        hmo_version: "{{ ostree_show.stdout }}"
 
     - name: Deploy HEAD-1
-      command: rpm-ostree deploy {{ hmo_version.stdout }}
+      command: rpm-ostree deploy {{ hmo_version }}
       register: ros_deploy
       retries: 5
       delay: 60
@@ -86,7 +90,7 @@
         num_deployments: 2
         expected:
           booted: true
-          version: "{{ hmo_version.stdout }}"
+          version: "{{ hmo_version }}"
 
     # rollback to head
     - include_role:
@@ -141,8 +145,8 @@
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
       set_fact:
-         head_csum: "{{ ros_booted['checksum'] }}"
-         refspec: "{{ ros_booted['origin'] }}"
+        head_csum: "{{ ros_booted['checksum'] }}"
+        refspec: "{{ ros_booted['origin'] }}"
 
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
@@ -153,10 +157,14 @@
 
     - name: Get HEAD-1 checksum
       shell: ostree rev-parse {{ refspec }}^
-      register: hmo_csum
+      register: orp
+
+    - name: Set HEAD-1 fact
+      set_fact:
+        hmo_csum: "{{ orp.stdout }}"
 
     - name: Deploy HEAD-1
-      command: rpm-ostree deploy {{ hmo_csum.stdout }}
+      command: rpm-ostree deploy {{ hmo_csum }}
       register: ros_deploy
       retries: 5
       delay: 60
@@ -173,7 +181,7 @@
         deployment: 0
         expected:
           booted: true
-          checksum: "{{ hmo_csum.stdout }}"
+          checksum: "{{ hmo_csum }}"
 
     - name: Rollback to HEAD
       include_role:
@@ -228,8 +236,8 @@
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
       set_fact:
-         head_csum: "{{ ros_booted['checksum'] }}"
-         refspec: "{{ ros_booted['origin'] }}"
+        head_csum: "{{ ros_booted['checksum'] }}"
+        refspec: "{{ ros_booted['origin'] }}"
 
     - name: Pull last two commits
       command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
@@ -240,10 +248,14 @@
 
     - name: Get HEAD-1 checksum
       command: ostree rev-parse {{ refspec }}^
-      register: hmo_csum
+      register: orp
+
+    - name: Set HEAD-1 fact
+      set_fact:
+        hmo_csum: "{{ orp.stdout }}"
 
     - name: Deploy version HEAD-1
-      command: rpm-ostree deploy {{ hmo_csum.stdout }}
+      command: rpm-ostree deploy {{ hmo_csum }}
       register: ros_deploy
       retries: 5
       delay: 60
@@ -257,7 +269,7 @@
         deployment: 0
         expected:
           booted: false
-          checksum: "{{ hmo_csum.stdout }}"
+          checksum: "{{ hmo_csum }}"
 
     # verify current deployment info
     - include_role:
@@ -413,8 +425,23 @@
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
       set_fact:
-         head_csum: "{{ ros_booted['checksum'] }}"
-         refspec: "{{ ros_booted['origin'] }}"
+        head_csum: "{{ ros_booted['checksum'] }}"
+        refspec: "{{ ros_booted['origin'] }}"
+
+    - name: Pull last two commits
+      command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
+      register: osp
+      retries: 5
+      delay: 60
+      until: osp|success
+
+    - name: Get HEAD-1 checksum
+      command: ostree rev-parse {{ refspec }}^
+      register: orp
+
+    - name: Set HEAD-1 fact
+      set_fact:
+        hmo_csum: "{{ orp.stdout }}"
 
     - name: Set origin file
       command: ostree admin --print-current-dir
@@ -498,19 +525,8 @@
     - include_role:
         name: rpm_ostree_status
 
-    - name: Pull last two commits
-      command: ostree pull --commit-metadata-only --depth=1 {{ refspec }}
-      register: osp
-      retries: 5
-      delay: 60
-      until: osp|success
-
-    - name: Get HEAD-1 checksum
-      command: ostree rev-parse {{ refspec }}^
-      register: hmo_csum
-
     - name: Deploy HEAD-1
-      command: rpm-ostree deploy {{ hmo_csum.stdout }} --uninstall {{ g_pkg }}
+      command: rpm-ostree deploy {{ hmo_csum }} --uninstall {{ g_pkg }}
       register: ros_deploy
       retries: 5
       delay: 60
@@ -533,7 +549,7 @@
         deployment: 0
         expected:
           booted: true
-          checksum: "{{ hmo_csum.stdout }}"
+          checksum: "{{ hmo_csum }}"
 
     # rpm-ostree upgrade
     - include_role:
