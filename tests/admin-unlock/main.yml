@@ -276,7 +276,8 @@
         msg: "Error message is incorrect"
       when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
 
-    - include: ../../common/ans_reboot.yml
+    - include_role:
+        name: reboot
 
 - name: Ostree Admin Unlock - Hotfix Unlock Twice - Error Message
   hosts: all
@@ -303,7 +304,7 @@
     - name: Fail if non booted deployment does not have same commit id as booted
       fail:
         msg: "Deployments have different commit_IDs"
-      when: ros_not_booted['checksum'] !=  ros_booted['checksum']
+      when: ros_not_booted['checksum'] != ros_booted['checksum']
 
     - name: Run unlock twice (system is already unlocked)
       command: ostree admin unlock
