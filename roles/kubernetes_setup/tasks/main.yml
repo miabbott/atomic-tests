@@ -26,11 +26,31 @@
       - controller-mgr-pod.json
       - scheduler-pod.json
 
+  # Thank you based Google gods
+  # https://groups.google.com/d/msg/ansible-project/JvHfchsgRaU/Vw_CzBbvadgJ
+  #
+  # Shoddy explanation of regexp:
+  #   - open of capture group 1: matched by (
+  #   - <startofline>: matched by ^
+  #   - the string "KUBELET_ARGS=": matched literally (double quote is escaped)
+  #   - any characters after above string: matched by .*
+  #   - close of capture group 1: matched by )
+  #   - the closing " char: matched by \"
+  #   - any spaces/tabs: matched by \s*
+  #   - <endofline>: matched by $
+  #
+  # The capture group 1 is referred to as \1 in the 'line:' statement and
+  # will be used as the begining of the line to be inserted into the file.
+  # Thus, any exiting values to KUBELET_ARGS are preserved and the two
+  # new options (--register-node and --pod-manifest-path) are cleanly
+  # appended.
   - name: add kubelet args
-    replace:
-      dest=/etc/kubernetes/kubelet
-      regexp='^KUBELET_ARGS=\"\"'
-      replace='KUBELET_ARGS=\"--register-node=true --config=/etc/kubernetes/manifests/\"'
+    lineinfile:
+      dest: /etc/kubernetes/kubelet
+      backup: true
+      backrefs: true
+      regexp: '(^KUBELET_ARGS=\".*)\"\s*$'
+      line: '\1 --register-node=true --pod-manifest-path=/etc/kubernetes/manifests/"'
 
   - name: stop docker, etcd, kube-proxy, kubelet
     service:
