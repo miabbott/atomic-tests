@@ -9,7 +9,7 @@
     "containers": [
       {
         "name": "kube-apiserver",
-        "image": "registry.access.redhat.com/rhel7/kubernetes-apiserver",
+        "image": "registry.fedoraproject.org/f26/kubernetes-apiserver",
         "command": [
           "/usr/bin/kube-apiserver",
           "--v=0",
@@ -18,7 +18,6 @@
           "--service-cluster-ip-range=10.254.0.0/16",
           "--admission_control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota"
         ],
-
         "ports": [
           {
             "name": "https",
@@ -50,7 +49,8 @@
           },
           "initialDelaySeconds": 15,
           "timeoutSeconds": 15
-        }
+        },
+        "terminationMessagePolicy": "File"
       }
     ],
     "volumes": [

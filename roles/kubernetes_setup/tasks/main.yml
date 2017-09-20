@@ -2,21 +2,44 @@
 #
 #  This role sets up kubernetes apiserver, controller-mgr, and scheduler pods
 #
+  - name: Determine kubelet version
+    shell: kubelet --version | awk '{print $2}' | cut -d 'v' -f 2
+    register: kv
+
+  - name: Set kubelet version fact
+    set_fact:
+      kubelet_version: "{{ kv.stdout }}"
+
+  - name: Define kube 1.5 vars
+    set_fact:
+      kube_maj_ver: "1.5"
+      kube_images:
+        - registry.access.redhat.com/rhel7/kubernetes-apiserver
+        - registry.access.redhat.com/rhel7/kubernetes-controller-mgr
+        - registry.access.redhat.com/rhel7/kubernetes-scheduler
+    when: kubelet_version | version_compare('1.6', '<')
+
+  - name: Define kube 1.6 images
+    set_fact:
+      kube_maj_ver: "1.6"
+      kube_images:
+        - registry.fedoraproject.org/f26/kubernetes-apiserver
+        - registry.fedoraproject.org/f26/kubernetes-controller-manager
+        - registry.fedoraproject.org/f26/kubernetes-scheduler
+    when: kubelet_version | version_compare('1.6', '>=')
+
   - name: pull kubernetes api-server, controller-mgr, scheduler
-    command: docker pull registry.access.redhat.com/rhel7/{{ item }}
+    command: docker pull {{ item }}
     register: pull
-    failed_when: "'registry.access.redhat.com/rhel7/{{ item }}' not in pull.stdout"
-    with_items:
-      - kubernetes-apiserver
-      - kubernetes-controller-mgr
-      - kubernetes-scheduler
+    failed_when: "'{{ item }}' not in pull.stdout"
+    with_items: "{{ kube_images }}"
 
   - name: make db directory
     file: path=/etc/kubernetes/manifests state=directory mode=0755
 
   - name: copy apiserver-pod.json, controller-mgr-pod.json, scheduler-pod.json
     copy:
-      src=roles/kubernetes_setup/files/{{ item }}
+      src=roles/kubernetes_setup/files/{{ kube_maj_ver }}/{{ item }}
       dest=/etc/kubernetes/manifests
       owner=root
       group=root
@@ -46,16 +69,6 @@
     service:
       name={{ item }}
       state=started
-    with_items:
-      - docker
-      - etcd
-      - kube-proxy
-      - kubelet
-
-
-  - name: enable docker, etcd, kube-proxy, kubelet
-    service:
-      name={{ item }}
       enabled=yes
     with_items:
       - docker
@@ -76,14 +89,6 @@
     service:
       name={{ item }}
       state=started
-    with_items:
-      - docker
-      - kube-proxy.service
-      - kubelet.service
-
-  - name: enable docker, kube-proxy.service, kubelet.service
-    service:
-      name={{ item }}
       enabled=yes
     with_items:
       - docker
