@@ -9,7 +9,7 @@
     "containers": [
       {
         "name": "kube-scheduler",
-        "image": "registry.access.redhat.com/rhel7/kubernetes-scheduler",
+        "image": "{{ kube_scheduler }}",
         "volumeMounts": [
           {
             "name": "config",

@@ -13,41 +13,42 @@
   - name: Define kube 1.5 vars
     set_fact:
       kube_maj_ver: "1.5"
-      kube_images:
-        - registry.access.redhat.com/rhel7/kubernetes-apiserver
-        - registry.access.redhat.com/rhel7/kubernetes-controller-mgr
-        - registry.access.redhat.com/rhel7/kubernetes-scheduler
+      kube_apiserver: "registry.access.redhat.com/rhel7/kubernetes-apiserver"
+      kube_controller_manager: "registry.access.redhat.com/rhel7/kubernetes-controller-mgr"
+      kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
     when: kubelet_version | version_compare('1.6', '<')
 
   - name: Define kube 1.6 images
     set_fact:
       kube_maj_ver: "1.6"
-      kube_images:
-        - registry.fedoraproject.org/f26/kubernetes-apiserver
-        - registry.fedoraproject.org/f26/kubernetes-controller-manager
-        - registry.fedoraproject.org/f26/kubernetes-scheduler
+      kube_apiserver: "registry.fedoraproject.org/f26/kubernetes-apiserver"
+      kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
+      kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
     when: kubelet_version | version_compare('1.6', '>=')
 
   - name: pull kubernetes api-server, controller-mgr, scheduler
     command: docker pull {{ item }}
     register: pull
     failed_when: "'{{ item }}' not in pull.stdout"
-    with_items: "{{ kube_images }}"
+    with_items:
+      - "{{ kube_apiserver }}"
+      - "{{ kube_controller_manager }}"
+      - "{{ kube_scheduler }}"
 
   - name: make db directory
     file: path=/etc/kubernetes/manifests state=directory mode=0755
 
-  - name: copy apiserver-pod.json, controller-mgr-pod.json, scheduler-pod.json
-    copy:
-      src=roles/kubernetes_setup/files/{{ kube_maj_ver }}/{{ item }}
-      dest=/etc/kubernetes/manifests
+  - name: template out apiserver, controller-manager, and scheduler pods
+    template:
+      src=roles/kubernetes_setup/files/{{ item }}.j2
+      dest=/etc/kubernetes/manifests/{{ item }}.json
       owner=root
       group=root
       mode=0644
     with_items:
-      - apiserver-pod.json
-      - controller-mgr-pod.json
-      - scheduler-pod.json
+      - apiserver-pod
+      - controller-mgr-pod
+      - scheduler-pod
 
   - name: add kubelet args
     replace:

@@ -2,15 +2,20 @@
   "kind": "Pod",
   "apiVersion": "v1",
   "metadata": {
-    "name": "kube-scheduler"
+    "name": "kube-controller-manager"
   },
   "spec": {
     "hostNetwork": true,
     "containers": [
       {
-        "name": "kube-scheduler",
-        "image": "registry.fedoraproject.org/f26/kubernetes-scheduler",
+        "name": "kube-controller-manager",
+        "image": "{{ kube_controller_manager }}",
         "volumeMounts": [
+          {
+            "name": "etcssl",
+            "mountPath": "/etc/ssl",
+            "readOnly": true
+          },
           {
             "name": "config",
             "mountPath": "/etc/kubernetes",
@@ -20,15 +25,20 @@
         "livenessProbe": {
           "httpGet": {
             "path": "/healthz",
-            "port": 10251
+            "port": 10252
           },
           "initialDelaySeconds": 15,
           "timeoutSeconds": 15
-        },
-        "terminationMessagePolicy": "File"
+        }
       }
     ],
     "volumes": [
+      {
+        "name": "etcssl",
+        "hostPath": {
+          "path": "/etc/ssl"
+        }
+      },
       {
         "name": "config",
         "hostPath": {
