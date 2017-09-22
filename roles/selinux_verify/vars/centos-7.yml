@@ -15,7 +15,8 @@ distro_files:
   - { key: '/usr/bin/dockerd-latest', value: 'system_u:object_r:container_runtime_exec_t:s0' }
   - { key: '/usr/bin/docker-latest', value: 'system_u:object_r:container_runtime_exec_t:s0' }
   - { key: '/usr/bin/docker-latest-storage-setup', value: 'system_u:object_r:container_runtime_exec_t:s0' }
-  - { key: '/usr/bin/docker-storage-setup', value: 'system_u:object_r:container_runtime_exec_t:s0' }
+  - { key: '/usr/bin/container-storage-setup', value: 'system_u:object_r:bin_t:s0' }
+  - { key: '/usr/libexec/docker/docker-init-latest', value: 'system_u:object_r:container_runtime_exec_t:s0' }
   - { key: '/usr/libexec/docker/docker-lvm-plugin', value: 'system_u:object_r:container_runtime_exec_t:s0' }
   - { key: '/usr/libexec/docker/docker-novolume-plugin', value: 'system_u:object_r:container_runtime_exec_t:s0' }
   - { key: '/usr/libexec/docker/docker-proxy-current', value: 'system_u:object_r:container_runtime_exec_t:s0' }
