@@ -18,10 +18,6 @@ tests:
 ---
 inherit: true
 
-
----
-inherit: true
-
 cluster:
   hosts:
     - name: testnode
