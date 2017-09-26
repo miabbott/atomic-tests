@@ -31,16 +31,33 @@
   register: j
   no_log: true
 
+- name: Set the found_string fact
+  set_fact:
+    found_string: "{{ j.stdout | search(search_string) }}"
+
 - name: Search for string in the journal
   fail:
     msg: "Unable to find string '{{ search_string }}' in the journal"
   when:
     - not fif
-    - search_string not in j.stdout
+    - not found_string
+
+# We scrape the journal manually after the fact because the contents of the
+# 'shell:' command below will end up in the journal when it is run on the
+# host under test.  Since the test should fail and abort any other plays
+# in the playbook, it should be safe to pollute the journal like this.
+#
+# Additionally, this is not in a 'block:' statement because apparently you
+# can't include a 'fail:' statement inside a block.  ¯\_(ツ)_/¯
+- name: Grep the journal again for matching strings
+  shell: "journalctl -b | grep {{ search_string | quote }}"
+  when:
+    - fif
+    - found_string
 
 - name: Fail if the string was found in the journal
   fail:
     msg: "Found the string '{{ search_string }}' in the journal"
   when:
     - fif
-    - search_string in j.stdout
+    - found_string
