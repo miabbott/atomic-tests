@@ -49,10 +49,10 @@ Negative Testing
 
     If running against a RHEL Atomic Host, you should provide subscription
     data that can be used by `subscription-manager`.  See
-    [roles/redhat_subscription/tasks/main.yml](roles/redhat_subscription/tasks/main.yml)
+    [roles/redhat_subscription/tasks/main.yml](/roles/redhat_subscription/tasks/main.yml)
     for additional details.
 
-  - Configure the required variables to your liking in [tests/admin-unlock/vars.yml](tests/admin-unlock/vars.yml).
+  - Configure the required variables to your liking in [tests/admin-unlock/vars.yml](/tests/admin-unlock/vars.yml).
     There are two variables g_rpm_name and g_rpm_name_2.  These should be set to
     rpm names from the EPEL repo that have no dependencies and install a binary
     with the same name as the package.

@@ -8,7 +8,7 @@ says "Red Hat Rocks!"
 
     If running against a RHEL Atomic Host, you should provide subscription
     data that can be used by `subscription-manager`.  See
-    [roles/redhat_subscription/main.yml](roles/redhat_subscription/main.yml) for addiltional details.
+    [roles/redhat_subscription/tasks/main.yml](/roles/redhat_subscription/tasks/main.yml) for additional details.
 
 ### Running the Playbook
 

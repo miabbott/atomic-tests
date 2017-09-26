@@ -16,7 +16,7 @@ testing or deployment of additional apps/projects afterwards.
 
     If running against a RHEL Atomic Host, you should provide subscription
     data that can be used by `subscription-manager`.  See
-    [roles/redhat_subscription/tasks/main.yml](roles/redhat_subscription/tasks/main.yml)
+    [roles/redhat_subscription/tasks/main.yml](/roles/redhat_subscription/tasks/main.yml)
     for additional details.
 
 ### Running the Playbook
