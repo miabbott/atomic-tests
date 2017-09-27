@@ -6,6 +6,7 @@
 #
 # Parameters:
 #   search_string (string) - string to search the journal for
+#   extra_args (string) - free form string to pass to 'journalctl' (optional)
 #   fail_if_found (bool) - cause the role to fail if the string is found (optional)
 #
 - name: Fail if the 'search_string' is undefined
@@ -13,51 +14,50 @@
     msg: "The variable 'search_string' is undefined"
   when: search_string is undefined
 
-- name: Setup "fail_if_found" variable
+- name: Setup "fail_if_found" and "extra_args" variable
   set_fact:
     fif: "{{ fail_if_found | default(false) | bool }}"
+    ea: "{{ extra_args | default('') }}"
 
-#
-# We hide the stdout of this task, since the journal could be 1000s of lines
-# This method is used because if we did something like:
-#
-#  'journalctl -b | grep foo'
-#
-# ...that command itself would show up in the journal because of how Ansible
-# executes commands on the host.
-#
-- name: Grab the journal
-  command: journalctl -b --no-pager
+# The command has to built up by pieces in order to handle the possibility of
+# extra args that might be passed in to the 'journalctl' command.
+- name: Build command pieces
+  set_fact:
+    journal_cmd: "{{ 'journalctl -b --no-pager ' + ea if ea|length > 0 else 'journalctl -b --no-pager' }}"
+    grep_cmd: "{{ 'grep ' + search_string|quote }}"
+
+# An inverse 'grep' is used to filter our some of the journal entries that
+# can be created when using Ansible
+- name: Build full command
+  set_fact:
+    full_cmd: "{{ journal_cmd + ' | ' + grep_cmd + ' | grep -v ansible-command' }}"
+
+# The 'full_cmd' variable is not quoted when passed to the 'shell:' module
+# because doing so causes the module to return 'No such file or directory'
+# This is not the safest thing to do, but let's allow it for now.
+- name: Search the journal for the string
+  shell: "{{ full_cmd }}"
   register: j
-  no_log: true
+  failed_when: j.rc > 1
 
 - name: Set the found_string fact
   set_fact:
-    found_string: "{{ j.stdout | search(search_string) }}"
+    found_string: "{{ j.rc == 0 }}"
 
-- name: Search for string in the journal
+- name: Fail if the string was not found in the journal
   fail:
     msg: "Unable to find string '{{ search_string }}' in the journal"
   when:
     - not fif
     - not found_string
 
-# We scrape the journal manually after the fact because the contents of the
-# 'shell:' command below will end up in the journal when it is run on the
-# host under test.  Since the test should fail and abort any other plays
-# in the playbook, it should be safe to pollute the journal like this.
-#
-# Additionally, this is not in a 'block:' statement because apparently you
-# can't include a 'fail:' statement inside a block.  ¯\_(ツ)_/¯
-- name: Grep the journal again for matching strings
-  shell: "journalctl -b | grep {{ search_string | quote }}"
-  when:
-    - fif
-    - found_string
-
 - name: Fail if the string was found in the journal
   fail:
-    msg: "Found the string '{{ search_string }}' in the journal"
+    msg: |
+      Found the string '{{ search_string }}' in the journal
+
+      Matching entries:
+      {{ j.stdout }}
   when:
     - fif
     - found_string
