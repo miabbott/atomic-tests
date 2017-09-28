@@ -8,10 +8,9 @@
 #
 # Parameter:
 #   package - the name of a single package
+#   binary - the name of a binary (optional)
 #
 # Requirements:
-#  Package must install a binary that is the same as the package name
-#    i.e. rpm-ostree uninstall wget installs a binary named wget
 #  This role must be run after the reboot following rpm-ostree install of a package
 #
 
@@ -19,6 +18,12 @@
   fail:
     msg: "No packages specified"
   when: package is undefined
+
+# The 'binary' fact can be set to something other than the package name
+# if needed
+- name: Setup binary fact
+  set_fact:
+    bin: "{{ binary if binary is defined else package }}"
 
 - name: Get rpm-ostree status --json output
   command: rpm-ostree status --json
@@ -51,8 +56,8 @@
     msg: "{{ package }} in rpm-ostree status output"
   when: "'{{ package }}' in installed_pkgs"
 
-- name: Fail if binary for {{ package }} is installed
-  command: command -v {{ package }}
+- name: Fail if binary for {{ bin }} is installed
+  command: command -v {{ bin }}
   register: binary
   failed_when: binary.rc != 1
 
