@@ -481,8 +481,16 @@
     - role: rpm_ostree_install
       packages: httpd
       reboot: false
+      when: ansible_distribution != 'CentOS'
       tags:
         - rpm_ostree_install
+
+    - role: rpm_ostree_install
+      packages: ntp
+      reboot: false
+      when: ansible_distribution == 'CentOS'
+      tags:
+        - rpm_ostree_install_centos
 
     - role: reboot
       tags:
@@ -495,18 +503,27 @@
 
     - role: rpm_ostree_install_verify
       package: httpd
+      when: ansible_distribution != 'CentOS'
       tags:
         - rpm_ostree_install_verify
-      check_mode: no
+
+    - role: rpm_ostree_install_verify
+      package: ntp
+      binary: ntpd
+      when: ansible_distribution == 'CentOS'
+      tags:
+        - rpm_ostree_install_verify_centos
 
     - role: httpd_start
       httpd_port: 8080
+      when: ansible_distribution != 'CentOS'
       tags:
         - httpd_start
 
     - role: url_verify
       url: http://localhost:8080
       destination: /dev/null
+      when: ansible_distribution != 'CentOS'
       tags:
         - url_verify
 
@@ -687,7 +704,13 @@
     - role: rpm_ostree_uninstall_verify
       package: httpd
       tags:
-        - rpm_ostree_uninstall_verify
+        - rpm_ostree_uninstall_verify_httpd
+
+    - role: rpm_ostree_uninstall_verify
+      package: ntp
+      binary: ntpd
+      tags:
+        - rpm_ostree_uninstall_verify_ntp
 
     # Check admin unlock overlayfs missing
     - role: overlayfs_verify_missing
