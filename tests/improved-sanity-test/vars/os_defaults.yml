@@ -1,0 +1,3 @@
+---
+g_ros_install_pkg: 'httpd'
+g_ros_install_bin: 'httpd'

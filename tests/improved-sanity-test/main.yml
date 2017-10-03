@@ -35,7 +35,7 @@
     - pre_upgrade
 
   vars_files:
-    - vars.yml
+    - "vars/common.yml"
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -341,7 +341,8 @@
     - post_upgrade
 
   vars_files:
-    - vars.yml
+    - "vars/common.yml"
+    - [ "vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml" ]
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -479,18 +480,10 @@
         - cloud_image
 
     - role: rpm_ostree_install
-      packages: httpd
+      packages: "{{ g_ros_install_pkg }}"
       reboot: false
-      when: ansible_distribution != 'CentOS'
       tags:
         - rpm_ostree_install
-
-    - role: rpm_ostree_install
-      packages: ntp
-      reboot: false
-      when: ansible_distribution == 'CentOS'
-      tags:
-        - rpm_ostree_install_centos
 
     - role: reboot
       tags:
@@ -502,17 +495,10 @@
         - rpm_ostree_install_verify
 
     - role: rpm_ostree_install_verify
-      package: httpd
-      when: ansible_distribution != 'CentOS'
+      package: "{{ g_ros_install_pkg }}"
+      binary: "{{ g_ros_install_bin }}"
       tags:
         - rpm_ostree_install_verify
-
-    - role: rpm_ostree_install_verify
-      package: ntp
-      binary: ntpd
-      when: ansible_distribution == 'CentOS'
-      tags:
-        - rpm_ostree_install_verify_centos
 
     - role: httpd_start
       httpd_port: 8080
@@ -655,7 +641,8 @@
     - post_rollback
 
   vars_files:
-    - vars.yml
+    - "vars/common.yml"
+    - [ "vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml" ]
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -700,17 +687,12 @@
       tags:
         - rpm_ostree_install_verify
 
-    # Check http package is not installed
+    # Check second package is not installed
     - role: rpm_ostree_uninstall_verify
-      package: httpd
+      package: "{{ g_ros_install_pkg }}"
+      binary: "{{ g_ros_install_bin }}"
       tags:
-        - rpm_ostree_uninstall_verify_httpd
-
-    - role: rpm_ostree_uninstall_verify
-      package: ntp
-      binary: ntpd
-      tags:
-        - rpm_ostree_uninstall_verify_ntp
+        - rpm_ostree_uninstall_verify
 
     # Check admin unlock overlayfs missing
     - role: overlayfs_verify_missing
