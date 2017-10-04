@@ -436,7 +436,8 @@
     # verify installation of {{ g_pkg }}
     - include: roles/rpm_ostree_install_verify/tasks/main.yml
       vars:
-        package: "{{ g_pkg }}"
+        roiv_package_name: "{{ g_pkg }}"
+        roiv_binary_name: "{{ g_pkg }}"
 
     - name: Rebase back to original deployment
       command: rpm-ostree rebase {{ refspec }} {{ head_csum }}
@@ -455,7 +456,8 @@
     # verify package is still layered
     - include: roles/rpm_ostree_install_verify/tasks/main.yml
       vars:
-        package: "{{ g_pkg }}"
+        roiv_package_name: "{{ g_pkg }}"
+        roiv_binary_name: "{{ g_pkg }}"
 
     # refresh rpm-ostree status variables
     - include: roles/rpm_ostree_status/tasks/main.yml
@@ -484,7 +486,8 @@
     # verify package is no longer installed
     - include: roles/rpm_ostree_uninstall_verify/tasks/main.yml
       vars:
-        package: "{{ g_pkg }}"
+        rouv_package_name: "{{ g_pkg }}"
+        rouv_binary_name: "{{ g_pkg }}"
 
     # verify deploy with uninstallation info
     - include: roles/rpm_ostree_status_verify/tasks/main.yml
@@ -503,7 +506,8 @@
     # verify package is still not installed
     - include: roles/rpm_ostree_uninstall_verify/tasks/main.yml
       vars:
-        package: "{{ g_pkg }}"
+        rouv_package_name: "{{ g_pkg }}"
+        rouv_binary_name: "{{ g_pkg }}"
 
     # verify upgrade info
     - include: roles/rpm_ostree_status_verify/tasks/main.yml

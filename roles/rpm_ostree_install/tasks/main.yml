@@ -5,35 +5,35 @@
 # This role installs packages using rpm-ostree uninstall
 #
 # Parameters:
-#  packages - string of one or more packages separated by a space
-#  reboot - boolean - pass -r flag to install command
+#  roi_packages - string of one or more packages separated by a space
+#  roi_reboot - boolean - pass -r flag to install command
 #
 - name: Fail if no packages specified
   fail:
     msg: "No packages specified"
-  when: packages is undefined
+  when: roi_packages is undefined
 
 - name: Fail if reboot is undefined
   fail:
     msg: "Reboot is not defined"
-  when: reboot is undefined
+  when: roi_reboot is undefined
 
-- name: Install {{ packages }} and no reboot
-  command: rpm-ostree install {{ packages }}
+- name: Install {{ roi_packages }} and no reboot
+  command: rpm-ostree install {{ roi_packages }}
   register: install
   retries: 5
   delay: 60
   until: install|success
-  when: not reboot
+  when: not roi_reboot
 
-- name: Install {{ packages }} and reboot
-  command: rpm-ostree install {{ packages }} -r
+- name: Install {{ roi_packages }} and reboot
+  command: rpm-ostree install {{ roi_packages }} -r
   async: 60
   poll: 0
-  when: reboot
+  when: roi_reboot
   ignore_errors: true
 
 - include: ../../../common/ans_reboot.yml
   vars:
     skip_shutdown: true # shutdown was already initiated
-  when: reboot
+  when: roi_reboot

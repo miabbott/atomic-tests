@@ -80,24 +80,26 @@
 
   roles:
     - role: rpm_ostree_install
-      packages: "{{ g_pkg1 }}"
-      reboot: false
+      roi_packages: "{{ g_pkg1 }}"
+      roi_reboot: false
 
     - role: reboot
 
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg1 }}"
+      roiv_package_name: "{{ g_pkg1 }}"
+      roiv_binary_name: "{{ g_pkg1 }}"
 
     - role: rpm_ostree_uninstall
-      packages: "{{ g_pkg1 }}"
-      reboot: false
+      rou_packages: "{{ g_pkg1 }}"
+      rou_reboot: false
 
     - role: reboot
       tags:
         - reboot
 
     - role: rpm_ostree_uninstall_verify
-      package: "{{ g_pkg1 }}"
+      rouv_package_name: "{{ g_pkg1 }}"
+      rouv_binary_name: "{{ g_pkg1 }}"
 
 - name: Package Layering - Multiple package install and uninstall test
   hosts: all
@@ -111,30 +113,34 @@
 
   roles:
     - role: rpm_ostree_install
-      packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
-      reboot: false
+      roi_packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
+      roi_reboot: false
 
     - role: reboot
 
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg1 }}"
+      roiv_package_name: "{{ g_pkg1 }}"
+      roiv_binary_name: "{{ g_pkg1 }}"
 
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg2 }}"
+      roiv_package_name: "{{ g_pkg2 }}"
+      roiv_binary_name: "{{ g_pkg2 }}"
 
     - role: rpm_ostree_uninstall
-      packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
-      reboot: false
+      rou_packages: "{{ g_pkg1 }} {{ g_pkg2 }}"
+      rou_reboot: false
 
     - role: reboot
       tags:
         - reboot
 
     - role: rpm_ostree_uninstall_verify
-      package: "{{ g_pkg1 }}"
+      rouv_package_name: "{{ g_pkg1 }}"
+      rouv_binary_name: "{{ g_pkg1 }}"
 
     - role: rpm_ostree_uninstall_verify
-      package: "{{ g_pkg2 }}"
+      rouv_package_name: "{{ g_pkg2 }}"
+      rouv_binary_name: "{{ g_pkg2 }}"
 
 - name: Package Layering - Reboot flag test
   hosts: all
@@ -148,18 +154,20 @@
 
   roles:
     - role: rpm_ostree_install
-      packages: "{{ g_pkg1 }}"
-      reboot: true
+      roi_packages: "{{ g_pkg1 }}"
+      roi_reboot: true
 
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg1 }}"
+      roiv_package_name: "{{ g_pkg1 }}"
+      roiv_binary_name: "{{ g_pkg1 }}"
 
     - role: rpm_ostree_uninstall
-      packages: "{{ g_pkg1 }}"
-      reboot: true
+      rou_packages: "{{ g_pkg1 }}"
+      rou_reboot: true
 
     - role: rpm_ostree_uninstall_verify
-      package: "{{ g_pkg1 }}"
+      rouv_package_name: "{{ g_pkg1 }}"
+      rouv_binary_name: "{{ g_pkg1 }}"
 
 - name: Package Layering - Dry run tests
   hosts: all
@@ -184,7 +192,6 @@
     - include: verify_package_not_deployed.yml
       vars:
         package: "{{ g_pkg1 }}"
-
 
 - name: Package Layering - Dry run does not affect installed packages tests
   hosts: all
@@ -383,8 +390,8 @@
 
   roles:
     - role: rpm_ostree_install
-      packages: httpd
-      reboot: true
+      roi_packages: httpd
+      roi_reboot: true
 
     - role: reboot
 

@@ -183,8 +183,8 @@
 
     # Install package using package layering
     - role: rpm_ostree_install
-      packages: "{{ g_pkg }}"
-      reboot: false
+      roi_packages: "{{ g_pkg }}"
+      roi_reboot: false
       tags:
         - rpm_ostree_install
 
@@ -195,7 +195,8 @@
         - reboot_pre_up_install
 
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg }}"
+      roiv_package_name: "{{ g_pkg }}"
+      roiv_binary_name: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
 
@@ -433,7 +434,8 @@
 
     # Check layered package is still installed
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg }}"
+      roiv_package_name: "{{ g_pkg }}"
+      roiv_binary_name: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
 
@@ -480,8 +482,8 @@
         - cloud_image
 
     - role: rpm_ostree_install
-      packages: "{{ g_ros_install_pkg }}"
-      reboot: false
+      roi_packages: "{{ g_ros_install_pkg }}"
+      roi_reboot: false
       tags:
         - rpm_ostree_install
 
@@ -490,13 +492,14 @@
         - reboot_post_up_install
 
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg }}"
+      roiv_package_name: "{{ g_pkg }}"
+      roiv_binary_name: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
 
     - role: rpm_ostree_install_verify
-      package: "{{ g_ros_install_pkg }}"
-      binary: "{{ g_ros_install_bin }}"
+      roiv_package_name: "{{ g_ros_install_pkg }}"
+      roiv_binary_name: "{{ g_ros_install_bin }}"
       tags:
         - rpm_ostree_install_verify
 
@@ -683,14 +686,15 @@
 
     # Check layered package is still installed
     - role: rpm_ostree_install_verify
-      package: "{{ g_pkg }}"
+      roiv_package_name: "{{ g_pkg }}"
+      roiv_binary_name: "{{ g_pkg }}"
       tags:
         - rpm_ostree_install_verify
 
     # Check second package is not installed
     - role: rpm_ostree_uninstall_verify
-      package: "{{ g_ros_install_pkg }}"
-      binary: "{{ g_ros_install_bin }}"
+      rouv_package_name: "{{ g_ros_install_pkg }}"
+      rouv_binary_name: "{{ g_ros_install_bin }}"
       tags:
         - rpm_ostree_uninstall_verify
 
@@ -742,8 +746,8 @@
 
     # use 'all' keyword to remove all installed pacakges
     - role: rpm_ostree_uninstall
-      packages: all
-      reboot: true
+      rou_packages: all
+      rou_reboot: true
       tags:
         - rpm_ostree_uninstall
 

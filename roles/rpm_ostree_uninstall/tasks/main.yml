@@ -5,20 +5,20 @@
 # This role uninstalls packages using rpm-ostree uninstall
 #
 # Parameters:
-#  packages - string of one or more packages separated by a space
-#             or use the 'all' keyword to uninstall everything
-#  reboot - boolean - pass -r flag to install command
+#  rou_packages - string of one or more packages separated by a space
+#                 or use the 'all' keyword to uninstall everything
+#  rou_reboot - boolean - pass -r flag to install command
 #
 
 - name: Fail if no packages specified
   fail:
     msg: "No packages specified"
-  when: packages is undefined
+  when: rou_packages is undefined
 
 - name: Fail if reboot is undefined
   fail:
     msg: "Reboot is not defined"
-  when: reboot is undefined
+  when: rou_reboot is undefined
 
 - block:
     - name: Get rpm-ostree status
@@ -47,7 +47,7 @@
       set_fact:
         all_installed: "{{ ros_booted['packages']|join(' ') }}"
       when: ros_booted['packages']|length > 0
-  when: packages == "all"
+  when: rou_packages == "all"
 
 # Check to see if 'all_installed' was defined above, otherwise we use the
 # original value of 'packages'.  It could be 'all', which means we want to
@@ -56,20 +56,20 @@
 # Hat tip to @mike-nguyen for the logic to do this
 - name: Setup 'rm_packages' variable
   set_fact:
-    rm_packages: "{{ all_installed if all_installed is defined else packages }}"
+    rm_packages: "{{ all_installed if all_installed is defined else rou_packages }}"
 
 - name: Uninstall {{ rm_packages }}
   command: rpm-ostree uninstall {{ rm_packages }}
-  when: not reboot and rm_packages != "all"
+  when: not rou_reboot and rm_packages != "all"
 
 - name: Uninstall {{ rm_packages }} and reboot
   command: rpm-ostree uninstall {{ rm_packages }} -r
   async: 60
   poll: 0
-  when: reboot and rm_packages != "all"
+  when: rou_reboot and rm_packages != "all"
   ignore_errors: true
 
 - include: ../../../common/ans_reboot.yml
   vars:
     skip_shutdown: true # shutdown was already initiated
-  when: reboot and rm_packages != "all"
+  when: rou_reboot and rm_packages != "all"

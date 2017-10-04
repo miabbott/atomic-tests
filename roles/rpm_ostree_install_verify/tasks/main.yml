@@ -7,23 +7,28 @@
 #  that the binary is available by using which.
 #
 # Parameter:
-#   package - name of a single package
-#   binary - name of binary to check for (optional)
+#   roiv_package_name - name of a single package
+#   roiv_binary_name - name of binary to check for (optional)
 #
 # Requirements:
 #  This role must be run after the reboot following rpm-ostree install of a package
 #
-
+# !!! WARNING!!!
+#   If you plan on using this role multiple times in a playbook, you should
+#   explicitly provide values for 'roiv_package_name' and 'roiv_binary_name'
+#   in order to avoid existing values in the playbook namespace to be reused
+#   across the roles.
+#
 - name: Fail if no package specified
   fail:
     msg: "No packages specified"
-  when: package is undefined
+  when: roiv_package_name is undefined
 
 # The 'binary' fact can be set to something other than the package name
 # if needed
 - name: Setup binary fact
   set_fact:
-    bin: "{{ binary if binary is defined else package }}"
+    roiv_binary_name: "{{ roiv_binary_name if roiv_binary_name is defined else roiv_package_name }}"
 
 - name: Get rpm-ostree status --json output
   command: rpm-ostree status --json
@@ -43,13 +48,13 @@
     installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
   when: installed_json['deployments'][1]['packages'] is defined and installed_json['deployments'][1]['booted']
 
-- name: Fail if {{ package }} is not in rpm-ostree status output
+- name: Fail if {{ roiv_package_name }} is not in rpm-ostree status output
   fail:
-    msg: "{{ package }} not in rpm-ostree status output"
-  when: "'{{ package }}' not in installed_pkgs"
+    msg: "{{ roiv_package_name }} not in rpm-ostree status output"
+  when: "'{{ roiv_package_name }}' not in installed_pkgs"
 
-- name: Check for {{ bin }} binary
-  command: command -v {{ bin }}
+- name: Check for {{ roiv_binary_name }} binary
+  command: command -v {{ roiv_binary_name }}
 
-- name: Check {{ package }} in rpmdb
-  command: rpm -q {{ package }}
+- name: Check {{ roiv_package_name }} in rpmdb
+  command: rpm -q {{ roiv_package_name }}

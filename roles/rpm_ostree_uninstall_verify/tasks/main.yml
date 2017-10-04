@@ -7,23 +7,28 @@
 #  that the binary not available using which
 #
 # Parameter:
-#   package - the name of a single package
-#   binary - the name of a binary (optional)
+#   rouv_package_name - the name of a single package
+#   rouv_binary_name - the name of a binary (optional)
 #
 # Requirements:
 #  This role must be run after the reboot following rpm-ostree install of a package
 #
-
+# !!! WARNING!!!
+#   If you plan on using this role multiple times in a playbook, you should
+#   explicitly provide values for 'rouv_package_name' and 'rouv_binary_name'
+#   in order to avoid existing values in the playbook namespace to be reused
+#   across the roles.
+#
 - name: Fail if no packages specified
   fail:
     msg: "No packages specified"
-  when: package is undefined
+  when: rouv_package_name is undefined
 
 # The 'binary' fact can be set to something other than the package name
 # if needed
 - name: Setup binary fact
   set_fact:
-    bin: "{{ binary if binary is defined else package }}"
+    rouv_binary_name: "{{ rouv_binary_name if rouv_binary_name is defined else rouv_package_name }}"
 
 - name: Get rpm-ostree status --json output
   command: rpm-ostree status --json
@@ -51,17 +56,17 @@
     msg: "Packages not found in rpm-ostree status output"
   when: installed_pkgs is undefined
 
-- name: Fail if {{ package }} is in rpm-ostree status output
+- name: Fail if {{ rouv_package_name }} is in rpm-ostree status output
   fail:
-    msg: "{{ package }} in rpm-ostree status output"
-  when: "'{{ package }}' in installed_pkgs"
+    msg: "{{ rouv_package_name }} in rpm-ostree status output"
+  when: "'{{ rouv_package_name }}' in installed_pkgs"
 
-- name: Fail if binary for {{ bin }} is installed
-  command: command -v {{ bin }}
+- name: Fail if binary for {{ rouv_binary_name }} is installed
+  command: command -v {{ rouv_binary_name }}
   register: binary
   failed_when: binary.rc != 1
 
-- name: Fail if {{ package }} is in rpmdb
-  command: rpm -q {{ package }}
+- name: Fail if {{ rouv_package_name }} is in rpmdb
+  command: rpm -q {{ rouv_package_name }}
   register: rpm
   failed_when: rpm.rc != 1
