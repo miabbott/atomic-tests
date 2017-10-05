@@ -301,6 +301,7 @@
       command: ostree commit -b local-branch --tree=ref=local-branch --add-metadata-string version=test
       register: new_commit
 
+    # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
     - name: rpm-ostree reload
       command: rpm-ostree reload
       when:
@@ -399,6 +400,7 @@
       command: ostree commit -b local-branch --tree=ref=local-branch --add-metadata-string version=test
       register: new_commit
 
+    # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
     - name: rpm-ostree reload
       command: rpm-ostree reload
       when:
