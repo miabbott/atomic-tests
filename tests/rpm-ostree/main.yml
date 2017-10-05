@@ -303,6 +303,17 @@
 
     - name: rpm-ostree reload
       command: rpm-ostree reload
+      when:
+        - ansible_distribution != 'Fedora'
+        - ansible_distribution_major_version != '26'
+
+    - name: restart rpm-ostreed
+      service:
+        name: rpm-ostreed
+        state: restarted
+      when:
+        - ansible_distribution == 'Fedora'
+        - ansible_distribution_major_version == '26'
 
     # rpm-ostree upgrade
     - include: roles/rpm_ostree_upgrade/tasks/main.yml
@@ -390,6 +401,17 @@
 
     - name: rpm-ostree reload
       command: rpm-ostree reload
+      when:
+        - ansible_distribution != 'Fedora'
+        - ansible_distribution_major_version != '26'
+
+    - name: restart rpm-ostreed
+      service:
+        name: rpm-ostreed
+        state: restarted
+      when:
+        - ansible_distribution == 'Fedora'
+        - ansible_distribution_major_version == '26'
 
     - name: Upgrade
       command: rpm-ostree upgrade --install {{ g_pkg }}
