@@ -744,7 +744,7 @@
 
     # load in the YAML files with archived deployment info
     - role: load_variables
-      filename: "{{ playbook_dir}}/bdsf_archive.yml"
+      filename: "{{ playbook_dir}}/{{ ansible_host }}_bdsf_archive.yml"
       tags:
         - load_variables
 

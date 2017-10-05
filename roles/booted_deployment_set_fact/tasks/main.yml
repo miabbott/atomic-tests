@@ -39,11 +39,11 @@
 - block:
   - name: Remove existing archive file
     local_action:
-      file path="{{ playbook_dir }}/bdsf_archive.yml" state=absent
+      file path="{{ playbook_dir }}/{{ ansible_host }}_bdsf_archive.yml" state=absent
     become: false
 
   - name: Archive refspec and checksum
     local_action:
-      template src=bdsf_archive.j2 dest="{{ playbook_dir }}/bdsf_archive.yml"
+      template src=bdsf_archive.j2 dest="{{ playbook_dir }}/{{ ansible_host }}_bdsf_archive.yml"
     become: false
   when: bdsf_archive
