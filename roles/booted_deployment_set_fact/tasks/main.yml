@@ -9,6 +9,7 @@
 - name: Set archive value
   set_fact:
     bdsf_archive: "{{ archive | default('false') }}"
+    bdsf_ansible_host: "{{ ansible_host }}"
 
 - name: Get rpm-ostree status output
   command: rpm-ostree status --json
@@ -39,11 +40,11 @@
 - block:
   - name: Remove existing archive file
     local_action:
-      file path="{{ playbook_dir }}/{{ ansible_host }}_bdsf_archive.yml" state=absent
+      file path="{{ playbook_dir }}/{{ bdsf_ansible_host }}_bdsf_archive.yml" state=absent
     become: false
 
   - name: Archive refspec and checksum
     local_action:
-      template src=bdsf_archive.j2 dest="{{ playbook_dir }}/{{ ansible_host }}_bdsf_archive.yml"
+      template src=bdsf_archive.j2 dest="{{ playbook_dir }}/{{ bdsf_ansible_host }}_bdsf_archive.yml"
     become: false
   when: bdsf_archive
