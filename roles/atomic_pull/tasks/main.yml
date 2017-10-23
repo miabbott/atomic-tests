@@ -15,4 +15,4 @@
 - name: Verify image exists
   command: atomic images list
   register: ail
-  failed_when: "'{{ image }}' not in ail.stdout"
+  failed_when: image not in ail.stdout

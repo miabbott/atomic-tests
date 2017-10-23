@@ -79,7 +79,7 @@ operation is successful.
 - name: Verify Docker image was built
   command: docker images
   register: docker_images
-  failed_when: "'{{ image_name }}' not in docker_images.stdout"
+  failed_when: image_name not in docker_images.stdout
 ```
 
 This role is very flexible as it allows users the ability to define the

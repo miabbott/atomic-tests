@@ -51,7 +51,7 @@
 - name: Fail if {{ roiv_package_name }} is not in rpm-ostree status output
   fail:
     msg: "{{ roiv_package_name }} not in rpm-ostree status output"
-  when: "'{{ roiv_package_name }}' not in installed_pkgs"
+  when: roiv_package_name not in installed_pkgs
 
 - name: Check for {{ roiv_binary_name }} binary
   command: command -v {{ roiv_binary_name }}

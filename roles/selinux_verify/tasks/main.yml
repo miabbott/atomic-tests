@@ -96,7 +96,7 @@
 - name: Fail if a file/dir is found with 'default_t' label
   fail:
     msg: "The file {{ item.item }} had an SELinux label of 'default_t'"
-  when: "{{ item.stdout | length }} != 0"
+  when: item.stdout|length != 0
   with_items: "{{ find_default_t.results }}"
 
 - name: Look for files/dir with 'unlabeled_t' label
@@ -107,5 +107,5 @@
 - name: Fail if a file is found with the 'unlabeled_t' label
   fail:
     msg: "The file {{ item.item }} had an SELinux label of 'unlabeled_t'"
-  when: "{{ item.stdout | length }} != 0"
+  when: item.stdout|length != 0
   with_items: "{{ find_file_t.results }}"

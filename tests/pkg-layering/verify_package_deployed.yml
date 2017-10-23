@@ -1,3 +1,4 @@
+# vim: set ft=ansible:
 ---
 - name: Fail when package is undefined
   fail:
@@ -25,7 +26,7 @@
 - name: Fail if {{ package }} is not in rpm-ostree status output
   fail:
     msg: "{{ package }} not in rpm-ostree status output"
-  when: "'{{ package }}' not in installed_pkgs"
+  when: package not in installed_pkgs
 
 - name: Verify {{ package }} is installed
   command: command -v {{ package }}

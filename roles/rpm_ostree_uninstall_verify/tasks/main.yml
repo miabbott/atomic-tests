@@ -59,7 +59,7 @@
 - name: Fail if {{ rouv_package_name }} is in rpm-ostree status output
   fail:
     msg: "{{ rouv_package_name }} in rpm-ostree status output"
-  when: "'{{ rouv_package_name }}' in installed_pkgs"
+  when: rouv_package_name in installed_pkgs
 
 - name: Fail if binary for {{ rouv_binary_name }} is installed
   command: command -v {{ rouv_binary_name }}

@@ -17,7 +17,7 @@
 - name: Check Docker storage driver
   shell: "docker info | grep -oP '(?<=Storage Driver: ).*'"
   register: storage_driver
-  failed_when: "'{{ storage_driver.stdout }}' != '{{ driver }}'"
+  failed_when: storage_driver.stdout != driver
 
 - name: Check for F25 Docker mount
   command: findmnt /var/lib/docker/devicemapper

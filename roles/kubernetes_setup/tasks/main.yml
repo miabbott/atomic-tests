@@ -29,7 +29,7 @@
   - name: pull kubernetes api-server, controller-mgr, scheduler
     command: docker pull {{ item }}
     register: pull
-    failed_when: "'{{ item }}' not in pull.stdout"
+    failed_when: item not in pull.stdout
     with_items:
       - "{{ kube_apiserver }}"
       - "{{ kube_controller_manager }}"

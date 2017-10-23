@@ -18,7 +18,7 @@
 - name: Fail if httpd container is not present
   fail:
     msg: "The {{ g_httpd_name }} container is not present"
-  when: "'{{ g_httpd_name }}' not in ps_before.stdout"
+  when: g_httpd_name not in ps_before.stdout
 
 - name: Remove the httpd container
   command: "docker rm {{ g_httpd_name }}"
@@ -30,4 +30,4 @@
 - name: Fail if httpd container is present
   fail:
     msg: "The {{ g_httpd_name }} container is still present"
-  when: "'{{ g_httpd_name }}' in ps_after.stdout"
+  when: g_httpd_name in ps_after.stdout

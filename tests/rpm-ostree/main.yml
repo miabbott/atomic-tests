@@ -628,7 +628,7 @@
     - name: Fail if initramfs does not have two arguments
       fail:
         msg: "Incorrect number of arguments.  Expected: 2.  Actual: {{ ros_booted['initramfs-args'] | length }}"
-      when: "{{ ros_booted['initramfs-args'] | length }} != 2"
+      when: ros_booted['initramfs-args']|length != 2
 
     - name: Fail if first initramfs argument is not set
       fail:

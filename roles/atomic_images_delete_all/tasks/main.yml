@@ -11,4 +11,4 @@
 - name: Verify no images exist
   command: atomic images list -q
   register: ail
-  failed_when: "{{ ail.stdout_lines | length }} > 0"
+  failed_when: ail.stdout_lines|length > 0

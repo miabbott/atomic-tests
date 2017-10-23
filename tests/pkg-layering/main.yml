@@ -241,12 +241,12 @@
     - name: Fail if {{ g_pkg2 }} is in rpm-ostree status output for pending packages
       fail:
         msg: "{{ g_pkg2 }} in rpm-ostree status output"
-      when: "'{{ g_pkg2 }}' in pending_pkgs"
+      when: g_pkg2 in pending_pkgs
 
     - name: Fail if {{ g_pkg1 }} is not in rpm-ostree status output for pending packages
       fail:
         msg: "{{ g_pkg1 }} not in rpm-ostree status output"
-      when: "'{{ g_pkg1 }}' not in pending_pkgs"
+      when: g_pkg1 not in pending_pkgs
 
     - name: Fail if {{ g_pkg1 }} is installed
       command: command -v {{ g_pkg1 }}
@@ -376,7 +376,7 @@
     - name: Fail if {{ g_deployed_pkg }} is not in requested packages
       fail:
         msg: "{{ g_deployed_pkg }} not found in rpm-ostree status output"
-      when: "'{{ g_deployed_pkg }}' not in req_pkgs"
+      when: g_deployed_pkg not in req_pkgs
 
 - name: Package Layering - Installing non-root ownership package
   hosts: all

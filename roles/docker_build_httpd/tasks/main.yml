@@ -59,4 +59,4 @@
 - name: Fail if httpd image not present
   fail:
     msg: "The {{ g_httpd_name }} image is not present"
-  when: "'{{ g_httpd_name }}' not in build_images.stdout"
+  when: g_httpd_name not in build_images.stdout
