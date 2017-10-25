@@ -391,6 +391,30 @@
     - vars.yml
 
   tasks:
+    - name: Check for etcd rpm
+      command: rpm -q etcd
+      register: rpm_etcd
+      ignore_errors: true
+
+    - name: Check for flannel rpm
+      command: rpm -q flannel
+      register: rpm_flannel
+      ignore_errors: true
+
+    - name: Stop flanneld server if flannel rpm present
+      service:
+        name: flanneld
+        state: stopped
+        enabled: no
+      when: rpm_flannel.rc == 0
+
+    - name: Stop etcd service if etcd rpm present
+      service:
+        name: etcd
+        state: stopped
+        enabled: no
+      when: rpm_etcd.rc == 0
+
     - name: Install etcd
       command: >
         atomic install
