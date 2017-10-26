@@ -37,18 +37,21 @@
   register: common_selinux_file_labels
   with_items: "{{ common_files }}"
 
-  # The verification is slightly tricky.  The state of the previous play is
-  # registered in a variable.  That variable has a key in it called 'results'
-  # which contains the details of each time the 'command' was executed.  In
-  # each of those details there is another key named 'item' which contains
-  # the 'key' and 'value' from each item in 'common_files'.  We can compare
-  # the 'value' to the stdout and see if the label was correct.
+  # The verification is slightly hacky.  The state of the previous play is
+  # registered in a variable; in this case 'common_selinux_file_labels'.
+  # That variable has a key in it called 'results' which contains the details
+  # of each time the 'command' was executed.  In each of those details there
+  # is another key named 'item' which contains the 'key' and 'value' from
+  # each item in 'common_files'.  We can compare the 'value' to the stdout
+  # and see if the label was correct.  If the values don't compare correctly,
+  # we can append them to a list of failed values to be read out later.
   #
   # This approach can be used for all other inspections of file labels or
   # process labels.
-- name: Verify common SELinux file labels are correct
-  fail:
-    msg: "The file {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
+
+- name: Append failed common file labels to the list
+  set_fact:
+    sv_failed_file_labels: "{{ sv_failed_file_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
   when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_file_labels.results }}"
 
@@ -57,11 +60,28 @@
   register: distro_selinux_file_labels
   with_items: "{{ distro_files }}"
 
-- name: Verify distribution specific SELinux file labels are correct
-  fail:
-    msg: "The file {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
+- name: Append failed distro file labels to the list
+  set_fact:
+    sv_failed_file_labels: "{{ sv_failed_file_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
   when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_file_labels.results }}"
+
+  # If the list of failed labels has been appended to, the variable will
+  # register as defined and thus we fail out.
+  #
+  # To get a pretty-printed message about the files with incorrect labels
+  # we can use some Jinja2 templating hacks to iterate over the list of
+  # failed files.
+- name: Fail if any SELinux file labels were incorrect
+  fail:
+    msg: |
+      The following files had incorrect SELinux labels:
+
+      {%- print '\n\n' %}
+      {%- for i in sv_failed_file_labels %}
+      {%- print i + '\n' %}
+      {%- endfor %}
+  when: sv_failed_file_labels is defined
 
 - name: Run 'rpm-ostree status' to start daemon
   command: rpm-ostree status
@@ -71,9 +91,9 @@
   register: common_selinux_proc_labels
   with_items: "{{ common_procs }}"
 
-- name: Verify common SELinux process labels are correct
-  fail:
-    msg: "The process {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
+- name: Append incorrect common SELinux process labels
+  set_fact:
+    sv_failed_proc_labels: "{{ sv_failed_proc_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
   when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_proc_labels.results }}"
 
@@ -82,30 +102,63 @@
   register: distro_selinux_proc_labels
   with_items: "{{ distro_procs }}"
 
-- name: Verify distribution specific SELinux process labels are correct
-  fail:
-    msg: "The process {{ item.item.key }} had an incorrect label of {{ item.stdout }} (expected {{ item.item.value }})"
+- name: Append incorrect distro SELinux process labels
+  set_fact:
+    sv_failed_proc_labels: "{{ sv_failed_proc_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
   when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_proc_labels.results }}"
+
+- name: Fail if any SELinux proc labels were incorrect
+  fail:
+    msg: |
+      The following procs had incorrect SELinux labels:
+
+      {%- print '\n\n' %}
+      {%- for i in sv_failed_proc_labels %}
+      {%- print i + '\n' %}
+      {%- endfor %}
+  when: sv_failed_proc_labels is defined
 
 - name: Look for files/dirs with 'default_t' label
   command: find {{ item }} -context '*:default_t:*'
   register: find_default_t
   with_items: "{{ mountpoints }}"
 
-- name: Fail if a file/dir is found with 'default_t' label
-  fail:
-    msg: "The file {{ item.item }} had an SELinux label of 'default_t'"
-  when: item.stdout|length != 0
+- name: Append files with 'default_t'
+  set_fact:
+    sv_default_files: "{{ sv_default_files|default([]) + [ item.stdout ] }}"
+  when: item.stdout|length > 0
   with_items: "{{ find_default_t.results }}"
+
+- name: Fail if any files have the default_t SELinux label
+  fail:
+    msg: |
+      The following files had the 'default_t' label:
+
+      {%- print '\n\n' %}
+      {%- for i in sv_default_files %}
+      {%- print i + '\n' %}
+      {%- endfor %}
+  when: sv_default_files is defined
 
 - name: Look for files/dir with 'unlabeled_t' label
   command: find {{ item }} -context '*:unlabeled_t:*'
   register: find_file_t
   with_items: "{{ mountpoints }}"
 
-- name: Fail if a file is found with the 'unlabeled_t' label
-  fail:
-    msg: "The file {{ item.item }} had an SELinux label of 'unlabeled_t'"
-  when: item.stdout|length != 0
+- name: Append files with 'unlabeled_t'
+  set_fact:
+    sv_unlabeled_files: "{{ sv_unlabeled_files|default([]) + [ item.stdout ] }}"
+  when: item.stdout|length > 0
   with_items: "{{ find_file_t.results }}"
+
+- name: Fail if any files have the unlabeled_t SELinux label
+  fail:
+    msg: |
+      The following files had the 'unlabeled_t' label:
+
+      {%- print '\n\n' %}
+      {%- for i in sv_unlabeled_files %}
+      {%- print i + '\n' %}
+      {%- endfor %}
+  when: sv_unlabeled_files is defined
