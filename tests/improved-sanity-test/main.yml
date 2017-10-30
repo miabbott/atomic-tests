@@ -211,14 +211,29 @@
 
     - role: rpm_install
       rpm_url: "{{ g_rpm_url }}"
+      when: ansible_distribution != 'Fedora'
       tags:
         - rpm_install
+
+    - role: rpm_install
+      rpm_url: "{{ g_rpm_url_fedora }}"
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - rpm_install_fedora
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       check_binary: false
+      when: ansible_distribution != 'Fedora'
       tags:
         - package_verify_present
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      check_binary: false
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - package_verify_present_fedora
 
     # Check that /tmp has the proper permissions
     - role: tmp_check_perms
@@ -524,8 +539,15 @@
     # Verify admin unlocked package is removed after upgrade
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name }}"
+      when: ansible_distribution != 'Fedora'
       tags:
         - package_verify_missing
+
+    - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - package_verify_missing_fedora
 
     # Check that /tmp is properly setup again
     - role: tmp_check_perms

@@ -8,7 +8,9 @@ g_dir2: 'qe2'
 g_hostname: 'myhostname'
 g_pkg: "wget"
 g_rpm_url: 'https://download.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+g_rpm_url_fedora: 'https://kojipkgs.fedoraproject.org//packages/ltrace/0.7.91/22.fc26/x86_64/ltrace-0.7.91-22.fc26.x86_64.rpm'
 g_rpm_name: 'epel-release'
+g_rpm_name_fedora: 'ltrace'
 g_seboolean: "virt_use_nfs"
 # These variables are used by the 'semanage_fcontext_mod' and
 # 'semanage_fcontext_verify' roles.  The values were pulled from
