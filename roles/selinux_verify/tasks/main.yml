@@ -51,7 +51,9 @@
 
 - name: Append failed common file labels to the list
   set_fact:
-    sv_failed_file_labels: "{{ sv_failed_file_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
+    sv_failed_file_labels: |
+      {{ sv_failed_file_labels|default([]) +
+      [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
   when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_file_labels.results }}"
 
@@ -62,7 +64,9 @@
 
 - name: Append failed distro file labels to the list
   set_fact:
-    sv_failed_file_labels: "{{ sv_failed_file_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
+    sv_failed_file_labels: |
+      {{ sv_failed_file_labels|default([]) +
+      [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
   when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_file_labels.results }}"
 
@@ -93,7 +97,9 @@
 
 - name: Append incorrect common SELinux process labels
   set_fact:
-    sv_failed_proc_labels: "{{ sv_failed_proc_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
+    sv_failed_proc_labels: |
+      {{ sv_failed_proc_labels|default([]) +
+      [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
   when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_proc_labels.results }}"
 
@@ -104,7 +110,9 @@
 
 - name: Append incorrect distro SELinux process labels
   set_fact:
-    sv_failed_proc_labels: "{{ sv_failed_proc_labels|default([]) + [ item.item.key + ': ' + item.stdout ] }}"
+    sv_failed_proc_labels: |
+      {{ sv_failed_proc_labels|default([]) +
+      [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
   when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_proc_labels.results }}"
 
