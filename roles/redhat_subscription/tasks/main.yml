@@ -61,6 +61,10 @@
 
   - name: disable all repos
     command: subscription-manager repos --disable=*
+    register: result
+    until: result|success
+    retries: 5
+    delay: 60
 
   - name: enable server, optional, and extras repos
     command: >
@@ -68,6 +72,10 @@
       --enable rhel-7-server-rpms
       --enable rhel-7-server-optional-rpms
       --enable rhel-7-server-extras-rpms
+    register: result
+    until: result|success
+    retries: 5
+    delay: 60
 
   - name: Mask and stop rhsmcertd
     shell: >
