@@ -55,9 +55,9 @@
       USERNAME: "{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
       PASSWORD: "{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
     register: result
-    until: result.rc == 0
-    retries: 3
-    delay: 5
+    until: result|success
+    retries: 5
+    delay: 60
 
   - name: disable all repos
     command: subscription-manager repos --disable=*
