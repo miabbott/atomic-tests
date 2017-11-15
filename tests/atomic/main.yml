@@ -8,9 +8,6 @@
   tags:
     - setup
 
-  vars_files:
-    - vars.yml
-
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
@@ -33,18 +30,7 @@
     - fq_name
 
   vars_files:
-    - vars.yml
-
-  pre_tasks:
-    - name: Set cockpit container name for RHELAH
-      set_fact:
-        cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
-      when: ansible_distribution == "RedHat"
-
-    - name: Set cockpit container name for Fedora/CentOS
-      set_fact:
-        cockpit_cname: "registry.fedoraproject.org/f25/cockpit"
-      when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
+    - "{{ ansible_distribution|lower }}.yml"
 
   roles:
     - role: atomic_pull
@@ -64,10 +50,6 @@
 
     - role: atomic_run
       ar_image: "{{ cockpit_cname }}"
-
-    - role: atomic_images_list_verify
-      expected_values:
-        repo: "{{ cockpit_cname }}"
 
     - role: atomic_containers_list_verify
       expected_values:
@@ -113,20 +95,7 @@
     - shortname
 
   vars_files:
-    - vars.yml
-
-  pre_tasks:
-    - name: Set cockpit container name for RHELAH
-      set_fact:
-        cockpit_short_name: "rhel7/cockpit-ws"
-        cockpit_fq_name: "registry.access.redhat.com/rhel7/cockpit-ws"
-      when: ansible_distribution == "RedHat"
-
-    - name: Set cockpit container name for Fedora/CentOS
-      set_fact:
-        cockpit_short_name: "cockpit/ws"
-        cockpit_fq_name: "docker.io/cockpit/ws"
-      when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
+    - "./{{ ansible_distribution|lower }}.yml"
 
   roles:
     - role: atomic_pull
@@ -156,6 +125,9 @@
         image_name: "{{ cockpit_short_name }}"
       check_mode: false
 
+    # aclv_acl_jq_match is the container entry that matches the image_name
+    # specified in the atomic_containers_list_verify role above.  The
+    # shortened container id is used to stop and delete the container.
     - role: atomic_stop
       as_container: "{{ aclv_acl_jq_match['id'][:12] }}"
 
@@ -195,22 +167,7 @@
     - fq_name_name
 
   vars_files:
-    - vars.yml
-
-  pre_tasks:
-    - name: Set cockpit container name for RHELAH
-      set_fact:
-        cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
-      when: ansible_distribution == "RedHat"
-
-    - name: Set cockpit container name for Fedora/CentOS
-      set_fact:
-        cockpit_cname: "registry.fedoraproject.org/f25/cockpit"
-      when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
-
-    - name: Set container name
-      set_fact:
-        cp_name: "cockpit"
+    - "{{ ansible_distribution|lower }}.yml"
 
   roles:
     - role: atomic_pull
@@ -279,9 +236,6 @@
   tags:
     - pull_tags
 
-  vars_files:
-    - vars.yml
-
   pre_tasks:
     - name: Set cockpit container name for RHELAH
       set_fact:
@@ -329,9 +283,6 @@
   tags:
     - pull_digest_simple
 
-  vars_files:
-    - vars.yml
-
   pre_tasks:
     - name: Set image name
       set_fact:
@@ -363,9 +314,6 @@
   tags:
     - pull_storage
 
-  vars_files:
-    - vars.yml
-
   tasks:
     - name: Set image name
       set_fact:
@@ -382,7 +330,8 @@
         apl_image: "{{ fq_name }}"
         apl_options: "--storage=ostree"
 
-    # The TYPE field doesn't show up in the json output so
+    # The TYPE field doesn't show up in the json output (see
+    # https://github.com/projectatomic/atomic/issues/1129) so
     # we must check for ostree in the output of the command
     - name: Fail if ostree storage not in atomic list output
       command: atomic images list
@@ -401,7 +350,8 @@
         apl_image: "{{ fq_name }}"
         apl_options: "--storage=docker"
 
-    # The TYPE field doesn't show up in the json output so
+    # The TYPE field doesn't show up in the json output (see
+    # https://github.com/projectatomic/atomic/issues/1129) so
     # we must check for ostree in the output of the command
     - name: Fail if ostree storage not in atomic list output
       command: atomic images list
@@ -416,9 +366,6 @@
 
   tags:
     - images_update
-
-  vars_files:
-    - vars.yml
 
   pre_tasks:
     - name: Set image name
