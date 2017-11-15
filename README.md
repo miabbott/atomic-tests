@@ -7,6 +7,7 @@ Fedora 26 Atomic Testing | ![fedora 26 atomic testing status](https://s3.amazona
 Fedora 26 Atomic Updates | ![fedora 26 atomic updates status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic-updates/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic-updates/latest/improved-sanity-test.log)
 Fedora 27 Atomic Host | ![fedora 27 atomic status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-27-atomic/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-27-atomic/latest/improved-sanity-test.log)
 Fedora 27 Atomic Testing | ![fedora 27 atomic testing status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-27-atomic-testing/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-27-atomic-testing/latest/improved-sanity-test.log)
+Fedora 27 Atomic Updates | ![fedora 27 atomic updates status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-27-atomic-updates/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-27-atomic-updates/latest/improved-sanity-test.log)
 Fedora Rawhide Atomic Host | ![fedora rawhide atomic status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-rawhide/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-rawhide/latest/improved-sanity-test.log)
 
 ---
@@ -35,18 +36,20 @@ found in the repo are currently unmaintained and may not work correctly.
   - Covers the basic functionality of the `docker swarm` commands
 - [Docker/Docker Latest](tests/docker/main.yml)
   - Validates basic `docker` operations using either `docker` or `docker-latest`
+- [CVE Scanner](tests/images_cve_scanner/main.yml)
+  - Performs `atomic scan` on a number of RHEL containers
 - [Improved Sanity Test](tests/improved-sanity-test/main.yml)
   - A test suite aimed at providing smoketest-like coverage of an entire
     Atomic Host
 - [Kubernetes ](tests/k8-cluster/main.yml)
   - Validates standing up a single-node Kubernetes cluster and deploying a
     simple web+DB application
+- [OpenShift Ansible](tests/openshift-ansible-test/main.yml)
+  - Validates the OpenShfit Ansible installer against AH streams
 - [Package Layering](tests/pkg-layering/main.yml)
   - Validates the package layering functionality of `rpm-ostree`
 - [System Containers](tests/system-containers/main.yml)
   - Verifies the basic usage of system containers on Atomic Host
-- [Runc](tests/runc/main.yml)
-  - Verifies basic runc functions
 
 ### Why Ansible?
 The reasons for choosing Ansible playbooks are mainly 1) ease of use, 2)
