@@ -10,6 +10,7 @@ Core Functionality
   - rpm-ostree status
   - rpm-ostree upgrade
   - rpm-ostree reload
+  - rpm-ostree ex livefs
   - rpm-ostree initramfs
 
 To be Covered

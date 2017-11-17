@@ -9,6 +9,7 @@
 # Parameter:
 #   roiv_package_name - name of a single package
 #   roiv_binary_name - name of binary to check for (optional)
+#   roiv_status_check - boolean - optionally check the rpm-ostree status for package
 #
 # Requirements:
 #  This role must be run after the reboot following rpm-ostree install of a package
@@ -29,29 +30,17 @@
 - name: Setup binary fact
   set_fact:
     roiv_binary_name: "{{ roiv_binary_name if roiv_binary_name is defined else roiv_package_name }}"
+    roiv_status_check: "{{ roiv_status_check | default(true) }}"
 
-- name: Get rpm-ostree status --json output
-  command: rpm-ostree status --json
-  register: installed
+- include_role:
+    name: rpm_ostree_status
 
-- name: Convert rpm-ostree status output to jinja2 json
-  set_fact:
-    installed_json: "{{ installed.stdout | from_json }}"
-
-- name: Set packages when deployment 0 is booted
-  set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][0]['packages'] }}"
-  when: installed_json['deployments'][0]['packages'] is defined and installed_json['deployments'][0]['booted']
-
-- name: Set packages when deployment 1 is booted
-  set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
-  when: installed_json['deployments'][1]['packages'] is defined and installed_json['deployments'][1]['booted']
-
-- name: Fail if {{ roiv_package_name }} is not in rpm-ostree status output
+# ros_booted is pulled from the rpm_ostree_status role above
+- name: Fail if {{ roiv_package_name }} is not in list of installed packages
   fail:
-    msg: "{{ roiv_package_name }} not in rpm-ostree status output"
-  when: roiv_package_name not in installed_pkgs
+    msg: "{{ roiv_package_name }} is not in rpm-ostree status output"
+  when: roiv_package_name not in ros_booted['packages'] and
+        roiv_status_check
 
 - name: Check for {{ roiv_binary_name }} binary
   command: command -v {{ roiv_binary_name }}

@@ -9,7 +9,7 @@
 # Parameter:
 #   rouv_package_name - the name of a single package
 #   rouv_binary_name - the name of a binary (optional)
-#
+#   rouv_status_check - boolean -check the rpm-ostree output for the package (optional)
 # Requirements:
 #  This role must be run after the reboot following rpm-ostree install of a package
 #
@@ -29,37 +29,17 @@
 - name: Setup binary fact
   set_fact:
     rouv_binary_name: "{{ rouv_binary_name if rouv_binary_name is defined else rouv_package_name }}"
+    rouv_status_check: "{{ rouv_status_check | default(true) }}"
 
-- name: Get rpm-ostree status --json output
-  command: rpm-ostree status --json
-  register: installed
+- include_role:
+    name: rpm_ostree_status
 
-- name: Convert rpm-ostree status output to jinja2 json
-  set_fact:
-    installed_json: "{{ installed.stdout | from_json }}"
-
-# This is a hack for packages being displayed in rpm-ostree v2017.3 that should
-# be fixed in v2017.4.  Once all streams are at v2017.4 we can fix this.  See
-# https://github.com/projectatomic/rpm-ostree/pull/670
-- name: Set packages when deployment 0 is booted
-  set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][0]['packages'] if installed_json['deployments'][0]['packages'] is defined else {} }}"
-  when: installed_json['deployments'][0]['booted']
-
-- name: Set packages when deployment 1 is booted
-  set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][1]['packages'] if installed_json['deployments'][1]['packages'] is defined else {} }}"
-  when:  installed_json['deployments'][1]['booted']
-
-- name: Fail if packages not found in rpm-ostree status output
+# ros_booted is pulled from rpm_ostree_status role above
+- name: Fail if package is in rpm-ostree booted deployment
   fail:
-    msg: "Packages not found in rpm-ostree status output"
-  when: installed_pkgs is undefined
-
-- name: Fail if {{ rouv_package_name }} is in rpm-ostree status output
-  fail:
-    msg: "{{ rouv_package_name }} in rpm-ostree status output"
-  when: rouv_package_name in installed_pkgs
+    msg: "{{ rouv_package_name }} is in rpm-ostree status output when it shouldn't be"
+  when: rouv_package_name in ros_booted['packages'] and
+        rouv_status_check
 
 - name: Fail if binary for {{ rouv_binary_name }} is installed
   command: command -v {{ rouv_binary_name }}

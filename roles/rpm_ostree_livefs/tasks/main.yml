@@ -1,0 +1,19 @@
+---
+# vim: set ft=ansible:
+#
+- name: Enable livefs
+  command: rpm-ostree ex livefs
+  register: ros_lfs
+
+# Regex to find all the sha256 checksums in the output
+- name: Get commits
+  set_fact:
+    commits: "{{ ros_lfs.stdout|regex_findall('[A-Fa-f0-9]{64}') }}"
+
+# Note: There was an instance where there were three checksums in the message
+# so just grab the last two.
+- name: Get base and livefs commits
+  set_fact:
+    rol_base_commit: "{{ commits[-2] }}"
+    rol_livefs_commit: "{{ commits[-1] }}"
+

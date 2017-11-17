@@ -6,6 +6,7 @@ Test Coverage:
 * rpm-ostree status
 * rpm-ostree upgrade
 * rpm-ostree reload
+* rpm-ostree ex livefs
 * rpm-ostree initramfs
 
 Not Covered:
