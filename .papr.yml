@@ -8,9 +8,12 @@ cluster:
 context: fedora/26/atomic
 
 packages:
-  - ansible
+  - python-virtualenv
+  - python-pip
   - git
-  - python2-jmespath
+  - gcc
+  - redhat-rpm-config
+  - libselinux-python
 
 tests:
   - ./.test_director
@@ -23,7 +26,7 @@ cluster:
     - name: testnode
       distro: fedora/27/atomic
   container:
-    image: registry.fedoraproject.org/fedora:27
+    image: registry.fedoraproject.org/fedora:26
 
 context: fedora/27/atomic
 
@@ -35,7 +38,7 @@ cluster:
     - name: testnode
       distro: centos/7/atomic
   container:
-      image: registry.centos.org/centos/centos:7
+      image: registry.fedoraproject.org/fedora:26
 
 context: centos/7/atomic
 
@@ -47,6 +50,6 @@ cluster:
     - name: testnode
       distro: centos/7/atomic/continuous
   container:
-      image: registry.centos.org/centos/centos:7
+      image: registry.fedoraproject.org/fedora:26
 
 context: centos/7/atomic/continuous

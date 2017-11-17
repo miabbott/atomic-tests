@@ -1,6 +1,18 @@
 #!/bin/bash
 set -xeuo pipefail
 
+VIRTUAL_ENV_DISABLE_PROMPT=1
+
+if [ ! -d venv ]; then
+    virtualenv --system-site-packages venv
+fi
+
+source venv/bin/activate
+
+pip install -r requirements.txt
+
+ansible --version
+
 NEW_TESTS=( $(git diff --name-only $(git merge-base origin/master HEAD) | grep 'tests/.*/main.yml' || true) )
 
 # no new tests found, just run improved sanity test
