@@ -21,14 +21,14 @@
 
 - name: Set EPEL base url
   set_fact:
-    epel_base: "https://download.fedoraproject.org/pub/epel/7/x86_64"
+    epel_base: "https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/"
 
 - name: Get subdir url
   set_fact:
     epel_subdir: "{{ epel_base }}/{{ rpm_name[0] }}"
 
 - name: Scrape HTML for package name
-  shell: curl -LsSk {{ epel_subdir }}/ | sed -n 's/.*"\({{ rpm_name }}.*.rpm\)\".*/\1/p'
+  shell: curl -LsSk {{ epel_subdir }}/ | sed -n 's|.*\"\({{ rpm_name | quote}}.*.rpm\)\".*|\1|p'
   register: epel_output
   retries: 5
   delay: 60

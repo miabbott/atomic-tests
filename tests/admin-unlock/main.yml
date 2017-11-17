@@ -58,7 +58,9 @@
       fail:
         msg: "Required variables are not defined.  Check vars.yml file."
       when: g_rpm_url is undefined or
+            g_rpm_url_fedora is undefined or
             g_rpm_name is undefined or
+            g_rpm_name_fedora is undefined or
             g_rpm_name_2 is undefined
 
   roles:
@@ -92,27 +94,63 @@
 
     - role: rpm_install
       rpm_url: "{{ g_rpm_url }}"
+      when: ansible_distribution != 'Fedora'
+
+    - role: rpm_install
+      rpm_url: "{{ g_rpm_url_fedora }}"
+      when: ansible_distribution == 'Fedora'
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       check_binary: false
+      when: ansible_distribution != 'Fedora'
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      check_binary: false
+      when: ansible_distribution == 'Fedora'
 
     - role: rpm_uninstall
       rpm_name: "{{ g_rpm_name }}"
+      when: ansible_distribution != 'Fedora'
+
+    - role: rpm_uninstall
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      when: ansible_distribution == 'Fedora'
 
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name }}"
+      when: ansible_distribution != 'Fedora'
+
+    - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      when: ansible_distribution == 'Fedora'
 
     - role: rpm_install
       rpm_url: "{{ g_rpm_url }}"
+      when: ansible_distribution != 'Fedora'
       tags:
         - second_install
+
+    - role: rpm_install
+      rpm_url: "{{ g_rpm_url_fedora }}"
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - second_install_fedora
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       check_binary: false
+      when: ansible_distribution != 'Fedora'
       tags:
         - second_verify_present
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      check_binary: false
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - second_verify_present_fedora
 
     - role: reboot
 
@@ -120,8 +158,16 @@
 
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name }}"
+      when: ansible_distribution != 'Fedora'
       tags:
         - second_verify_missing
+
+    - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - second_verify_missing_fedora
+
 
 - name: Ostree Admin Unlock - Hotfix - Add/Remove Package Persistence
   hosts: all
@@ -140,27 +186,63 @@
 
     - role: rpm_install
       rpm_url: "{{ g_rpm_url }}"
+      when: ansible_distribution != 'Fedora'
+
+    - role: rpm_install
+      rpm_url: "{{ g_rpm_url_fedora }}"
+      when: ansible_distribution == 'Fedora'
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       check_binary: false
+      when: ansible_distribution != 'Fedora'
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      check_binary: false
+      when: ansible_distribution == 'Fedora'
 
     - role: rpm_uninstall
       rpm_name: "{{ g_rpm_name }}"
+      when: ansible_distribution != 'Fedora'
+
+    - role: rpm_uninstall
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      when: ansible_distribution == 'Fedora'
 
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name }}"
+      when: ansible_distribution != 'Fedora'
+
+    - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      when: ansible_distribution == 'Fedora'
 
     - role: rpm_install
       rpm_url: "{{ g_rpm_url }}"
+      when: ansible_distribution != 'Fedora'
       tags:
         - second_install
+
+    - role: rpm_install
+      rpm_url: "{{ g_rpm_url_fedora }}"
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - second_install_fedora
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       check_binary: false
+      when: ansible_distribution != 'Fedora'
       tags:
         - second_verify_present
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      check_binary: false
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - second_verify_present_fedora
 
     - role: reboot
 
@@ -169,8 +251,16 @@
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
       check_binary: false
+      when: ansible_distribution != 'Fedora'
       tags:
         - third_verify_present
+
+    - role: package_verify_present
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      check_binary: false
+      when: ansible_distribution == 'Fedora'
+      tags:
+        - third_verify_present_fedora
 
     - role: epel_rpm_url
       rpm_name: "{{ g_rpm_name_2 }}"
@@ -204,6 +294,11 @@
 
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name }}"
+      when: ansible_distribution != 'Fedora'
+
+    - role: package_verify_missing
+      rpm_name: "{{ g_rpm_name_fedora }}"
+      when: ansible_distribution == 'Fedora'
 
     - role: package_verify_missing
       rpm_name: "{{ g_rpm_name_2 }}"
