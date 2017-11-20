@@ -30,7 +30,7 @@
     - fq_name
 
   vars_files:
-    - "{{ ansible_distribution|lower }}.yml"
+    - "vars/{{ ansible_distribution|lower }}.yml"
 
   roles:
     - role: atomic_pull
@@ -95,7 +95,7 @@
     - shortname
 
   vars_files:
-    - "./{{ ansible_distribution|lower }}.yml"
+    - "vars/{{ ansible_distribution|lower }}.yml"
 
   roles:
     - role: atomic_pull
@@ -167,7 +167,7 @@
     - fq_name_name
 
   vars_files:
-    - "{{ ansible_distribution|lower }}.yml"
+    - "vars/{{ ansible_distribution|lower }}.yml"
 
   roles:
     - role: atomic_pull
