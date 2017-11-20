@@ -1,4 +1,4 @@
 ---
-g_rpm_url: 'https://download.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
-g_rpm_name: 'epel-release'
+g_rpm_url: 'https://raw.githubusercontent.com/projectatomic/atomic-host-tests/master/aht-dummy-1.0-1.noarch.rpm'
+g_rpm_name: 'aht-dummy'
 g_rpm_name_2: 'fpaste'
