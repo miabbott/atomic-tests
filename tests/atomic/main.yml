@@ -237,7 +237,7 @@
     - pull_tags
 
   pre_tasks:
-    - name: Set cockpit container name for RHELAH
+    - name: Set container name
       set_fact:
         fq_name: "docker.io/busybox"
         short_name: "busybox"
