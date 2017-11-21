@@ -58,6 +58,7 @@
       fail:
         msg: "Required variables are not defined.  Check vars.yml file."
       when: g_rpm_url is undefined or
+            g_rpm_path is undefined or
             g_rpm_name is undefined or
             g_rpm_name_2 is undefined
 
@@ -91,7 +92,8 @@
     - role: overlayfs_verify_present
 
     - role: rpm_install
-      rpm_url: "{{ g_rpm_url }}"
+      #rpm_url: "{{ g_rpm_url }}"
+      rpm_path: "{{ g_rpm_path }}"
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
@@ -104,7 +106,8 @@
       rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
-      rpm_url: "{{ g_rpm_url }}"
+      #rpm_url: "{{ g_rpm_url }}"
+      rpm_path: "{{ g_rpm_path }}"
       tags:
         - second_install
 
@@ -139,7 +142,8 @@
     - role: overlayfs_verify_present
 
     - role: rpm_install
-      rpm_url: "{{ g_rpm_url }}"
+      #rpm_url: "{{ g_rpm_url }}"
+      rpm_path: "{{ g_rpm_path }}"
 
     - role: package_verify_present
       rpm_name: "{{ g_rpm_name }}"
@@ -152,7 +156,8 @@
       rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
-      rpm_url: "{{ g_rpm_url }}"
+      #rpm_url: "{{ g_rpm_url }}"
+      rpm_path: "{{ g_rpm_path }}"
       tags:
         - second_install
 
@@ -224,6 +229,9 @@
     - name: Attempt to install rpm
       command: rpm -i {{ g_rpm_url }}
       register: attempted_install
+      retries: 5
+      delay: 60
+      until: attempted_install|success
       failed_when: attempted_install.rc != 1
 
     - include_role:

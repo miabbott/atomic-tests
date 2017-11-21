@@ -4,12 +4,29 @@
 # Installs an RPM using a URL
 #
 # Parameters
-#   rpm_url (required) [string] - full url to rpm
+#   rpm_url (optional) [string] - full url to rpm
+#   rpm_path (optional) [string] - local path to RPM
 #
-- name: Fail if rpm_url is undefined
+- name: Fail if rpm_url or rpm_path is undefined
   fail:
-    msg: "rpm_url must be passed into this role/include"
-  when: rpm_url is undefined
+    msg: "rpm_url or rpm_path must be passed into this role/include"
+  when:
+    - rpm_url is undefined
+    - rpm_path is undefined
+
+- block:
+    - name: Make temp directory as RPM destination
+      command: mktemp -d
+      register: tmp_dir
+
+    - name: Copy {{ rpm_path | basename }}
+      copy:
+        src: "{{ rpm_path }}"
+        dest: "{{ tmp_dir.stdout }}/{{ rpm_path | basename }}"
+
+    - name: Install {{ rpm_path | basename }}
+      command: "rpm -i {{ tmp_dir.stdout }}/{{ rpm_path | basename }}"
+  when: rpm_path is defined
 
 - name: Install {{ rpm_url }}
   command: rpm -i {{ rpm_url }}
@@ -17,3 +34,5 @@
   retries: 5
   delay: 60
   until: rpmi|success
+  when: rpm_url is defined
+
