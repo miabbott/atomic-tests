@@ -210,7 +210,6 @@
         - overlayfs_verify_present
 
     - role: rpm_install
-      #rpm_url: "{{ g_rpm_url }}"
       rpm_path: "{{ g_rpm_path }}"
       tags:
         - rpm_install

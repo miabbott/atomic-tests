@@ -92,7 +92,6 @@
     - role: overlayfs_verify_present
 
     - role: rpm_install
-      #rpm_url: "{{ g_rpm_url }}"
       rpm_path: "{{ g_rpm_path }}"
 
     - role: package_verify_present
@@ -106,7 +105,6 @@
       rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
-      #rpm_url: "{{ g_rpm_url }}"
       rpm_path: "{{ g_rpm_path }}"
       tags:
         - second_install
@@ -142,7 +140,6 @@
     - role: overlayfs_verify_present
 
     - role: rpm_install
-      #rpm_url: "{{ g_rpm_url }}"
       rpm_path: "{{ g_rpm_path }}"
 
     - role: package_verify_present
@@ -156,7 +153,6 @@
       rpm_name: "{{ g_rpm_name }}"
 
     - role: rpm_install
-      #rpm_url: "{{ g_rpm_url }}"
       rpm_path: "{{ g_rpm_path }}"
       tags:
         - second_install
