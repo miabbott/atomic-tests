@@ -8,7 +8,7 @@
     msg: "drmi_image is not defined"
   when: drmi_image is undefined
 
-- name: Set optioins
+- name: Set options
   set_fact:
     del_options: "{{ drmi_options | default() }}"
 

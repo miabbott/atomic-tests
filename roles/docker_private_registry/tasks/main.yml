@@ -14,13 +14,25 @@
       path: /etc/containers/registries.conf
     register: reg
 
+  - name: Check for TOML formmated registries.conf
+    command: grep registries.search /etc/containers/registries.conf
+    register: toml
+    when: reg.stat.exists
+
+  - name: add toml registeries
+    replace:
+      regexp: "\\[registries.insecure\\]\nregistries = \\[\\]"
+      replace: "[registries.insecure]\nregistries = ['{{ ansible_docker0.ipv4.address }}:5000']"
+      dest: /etc/containers/registries.conf
+    when: reg.stat.exists and toml.rc == 0
+
   - name: add registeries
     blockinfile:
       dest: /etc/containers/registries.conf
       block: |
         insecure_registries:
           - {{ ansible_docker0.ipv4.address }}:5000
-    when: reg.stat.exists
+    when: reg.stat.exists and toml.rc == 1
 
   - name: edit /etc/sysconfig/docker file to add private registry
     replace:

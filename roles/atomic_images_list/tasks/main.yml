@@ -13,4 +13,4 @@
 
 - name: Save JSON to variable
   set_fact:
-    ail_json: "{{ ail.stdout | to_json | from_json }}"
+    ail_json: "{{ ail.stdout | from_json }}"

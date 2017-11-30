@@ -9,11 +9,5 @@
   when: dt_image is undefined or
         dt_tag is undefined
 
-- debug:
-    msg: "dt_img: {{ dt_image }}"
-
-- debug:
-    msg: "dt_tag: {{ dt_tag }}"
-
 - name: Tag image
   command: docker tag {{ dt_image }} {{ dt_tag }}

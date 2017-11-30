@@ -9,4 +9,4 @@
 
 - name: Save JSON to variable
   set_fact:
-    acl_json: "{{ acl.stdout | to_json | from_json }}"
+    acl_json: "{{ acl.stdout | from_json }}"
