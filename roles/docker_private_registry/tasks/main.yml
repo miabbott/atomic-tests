@@ -18,6 +18,7 @@
     command: grep registries.search /etc/containers/registries.conf
     register: toml
     when: reg.stat.exists
+    ignore_errors: true
 
   - name: Add toml registries
     replace:
