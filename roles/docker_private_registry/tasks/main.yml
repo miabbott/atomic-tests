@@ -19,14 +19,14 @@
     register: toml
     when: reg.stat.exists
 
-  - name: add toml registeries
+  - name: Add toml registries
     replace:
       regexp: "\\[registries.insecure\\]\nregistries = \\[\\]"
       replace: "[registries.insecure]\nregistries = ['{{ ansible_docker0.ipv4.address }}:5000']"
       dest: /etc/containers/registries.conf
     when: reg.stat.exists and toml.rc == 0
 
-  - name: add registeries
+  - name: Add registries
     blockinfile:
       dest: /etc/containers/registries.conf
       block: |
