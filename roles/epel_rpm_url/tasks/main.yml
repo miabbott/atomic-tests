@@ -19,21 +19,33 @@
     msg: "rpm_name must be passed into this role/include"
   when: rpm_name is undefined
 
-- name: Set EPEL base url
+- name: Set EPEL base url and regex
   set_fact:
     epel_base: "https://download.fedoraproject.org/pub/epel/7/x86_64/Packages"
+    epel_regex: ".*>({{ rpm_name }}.*rpm)<.*"
 
 - name: Get subdir url
   set_fact:
     epel_subdir: "{{ epel_base }}/{{ rpm_name[0] }}"
 
-- name: Scrape HTML for package name
-  shell: curl -LsSk {{ epel_subdir | quote }}/ | sed -n 's|.*\"\({{ rpm_name | quote }}.*.rpm\)\".*|\1|p'
-  register: epel_output
+# Split the task of gathering the package name into two operations, that way
+# if the 'curl' operation fails (i.e HTTP 404 or other network flakes) we can
+# abort early and not fail further down a test.
+
+# 'no_log: true' is used here to hide the output from 'curl' which is the
+# entire directory listing
+- name: Grab content of the EPEL subdir
+  command: curl -LsSk {{ epel_subdir }}
+  register: curl_out
   retries: 5
   delay: 60
-  until: epel_output|success
+  until: curl_out|success
+  no_log: true
+
+- name: Get package name from output
+  set_fact:
+    epel_package_name:  "{{ curl_out.stdout | regex_findall(epel_regex) }}"
 
 - name: Set epel_rpm_url
   set_fact:
-    epel_rpm_url: "{{ epel_subdir}}/{{ epel_output.stdout }}"
+    epel_rpm_url: "{{ epel_subdir}}/{{ epel_package_name[0] }}"
