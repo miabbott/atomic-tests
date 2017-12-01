@@ -19,9 +19,11 @@
     msg: "rpm_name must be passed into this role/include"
   when: rpm_name is undefined
 
+# Sorry download.fedoraproject.org, but you were giving me more trouble than
+# I would have liked, so dl.fedporaproject.org wins out.
 - name: Set EPEL base url and regex
   set_fact:
-    epel_base: "https://download.fedoraproject.org/pub/epel/7/x86_64/Packages"
+    epel_base: "https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages"
     epel_regex: ".*>({{ rpm_name }}.*rpm)<.*"
 
 - name: Get subdir url
