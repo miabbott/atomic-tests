@@ -9,8 +9,27 @@
     msg: "Image is undefined"
   when: image is undefined
 
+- name: Determine version of atomic
+  command: rpm -q --queryformat '%{VERSION}' atomic
+  register: rpmq
+
+- name: Setup atomic_version fact
+  set_fact:
+    atomic_version:  "{{ rpmq.stdout }}"
+
+# The behavior changed with this commit:
+# https://github.com/projectatomic/atomic/commit/b5f07baa6c54c2bc74079797b80a109a8d10873a
+- name: Setup atomic install command (pre v1.19.1)
+  set_fact:
+    atomic_install_cmd: "atomic install --system --system-package no "
+
+- name: Setup atomic install command (post v1.19.1)
+  set_fact:
+    atomic_install_cmd: "atomic install --system "
+  when: atomic_version | version_compare('1.19.1', '>=')
+
 - name: Install system container
-  command: atomic install --system {{ image }}
+  command: {{ atomic_install_cmd }} {{ image }}
   register: ais
   retries: 5
   delay: 60
