@@ -29,7 +29,7 @@
   when: atomic_version | version_compare('1.19.1', '>=')
 
 - name: Install system container
-  command: {{ atomic_install_cmd }} {{ image }}
+  command: "{{ atomic_install_cmd }} {{ image }}"
   register: ais
   retries: 5
   delay: 60
