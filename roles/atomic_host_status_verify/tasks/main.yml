@@ -19,5 +19,8 @@
 
 - name: Fail if output is not identical
   fail:
-    msg="The output of atomic host status and rpm-ostree status are not the same"
+    msg: |
+      The output of atomic host status and rpm-ostree status are not the same.
+      atomic host status: {{ ahs.stdout }}
+      rpm-ostree status: {{ ros.stdout }}
   when: ahs.stdout != ros.stdout

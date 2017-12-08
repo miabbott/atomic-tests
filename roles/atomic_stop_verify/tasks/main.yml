@@ -11,7 +11,7 @@
 #
 - name: Fail if container is undefined
   fail:
-    msg="No container specified"
+    msg: "No container specified"
   when: container is undefined
 
 - name: atomic stop {{ container }}
@@ -23,5 +23,7 @@
 
 - name: Fail if {{ container }} status is not exited
   fail:
-    msg="Container is not Up or Created in docker ps -a output"
+    msg: |
+      Expected: Container has exited status
+      Actual: {{ dps.stdout }}
   when: dps.stdout.find("Exited") == -1

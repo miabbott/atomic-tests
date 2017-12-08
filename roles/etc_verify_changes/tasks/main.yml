@@ -16,15 +16,24 @@
 
 - name: Fail if the file is not owned by root
   fail:
-    msg: "The epel.repo file is not owned by root"
+    msg: |
+      The epel.repo file is not owned by root
+      Expected: UID = 0
+      Actual: UID = {{ epel.stat.uid }}
   when: epel.stat.uid != 0
 
 - name: Fail if the group on the file is not root
   fail:
-    msg: "The epel.repo file does not have the right group"
+    msg: |
+      The epel.repo file does not have the right group
+      Expected: GID = 0
+      Actual: GID = {{ epel.stat.gid }}
   when: epel.stat.gid != 0
 
 - name: Fail if the permssions on the file are not correct
   fail:
-    msg: "The epel.repo file does not have the right permissions"
+    msg: |
+      The epel.repo file does not have the right permissions
+      Expected: Permissions = 0644
+      Actual: Permissions = {{ epel.stat.mode }}
   when: epel.stat.mode != "0644"

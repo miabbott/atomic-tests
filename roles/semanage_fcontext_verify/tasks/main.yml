@@ -11,5 +11,7 @@
 
 - name: Fail if the context does not match what is expected
   fail:
-    msg: "The SELinux context does not match what was expected"
+    msg: |
+      Expected: SELinux fcontext: {{ test_context }}
+      Actual: SELinux fcontext: {{ fcontext.stdout }}
   when: test_context not in fcontext.stdout

@@ -17,7 +17,9 @@
 
 - name: Fail if the httpd image is not present
   fail:
-    msg: "The {{ g_httpd_name }} container is not present"
+    msg: |
+      Expected: {{ g_httpd_name }} container is in docker images
+      Actual: docker images {{ images_before.stdout }}
   when: g_httpd_name not in images_before.stdout
 
 - name: Remove the httpd container
@@ -29,5 +31,7 @@
 
 - name: Fail if the httpd image is present
   fail:
-    msg: "The {{ g_httpd_name }} image was not removed"
+    msg: |
+      Expected: {{ g_httpd_name }} is removed from docker images
+      Actual: docker images: {{ images_after.stdout }}
   when: g_httpd_name in images_after.stdout

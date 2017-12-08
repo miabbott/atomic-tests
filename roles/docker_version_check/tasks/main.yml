@@ -12,5 +12,8 @@
 
 - name: Check if minimum version is met
   fail:
-    msg: "Docker version too old: {{ actual_docker_version.stdout }} < {{ docker_version }}"
+    msg: |
+      Docker version too old.
+      Expected Version: {{ docker_version }}
+      Actual Version: {{ actual_docker_version.stdout }}
   when: actual_docker_version.stdout | version_compare(docker_version, '<')

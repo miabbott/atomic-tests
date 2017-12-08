@@ -12,5 +12,8 @@
 
 - name: Check if minimum version is met
   fail:
-    msg: "Runc version too old: {{ actual_runc_version.stdout }} < {{ runc_version }}"
+    msg:
+      Runc version too old.
+      Expected Version: {{ runc_version }}
+      Actual Version: {{ actual_runc_version.stdout }}
   when: actual_runc_version.stdout | version_compare(runc_version, '<')

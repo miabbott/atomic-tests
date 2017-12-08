@@ -37,7 +37,9 @@
 # ros_booted is pulled from rpm_ostree_status role above
 - name: Fail if package is in rpm-ostree booted deployment
   fail:
-    msg: "{{ rouv_package_name }} is in rpm-ostree status output when it shouldn't be"
+    msg: |
+      Expected: {{ rouv_package_name }} is not booted deployment packages
+      Actual: Booted deployment packages: {{ ros_booted['packages'] }}
   when: rouv_package_name in ros_booted['packages'] and
         rouv_status_check
 

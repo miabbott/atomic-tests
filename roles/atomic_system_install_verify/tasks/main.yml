@@ -15,5 +15,7 @@
 
 - name: Fail if image is not in list output
   fail:
-    msg: "{{ image }} is not in list output"
+    msg: |
+      Expected: {{ image }} is in atomic containers list output
+      Actual: {{ acl_output.stdout }}
   when: image not in acl_output.stdout

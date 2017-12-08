@@ -35,7 +35,12 @@
 
 - name: Fail if docker version is not the same as docker-latest
   fail:
-    msg: "Docker is not docker latest"
+    msg: |
+      Docker is not docker latest
+      Expected: docker version and docker latest version to be the same
+      Result:
+        Docker Version: {{ docker_ver.stdout }}
+        Docker Latest: {{ dockerl_ver.stdout }}
   when: docker_ver.stdout != dockerl_ver.stdout
 
 

@@ -17,7 +17,9 @@
 
 - name: Fail if httpd image is missing
   fail:
-    msg: "httpd image is not present"
+    msg: |
+      Expected: {{ g_httpd_name }} in docker images output
+      Actual: {{ images.stdout }}
   when: g_httpd_name not in images.stdout
 
 - name: Run httpd container
@@ -29,7 +31,9 @@
 
 - name: Check for httpd container
   fail:
-    msg: "The {{ g_httpd_name }} container is not running"
+    msg: |
+      Expected: {{ g_httpd_name }} is running
+      Actual: {{ ps_run.stdout }}
   when: g_httpd_name not in ps_run.stdout
 
 - name: Verify port 80 is open
@@ -53,7 +57,9 @@
 
 - name: Fail if httpd container is still running
   fail:
-    msg: "The {{ g_httpd_name }} container is still running"
+    msg: |
+      Expected: {{ g_httpd_name }} is not running.
+      Actual: {{ ps_stop.stdout }}
   when: g_httpd_name in ps_stop.stdout
 
 - name: Start httpd container
@@ -65,7 +71,9 @@
 
 - name: Fail if httpd container is not running
   fail:
-    msg: "The {{ g_httpd_name }} container is not running"
+    msg: |
+      Expected: {{ g_httpd_name }} container is running
+      Actual: {{ ps_start.stdout }}
   when: g_httpd_name not in ps_start.stdout
 
 - name: Stop httpd container
@@ -77,5 +85,7 @@
 
 - name: Fail if httpd container is still running
   fail:
-    msg: "The {{ g_httpd_name }} container is still running"
+    msg: |
+      Expected: {{ g_httpd_name }} is stopped
+      Actual: {{ ps_stop.stdout }}
   when: g_httpd_name in ps_stop.stdout

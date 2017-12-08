@@ -22,5 +22,7 @@
 
 - name: Fail if busybox is not in atomic images output
   fail:
-    msg="busybox is not in atomic images output"
+    msg: |
+      Expected: busybox is not in atomic images output
+      Actual: {{ aio.stdout }}
   when: "'busybox' not in aio.stdout"

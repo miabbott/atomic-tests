@@ -11,5 +11,7 @@
 
 - name: Fail if unlocked is not set to development
   fail:
-    msg: "Unlocked is not set to development"
+    msg: |
+      Unlocked is not set to development.
+      Actual: {{ ros_booted['unlocked'] }}
   when: "'development' not in ros_booted['unlocked']"

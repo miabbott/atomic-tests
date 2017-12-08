@@ -17,7 +17,9 @@
 
 - name: Fail if httpd container is not present
   fail:
-    msg: "The {{ g_httpd_name }} container is not present"
+    msg: |
+      Expected: {{ g_httpd_name }} container is present in docker ps
+      Actual: {{ ps_before.stdout }}
   when: g_httpd_name not in ps_before.stdout
 
 - name: Remove the httpd container
@@ -29,5 +31,8 @@
 
 - name: Fail if httpd container is present
   fail:
-    msg: "The {{ g_httpd_name }} container is still present"
+    msg: |
+      The {{ g_httpd_name }} container is still present
+      Expected: {{ g_httpd_name }} is missing from docker ps -a
+      Actual: {{ ps_after.stdout }}
   when: g_httpd_name in ps_after.stdout

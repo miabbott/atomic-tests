@@ -52,11 +52,17 @@
 
     - name: Fail if GPG key is not found
       fail:
-        msg: "RPMs not signed with appropriate GPG key"
+        msg: |
+          RPMs not signed with appropriate GPG key.
+          Expected: {{ rsv_gpg_key }}
+          Result: {{ rsv_rpm_sig.stdout }}
       when: rsv_gpg_key not in rsv_rpm_sig.stdout
 
     - name: Fail if more than one GPG key found
       fail:
-        msg: "Multiple GPG keys found"
+        msg: |
+          Multiple GPG keys found!
+          Expected: {{ rsv_gpg_key }}
+          Result: {{ rsv_rpm_sig.stdout }}
       when: rsv_rpm_sig.stdout|length > 17
   when: rsv_rpm_sig_supported

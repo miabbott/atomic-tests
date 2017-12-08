@@ -53,7 +53,9 @@
 
 - name: Fail if values are incorrect
   fail:
-    msg: "Got {{ item.key }}:{{ ailv_match[item.key]}}.  Expected {{ item.key }}:{{ item.value }}"
+    msg: |
+      Expected: {{ item.key }}:{{ item.value }}
+      Actual: {{ item.key }}:{{ ailv_match[item.key]}}
   when: ailv_match[item.key] is undefined or
         item.value != ailv_match[item.key]
   with_dict: "{{ ailv_expected }}"

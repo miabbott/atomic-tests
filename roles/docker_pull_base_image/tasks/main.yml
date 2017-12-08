@@ -19,5 +19,7 @@
 
 - name: Fail if base image is missing
   fail:
-    msg: "The base image named {{ g_osname }} is missing"
+    msg: |
+      The base image named {{ g_osname }} is missing
+      Actual: {{ docker_images.stdout }}
   when: g_osname not in docker_images.stdout
