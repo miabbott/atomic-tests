@@ -1,2 +1,5 @@
 ---
 allow_duplicates: true
+
+dependencies:
+  - role: atomic_install_version_check

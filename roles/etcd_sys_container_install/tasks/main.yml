@@ -10,7 +10,6 @@
 #     verifying the set and get of the key.  This is useful since etcd
 #     keys are preserved even after uninstalling the system container
 #
-
 - name: Set facts
   set_fact:
     etcd_image: 'registry.access.redhat.com/rhel7/etcd'
@@ -23,10 +22,11 @@
     etcd_name: 'etcd'
   when: ansible_distribution != 'RedHat'
 
+# The `aivc_atomic_install_cmd` is set by the required role:
+# `atomic_install_version_check`
 - name: Install etcd
   command: >
-    atomic install
-    --system
+    {{ aivc_atomic_install_cmd }}
     --name=etcd
     {{ etcd_image }}
   register: ai_etcd

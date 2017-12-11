@@ -391,24 +391,9 @@
     - vars.yml
 
   pre_tasks:
-    - name: Determine version of atomic
-      command: rpm -q --queryformat '%{VERSION}' atomic
-      register: rpmq
-
-    - name: Setup atomic_version fact
-      set_fact:
-        atomic_version:  "{{ rpmq.stdout }}"
-
-    # The behavior changed with this commit:
-    # https://github.com/projectatomic/atomic/commit/b5f07baa6c54c2bc74079797b80a109a8d10873a
-    - name: Setup atomic install command (pre v1.19.1)
-      set_fact:
-        atomic_install_cmd: "atomic install --system --system-package no "
-
-    - name: Setup atomic install command (post v1.19.1)
-      set_fact:
-        atomic_install_cmd: "atomic install --system "
-      when: atomic_version | version_compare('1.19.1', '>=')
+    - name: Check the version of 'atomic'
+      include_role:
+        name: atomic_install_version_check
 
   tasks:
     - name: Check for etcd rpm
@@ -435,9 +420,11 @@
         enabled: no
       when: rpm_etcd.rc == 0
 
+    # The `aivc_atomic_install_cmd` is set by the required role:
+    # `atomic_install_version_check`
     - name: Install etcd
       command: >
-        {{ atomic_install_cmd }}
+        {{ aivc_atomic_install_cmd }}
         --name=etcd
         {{ etcd_image }}
       register: ai_etcd
@@ -465,7 +452,7 @@
 
     - name: Install flannel
       command: >
-        {{ atomic_install_cmd }}
+        {{ aivc_atomic_install_cmd }}
         --name=flannel
         {{ flannel_image }}
       register: ai_flannel
