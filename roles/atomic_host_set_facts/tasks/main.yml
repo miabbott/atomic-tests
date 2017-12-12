@@ -1,0 +1,39 @@
+---
+# vim: set ft=ansible:
+#
+# This role creates a dictionary named atomic_host that contains the versions
+# of common packages contained in atomic host.
+#
+- name: Get atomic version
+  command: rpm -q --queryformat '%{VERSION}' atomic
+  register: ahsf_av
+
+- name: Get docker version
+  command: rpm -q --queryformat '%{VERSION}' docker
+  register: ahsf_dv
+
+- name: Get rpm-ostree version
+  command: rpm -q --queryformat '%{VERSION}' rpm-ostree-client
+  register: ahsf_rov
+
+- name: Get skopeo version
+  command: rpm -q --queryformat '%{VERSION}' skopeo
+  register: ahsf_sv
+
+- name: Get ostree version
+  command: rpm -q --queryformat '%{VERSION}' ostree
+  register: ahsf_ov
+
+- name: Set facts for version
+  set_fact:
+    atomic_host:
+      atomic:
+        version: "{{ ahsf_av.stdout }}"
+      docker:
+        version: "{{ ahsf_dv.stdout }}"
+      rpm-ostree:
+        version: "{{ ahsf_rov.stdout }}"
+      skopeo:
+        version: "{{ ahsf_sv.stdout }}"
+      ostree:
+        version: "{{ ahsf_ov.stdout }}"
