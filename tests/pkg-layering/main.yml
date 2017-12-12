@@ -186,7 +186,9 @@
 
     - name: Fail if Exiting because of is not in output
       fail:
-        msg: "Dry run output does not contain 'Exiting because'"
+        msg: |
+          Expected: Dry run output contains exiting because
+          Actual: {{ dry.stdout }}
       when: "'Exiting because' not in dry.stdout"
 
     - include: verify_package_not_deployed.yml
@@ -217,7 +219,9 @@
 
     - name: Fail if Exiting because of is not in output
       fail:
-        msg: "Dry run output does not contain 'Exiting because'"
+        msg: |
+          Expected: Dry run output contains exiting because
+          Actual: {{ dryrun.stdout }}
       when: "'Exiting because' not in dryrun.stdout"
 
     - name: Get rpm-ostree status --json output
@@ -240,12 +244,16 @@
 
     - name: Fail if {{ g_pkg2 }} is in rpm-ostree status output for pending packages
       fail:
-        msg: "{{ g_pkg2 }} in rpm-ostree status output"
+        msg: |
+          Expected: "{{ g_pkg2 }} should not be in rpm-ostree status output
+          Actual: {{ pending_pkgs }}
       when: g_pkg2 in pending_pkgs
 
     - name: Fail if {{ g_pkg1 }} is not in rpm-ostree status output for pending packages
       fail:
-        msg: "{{ g_pkg1 }} not in rpm-ostree status output"
+        msg: |
+          Expected: {{ g_pkg1 }}  in rpm-ostree status output
+          Actual: {{ pending_pkgs }}
       when: g_pkg1 not in pending_pkgs
 
     - name: Fail if {{ g_pkg1 }} is installed
@@ -310,7 +318,10 @@
 
     - name: Fail if error not expected
       fail:
-        msg: "Command error not expected"
+        msg: |
+          Expected: {{ g_invalid_pkg }} is not currently requested in rpm-ostree
+                    uninstall output
+          Actual: {{ uninstall.stderr }}
       when: "'\\'{{ g_invalid_pkg }}\\' is not currently requested' not in uninstall.stderr"
 
 
@@ -332,7 +343,10 @@
 
     - name: Fail if error not expected
       fail:
-        msg: "Command error not expected"
+        msg: |
+          Expected: No package is contained in the rpm-ostree install output when
+                    attempting to install an invalid package
+          Actual: {{ nonexist.stderr }}
       when: "'No package' not in nonexist.stderr"
 
 
@@ -375,7 +389,9 @@
 
     - name: Fail if {{ g_deployed_pkg }} is not in requested packages
       fail:
-        msg: "{{ g_deployed_pkg }} not found in rpm-ostree status output"
+        msg: |
+          Expected: {{ g_deployed_pkg }} is in rpm-ostree status output
+          Actual: {{ req_pkgs }}
       when: g_deployed_pkg not in req_pkgs
 
 - name: Package Layering - Installing non-root ownership package

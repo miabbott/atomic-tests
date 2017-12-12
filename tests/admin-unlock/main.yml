@@ -235,7 +235,9 @@
 
     - name: Fail if current deployment has unlocked not set to none
       fail:
-       msg: "Booted deployment does not have 'unlocked' not set to none"
+       msg: |
+         Expected: booted deployment has unlocked set to none
+         Actual: booted deployment unlocked is set to {{ ros_booted['unlocked'] }}
       when: "'none' not in ros_booted['unlocked']"
 
 - name: Ostree Admin Unlock - Unlock Twice - Error Message
@@ -257,7 +259,9 @@
 
     - name: Verify rpm_ostree status is unlocked and set to hotfix
       fail:
-        msg: "Booted deployment does not have 'unlocked' set to hotfix"
+        msg: |
+          Expected: booted deployment has unlocked set to hotfix
+          Actual: booted deployment unlocked is set to {{ ros_booted['unlocked'] }}
       when: "'development' not in ros_booted['unlocked']"
 
     - name: Run unlock twice (system is already unlocked)
@@ -267,7 +271,10 @@
 
     - name: Fail when error message is incorrect
       fail:
-        msg: "Error message is incorrect"
+        msg: |
+          Expected: Error message should indicated the deployment is already in
+                    the unlocked state: development
+          Actual: double_unlock.stderr
       when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
 
     - name: Run unlock hotfix (system is already locked)
@@ -277,7 +284,10 @@
 
     - name: Fail when error message is incorrect
       fail:
-        msg: "Error message is incorrect"
+        msg: |
+          Expected: Error message should indicate the deployment is already in
+                    the unlocked state: development
+          Actual: {{ double_unlock.stderr }}
       when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
 
     - include_role:
@@ -302,12 +312,18 @@
 
     - name: Verify rpm_ostree status has unlocked set to hotfix
       fail:
-        msg: "Booted deployment is not unlocked and set to hotfix"
+        msg: |
+          Expected: booted deployment is unlocked and set to hotfix
+          Actual: {{ ros_booted['unlocked'] }}
       when: "'hotfix' not in ros_booted['unlocked']"
 
     - name: Fail if non booted deployment does not have same commit id as booted
       fail:
-        msg: "Deployments have different commit_IDs"
+        msg: |
+          Expected: deployments should have the same commit id
+          Actual:
+            Booted Deployment Checksum: {{ ros_booted['checksum'] }}
+            Non Booted Deployment Checksum: {{ ros_not_booted['checksum'] }}
       when: ros_not_booted['checksum'] != ros_booted['checksum']
 
     - name: Run unlock twice (system is already unlocked)
@@ -317,7 +333,10 @@
 
     - name: Fail when error message is incorrect
       fail:
-        msg: "Error message is incorrect"
+        msg: |
+          Expected: Error message should indicated deployment is already in
+                    unlocked state: hotfix
+          Actual: {{ double_unlock.stderr }}
       when: "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
 
     - name: Run unlock hotfix (system is already locked)
@@ -327,7 +346,10 @@
 
     - name: Fail when error message is incorrect
       fail:
-        msg: "Error message is incorrect"
+        msg: |
+          Expected: Error message should indicated deployment is already in
+                    unlocked state: hotfix
+          Actual: {{ double_unlock.stderr }}
       when: "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
 
 

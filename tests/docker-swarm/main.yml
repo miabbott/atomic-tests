@@ -79,7 +79,9 @@
 
     - name: Fail if docker swarm is already running
       fail:
-        msg: "Docker swarm is already running"
+        msg: |
+          Expected: Swarm is not set to active
+          Actual: {{ di.stdout }}
       when:  "'Swarm: active' in di.stdout"
 
     - name: Initialize docker swarm
@@ -91,7 +93,9 @@
 
     - name: Fail if docker swarm is is not active
       fail:
-        msg: "Docker swarm is not active"
+        msg: |
+          Expected: Swarm is set to active
+          Actual: {{ di.stdout }}
       when: "'Swarm: active' not in di.stdout"
 
     - name: Create docker swarm service
@@ -108,7 +112,9 @@
 
     - name: Fail if httpd is not in output
       fail:
-        msg: "{{ g_service_name }} is not in docker service ls output"
+        msg: |
+          Expected: {{ g_service_name }} is in docker service ls output
+          Actual: {{ dsls.stdout }}
       when: g_service_name not in dsls.stdout
 
     - name: Wait for the {{ g_service_name }} container to open port 80
@@ -122,7 +128,9 @@
 
     - name: Fail if docker ps output does not contain {{ g_image_name }}
       fail:
-        msg: "Docker ps output does not contain {{ g_image_name }}"
+        msg: |
+          Expected: {{ g_image_name }} is in docker ps output
+          Actual: {{ dps.stdout }}
       when: g_image_name not in dps.stdout
 
     - name: Inspect the {{ g_service_name }} service
@@ -132,7 +140,9 @@
     # check image
     - name: Fail when image is incorrect
       fail:
-        msg: "Image is incorrect"
+        msg: |
+          Expected: {{ g_image_name }} is in docker inspect output
+          Actual: {{ dis.stdout }}
       when: g_image_name not in dis.stdout
 
     - name: Scale service to 5 instances
@@ -147,7 +157,9 @@
 
     - name: Fail if services did not scale
       fail:
-        msg: "Service did not scale to 5 instances"
+        msg: |
+          Expected: Number of services is set to 5
+          Actual: Number of services is set to {{ num_services.stdout }}
       when: num_services.stdout != "5"
 
     - name: Scale service back to 1 instance
@@ -169,7 +181,9 @@
 
     - name: Fail if {{ g_service_name }} is still in docker service ls output
       fail:
-        msg: "{{ g_service_name }} should not be in docker service ls output"
+        msg: |
+          Expected: {{ g_service_name }} should not be in docker service ls output
+          Actual: {{ dsls.stdout }}
       when: g_service_name in dsls.stdout
 
     - name: Deactivate swarm
@@ -181,7 +195,9 @@
 
     - name: Fail if swarm is not inactive
       fail:
-        msg: "Swarm is not inactive"
+        msg: |
+          Expected: Swarm set to inactive
+          Actual: {{ di.stdout }}
       when: "'Swarm: inactive' not in di.stdout"
 
 - name: Docker Swarm - Cleanup

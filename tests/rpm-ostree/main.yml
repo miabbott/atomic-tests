@@ -751,17 +751,23 @@
 
     - name: Fail if initramfs does not have two arguments
       fail:
-        msg: "Incorrect number of arguments.  Expected: 2.  Actual: {{ ros_booted['initramfs-args'] | length }}"
+        msg: |
+          Expected: 2 arguments
+          Actual: {{ ros_booted['initramfs-args'] | length }}
       when: ros_booted['initramfs-args']|length != 2
 
     - name: Fail if first initramfs argument is not set
       fail:
-        msg: "Initramfs args are incorrect.  Expected -I.  Actual {{ ros_booted['initramfs-args'][0] }}"
+        msg: |
+          Expected: -I in initramfs args
+          Actual:  {{ ros_booted['initramfs-args'][0] }}
       when: "'-I' not in ros_booted['initramfs-args'][0]"
 
     - name: Fail if second initramfs argument is not set
       fail:
-        msg: "Initramfs args are incorrect.  Expected /etc/rpmostree-file.  Actual {{ ros_booted['initramfs-args'][1] }}"
+        msg: |
+          Expected: /etc/rpmostree-file in rpm-ostree initramfs-args
+          Actual: {{ ros_booted['initramfs-args'][1] }}"
       when: "'/etc/rpmostree-file' not in ros_booted['initramfs-args'][1]"
 
     - name: set osname
@@ -781,7 +787,9 @@
 
     - name: Fail if contents of initrd is incorrect
       fail:
-        msg: "lsinitrd does not contain the contents of /etc/rpmostree-file"
+        msg: |
+          Expected: lsinitrd of /etc/rpm-ostree-file contains rpm-ostree-test
+          Actual: {{ lsinitrd.stdout }}
       when: "'rpm-ostree-test' not in lsinitrd.stdout"
 
     - name: Disable initramfs
@@ -803,7 +811,9 @@
 
     - name: Fail if contents of initramfs is incorrect
       fail:
-        msg: "Initramfs contains contents of /etc/rpmostree-file"
+        msg: |
+          Expected: initramfs of /etc/rpmostree-file contains rpm-ostree-test
+          Actual: {{ lsinitrd_disabled.stdout }}
       when: "'rpm-ostree-test' in lsinitrd_disabled.stdout"
 
     - name: Clean up deployments

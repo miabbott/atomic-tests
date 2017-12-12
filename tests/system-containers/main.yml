@@ -137,7 +137,9 @@
 
     - name: Fail if output is incorrect
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi foo is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi foo' not in c_output.stdout"
 
     - include: ../../common/ans_reboot.yml
@@ -153,7 +155,9 @@
 
     - name: Fail if output is incorrect
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi foo is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -199,7 +203,9 @@
 
     - name: Fail if output is incorrect
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi foo is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -246,7 +252,9 @@
 
     - name: Fail if Hi foo is not in output
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi foo is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi foo' not in c_output.stdout"
 
     - name: Update system container
@@ -258,7 +266,9 @@
 
     - name: Fail if Hi bar is not in output
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi bar is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi bar' not in c_output.stdout"
 
     - name: Rollback system container
@@ -270,7 +280,9 @@
 
     - name: Fail if Hi foo is not in output
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi bar is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -317,7 +329,9 @@
 
     - name: Fail if Hi foo is not in output
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi foo is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi foo' not in c_output.stdout"
 
     - name: Create another container using the first container as the rootfs
@@ -338,7 +352,9 @@
 
     - name: Fail if Hi remote is not in output
       fail:
-        msg: "Parameters were not correctly passed in"
+        msg: |
+          Expected: Hi remote is in curl output
+          Actual: {{ c_output.stdout }}
       when: "'Hi remote' not in c_output.stdout"
 
     - name: Verify first container has rootfs
@@ -353,12 +369,16 @@
 
     - name: Fail when rootfs dir is missing from main container
       fail:
-        msg: "/var/lib/containers/atomic/{{ g_hw_name }}/rootfs does not exist"
+        msg: |
+          Expected: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists is True
+          Actual: /var/lib/containers/atomic/{{{ g_hw_name }}/rootfs exists is {{ hw.stat.exists }}
       when: hw.stat.exists == False
 
     - name: Fail when rootfs dir exists for rootfs container
       fail:
-        msg: "/var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs exists"
+        msg: |
+          Expected: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs exists is False
+          Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs exists is {{ hwr.stat.exists }}
       when: hwr.stat.exists != True
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -539,12 +559,16 @@
 
     - name: Verify RUN_DIRECTORY is set
       fail:
-        msg: "RUN_DIRECTORY is not set to {{ run_dir }}"
+        msg: |
+          Expected: RUN_DIRECTORY is set to {{ run_dir }}
+          Actual: RUN_DIRECTORY is set to {{ info_json['values']['RUN_DIRECTORY'] }}
       when: run_dir not in info_json['values']['RUN_DIRECTORY']
 
     - name: Verify STATE_DIRECTORY is set
       fail:
-        msg: "STATE_DIRECTORY is not set to {{ state_dir }}"
+        msg: |
+          Expected: STATE_DIRECTORY is set to {{ state_dir }}
+          Actual: STATE_DIRECTORY is set to {{ info_json['values']['STATE_DIRECTORY'] }}
       when: state_dir not in info_json['values']['STATE_DIRECTORY']
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -599,7 +623,10 @@
 
     - name: Fail if {{ g_invalid_value }} in output
       fail:
-        msg: "Able to set DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID"
+        msg: |
+          Expected: Invalid value {{ g_invalid_value }} will not be set in
+                    DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID
+          Actual: {{ info_output.stdout }}
       when: g_invalid_value in info_output.stdout
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
