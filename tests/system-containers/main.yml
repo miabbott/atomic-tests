@@ -450,6 +450,8 @@
         runc exec etcd etcdctl
         set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'
 
+    # The `aivc_atomic_install_cmd` is set by the required role:
+    # `atomic_install_version_check`
     - name: Install flannel
       command: >
         {{ aivc_atomic_install_cmd }}
