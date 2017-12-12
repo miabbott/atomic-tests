@@ -371,7 +371,7 @@
       fail:
         msg: |
           Expected: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists is True
-          Actual: /var/lib/containers/atomic/{{{ g_hw_name }}/rootfs exists is {{ hw.stat.exists }}
+          Actual: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists is {{ hw.stat.exists }}
       when: hw.stat.exists == False
 
     - name: Fail when rootfs dir exists for rootfs container

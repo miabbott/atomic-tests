@@ -767,7 +767,7 @@
       fail:
         msg: |
           Expected: /etc/rpmostree-file in rpm-ostree initramfs-args
-          Actual: {{ ros_booted['initramfs-args'][1] }}"
+          Actual: {{ ros_booted['initramfs-args'][1] }}
       when: "'/etc/rpmostree-file' not in ros_booted['initramfs-args'][1]"
 
     - name: set osname

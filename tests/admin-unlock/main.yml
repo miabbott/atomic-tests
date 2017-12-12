@@ -274,7 +274,7 @@
         msg: |
           Expected: Error message should indicated the deployment is already in
                     the unlocked state: development
-          Actual: double_unlock.stderr
+          Actual: {{ double_unlock.stderr }}
       when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
 
     - name: Run unlock hotfix (system is already locked)
