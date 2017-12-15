@@ -39,6 +39,17 @@
       when: (rhel_base_images is undefined or rhel_image_names is undefined) and
             ansible_distribution == "RedHat"
 
+    - name: Set MTU on docker daemon
+      lineinfile:
+        path: /etc/sysconfig/docker-network
+        regexp: "^DOCKER_NETWORK_OPTIONS"
+        line: "DOCKER_NETWORK_OPTIONS='--mtu={{ ansible_default_ipv4['mtu'] }}'"
+
+    - name: Restart docker daemon
+      service:
+        name: docker
+        state: restarted
+
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
@@ -138,6 +149,18 @@
 
   tags:
     - docker_build_cleanup
+
+  pre_tasks:
+    - name: Set MTU on docker daemon
+      lineinfile:
+        path: /etc/sysconfig/docker-network
+        regexp: "^DOCKER_NETWORK_OPTIONS"
+        line: "DOCKER_NETWORK_OPTIONS="
+
+    - name: Restart docker daemon
+      service:
+        name: docker
+        state: restarted
 
   roles:
     - role: docker_remove_all
