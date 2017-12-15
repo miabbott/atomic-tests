@@ -14,6 +14,7 @@ packages:
   - gcc
   - redhat-rpm-config
   - libselinux-python
+  - rsync
 
 tests:
   - ./.test_director
