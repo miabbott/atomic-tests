@@ -39,6 +39,10 @@
       when: (rhel_base_images is undefined or rhel_image_names is undefined) and
             ansible_distribution == "RedHat"
 
+    # Determining the right MTU for Docker interfaces running on OpenStack
+    # can be tricky:
+    #  - https://bugzilla.redhat.com/show_bug.cgi?id=1475460
+    #  - https://bugzilla.redhat.com/show_bug.cgi?id=1357116
     - name: Set MTU on docker daemon
       lineinfile:
         dest: /etc/sysconfig/docker-network
