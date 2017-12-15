@@ -41,7 +41,7 @@
 
     - name: Set MTU on docker daemon
       lineinfile:
-        path: /etc/sysconfig/docker-network
+        dest: /etc/sysconfig/docker-network
         regexp: "^DOCKER_NETWORK_OPTIONS"
         line: "DOCKER_NETWORK_OPTIONS='--mtu={{ ansible_default_ipv4['mtu'] }}'"
 
@@ -153,7 +153,7 @@
   pre_tasks:
     - name: Set MTU on docker daemon
       lineinfile:
-        path: /etc/sysconfig/docker-network
+        dest: /etc/sysconfig/docker-network
         regexp: "^DOCKER_NETWORK_OPTIONS"
         line: "DOCKER_NETWORK_OPTIONS="
 
