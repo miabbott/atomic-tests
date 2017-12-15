@@ -1,0 +1,52 @@
+---
+# vim: set ft=ansible:
+#
+# Parameters:
+#  ahv_rpms: (optional) list of rpms
+#   Example:
+#     ahv_rpms
+#       - atomic
+#       - docker
+#
+#  ahv_requirements: dictionary with key:value pair of rpm:expected version
+#    Example:
+#      ahv_requirements:
+#        docker: 1.12
+#        rpm-ostree: 2017.9
+#
+# This role, with no parameters, will store version information for the list of
+# rpms in ahv_rpms to a dictionary named atomic_host.  ahv_rpms has default
+# values in the defaults directory of this role.
+#
+# Optionally, ahv_rpms can be passed into this role to override the defaults.
+# The atomic_host dictionary is useful for conditional statements when
+# functionality is different between older/newer version of a package. Use the
+# version_compare filter for these conditionals.
+#
+# Another optional parameter is a dictionary named ahv_requirements which should
+# contain a key / value pair (rpm:  minimum version).  This role should fail if
+# the minimum version is not met.
+#
+- name: Set requirements
+  set_fact:
+    ahv_requirements: "{{ ahv_requirements | default({}) }}"
+
+# Get set of rpms that were not alreayd retrieved when this role was called
+- name: Get set of of missing rpms
+  set_fact:
+    ahv_missing_rpms: "{{ ahv_requirements.keys() | difference(ahv_rpms) }}"
+
+- name: Get versions if they were not retrieved
+  include_role:
+    name: rpm_version
+  vars:
+    rv_rpms: "{{ ahv_missing_rpms }}"
+  when: ahv_missing_rpms|length > 0
+
+- name: Fail if version requirement is not met
+  fail:
+    msg: |
+      Expected: {{ item.key }} is running version {{ ahv_requirements[item.key] }}
+      Actual: {{ item.key }} is running {{ atomic_host[item.key] }}
+  when: atomic_host[item.key] | version_compare(item.value, '<') and atomic_host[item.key] is defined
+  with_dict: "{{ ahv_requirements }}"

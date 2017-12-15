@@ -2,119 +2,117 @@
 #
 #  This role sets up kubernetes apiserver, controller-mgr, and scheduler pods
 #
-  - name: Determine kubelet version
-    shell: kubelet --version | awk '{print $2}' | cut -d 'v' -f 2
-    register: kv
+- name: Get kubernetes version
+  include_role:
+    name: rpm_version
+  vars:
+    rv_rpms: kubernetes-node
 
-  - name: Set kubelet version fact
-    set_fact:
-      kubelet_version: "{{ kv.stdout }}"
+- name: Define kube 1.5 vars
+  set_fact:
+    kube_maj_ver: "1.5"
+    kube_apiserver: "registry.access.redhat.com/rhel7/kubernetes-apiserver"
+    kube_controller_manager: "registry.access.redhat.com/rhel7/kubernetes-controller-mgr"
+    kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
+  when: atomic_host['kubernetes-node'] | version_compare('1.6', '<')
 
-  - name: Define kube 1.5 vars
-    set_fact:
-      kube_maj_ver: "1.5"
-      kube_apiserver: "registry.access.redhat.com/rhel7/kubernetes-apiserver"
-      kube_controller_manager: "registry.access.redhat.com/rhel7/kubernetes-controller-mgr"
-      kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
-    when: kubelet_version | version_compare('1.6', '<')
+- name: Define kube 1.6 images
+  set_fact:
+    kube_maj_ver: "1.6"
+    kube_apiserver: "registry.fedoraproject.org/f26/kubernetes-apiserver"
+    kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
+    kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
+  when: atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
 
-  - name: Define kube 1.6 images
-    set_fact:
-      kube_maj_ver: "1.6"
-      kube_apiserver: "registry.fedoraproject.org/f26/kubernetes-apiserver"
-      kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
-      kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
-    when: kubelet_version | version_compare('1.6', '>=')
+- name: pull kubernetes api-server, controller-mgr, scheduler
+  command: docker pull {{ item }}
+  register: pull
+  failed_when: item not in pull.stdout
+  with_items:
+    - "{{ kube_apiserver }}"
+    - "{{ kube_controller_manager }}"
+    - "{{ kube_scheduler }}"
 
-  - name: pull kubernetes api-server, controller-mgr, scheduler
-    command: docker pull {{ item }}
-    register: pull
-    failed_when: item not in pull.stdout
-    with_items:
-      - "{{ kube_apiserver }}"
-      - "{{ kube_controller_manager }}"
-      - "{{ kube_scheduler }}"
+- name: make db directory
+  file: path=/etc/kubernetes/manifests state=directory mode=0755
 
-  - name: make db directory
-    file: path=/etc/kubernetes/manifests state=directory mode=0755
+- name: template out apiserver, controller-manager, and scheduler pods
+  template:
+    src=roles/kubernetes_setup/files/{{ item }}.j2
+    dest=/etc/kubernetes/manifests/{{ item }}.json
+    owner=root
+    group=root
+    mode=0644
+  with_items:
+    - apiserver-pod
+    - controller-mgr-pod
+    - scheduler-pod
 
-  - name: template out apiserver, controller-manager, and scheduler pods
-    template:
-      src=roles/kubernetes_setup/files/{{ item }}.j2
-      dest=/etc/kubernetes/manifests/{{ item }}.json
-      owner=root
-      group=root
-      mode=0644
-    with_items:
-      - apiserver-pod
-      - controller-mgr-pod
-      - scheduler-pod
+# Thank you based Google gods
+# https://groups.google.com/d/msg/ansible-project/JvHfchsgRaU/Vw_CzBbvadgJ
+#
+# Shoddy explanation of regexp:
+#   - open of capture group 1: matched by (
+#   - <startofline>: matched by ^
+#   - the string "KUBELET_ARGS=": matched literally (double quote is escaped)
+#   - any characters after above string: matched by .*
+#   - close of capture group 1: matched by )
+#   - the closing " char: matched by \"
+#   - any spaces/tabs: matched by \s*
+#   - <endofline>: matched by $
+#
+# The capture group 1 is referred to as \1 in the 'line:' statement and
+# will be used as the begining of the line to be inserted into the file.
+# Thus, any exiting values to KUBELET_ARGS are preserved and the two
+# new options (--register-node and --pod-manifest-path) are cleanly
+# appended.
+- name: add kubelet args
+  lineinfile:
+    dest: /etc/kubernetes/kubelet
+    backup: true
+    backrefs: true
+    regexp: '(^KUBELET_ARGS=\".*)\"\s*$'
+    line: '\1 --register-node=true --pod-manifest-path=/etc/kubernetes/manifests/"'
 
-  # Thank you based Google gods
-  # https://groups.google.com/d/msg/ansible-project/JvHfchsgRaU/Vw_CzBbvadgJ
-  #
-  # Shoddy explanation of regexp:
-  #   - open of capture group 1: matched by (
-  #   - <startofline>: matched by ^
-  #   - the string "KUBELET_ARGS=": matched literally (double quote is escaped)
-  #   - any characters after above string: matched by .*
-  #   - close of capture group 1: matched by )
-  #   - the closing " char: matched by \"
-  #   - any spaces/tabs: matched by \s*
-  #   - <endofline>: matched by $
-  #
-  # The capture group 1 is referred to as \1 in the 'line:' statement and
-  # will be used as the begining of the line to be inserted into the file.
-  # Thus, any exiting values to KUBELET_ARGS are preserved and the two
-  # new options (--register-node and --pod-manifest-path) are cleanly
-  # appended.
-  - name: add kubelet args
-    lineinfile:
-      dest: /etc/kubernetes/kubelet
-      backup: true
-      backrefs: true
-      regexp: '(^KUBELET_ARGS=\".*)\"\s*$'
-      line: '\1 --register-node=true --pod-manifest-path=/etc/kubernetes/manifests/"'
+- name: stop docker, etcd, kube-proxy, kubelet
+  service:
+    name={{ item }}
+    state=stopped
+  with_items:
+    - docker
+    - etcd
+    - kube-proxy
+    - kubelet
 
-  - name: stop docker, etcd, kube-proxy, kubelet
-    service:
-      name={{ item }}
-      state=stopped
-    with_items:
-      - docker
-      - etcd
-      - kube-proxy
-      - kubelet
+- name: start docker, etcd, kube-proxy, kubelet
+  service:
+    name={{ item }}
+    state=started
+    enabled=yes
+  with_items:
+    - docker
+    - etcd
+    - kube-proxy
+    - kubelet
 
-  - name: start docker, etcd, kube-proxy, kubelet
-    service:
-      name={{ item }}
-      state=started
-      enabled=yes
-    with_items:
-      - docker
-      - etcd
-      - kube-proxy
-      - kubelet
+- name: stop docker, kube-proxy.service, kubelet.service
+  service:
+    name={{ item }}
+    state=stopped
+  with_items:
+    - docker
+    - kube-proxy.service
+    - kubelet.service
 
-  - name: stop docker, kube-proxy.service, kubelet.service
-    service:
-      name={{ item }}
-      state=stopped
-    with_items:
-      - docker
-      - kube-proxy.service
-      - kubelet.service
+- name: start docker, kube-proxy.service, kubelet.service
+  service:
+    name={{ item }}
+    state=started
+    enabled=yes
+  with_items:
+    - docker
+    - kube-proxy.service
+    - kubelet.service
 
-  - name: start docker, kube-proxy.service, kubelet.service
-    service:
-      name={{ item }}
-      state=started
-      enabled=yes
-    with_items:
-      - docker
-      - kube-proxy.service
-      - kubelet.service
-
-  - name: test etcd
-    command: curl http://localhost:2379/version
+- name: test etcd
+  command: curl http://localhost:2379/version

@@ -1,0 +1,6 @@
+---
+ahv_rpms:
+  - atomic
+  - docker
+  - ostree
+  - rpm-ostree-client

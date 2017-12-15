@@ -1,0 +1,7 @@
+---
+allow_duplicates: true
+
+dependencies:
+  # rv_rpms comes from the defaults directory in this role
+  - role: rpm_version
+    rv_rpms: "{{ ahv_rpms }}"
