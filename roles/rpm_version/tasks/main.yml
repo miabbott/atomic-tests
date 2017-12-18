@@ -5,7 +5,8 @@
 #   rv_rpms (required) - list of rpms installed on atomic host
 #
 # This role takes a list of rpms, retrieves the version, and stores it in a
-# dict named atomic_host
+# dict named g_atomic_host
 #
-- include: version.yml rv_rpm={{ item }}
+- include: version.yml
+  rv_rpm: "{{ item }}"
   with_items: "{{ rv_rpms }}"

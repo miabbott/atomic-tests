@@ -7,9 +7,9 @@
   set_fact:
     aivc_atomic_install_cmd: "atomic install --system --system-package no "
 
-# atomic_host['atomic'] comes from rpm_version in this roles dependencies
+# g_atomic_host['atomic'] comes from rpm_version in this roles dependencies
 - name: Setup atomic install command (post v1.19.1)
   set_fact:
     aivc_atomic_install_cmd: "atomic install --system "
-  when: atomic_host['atomic'] | version_compare('1.19.1', '>=')
+  when: g_atomic_host['atomic'] | version_compare('1.19.1', '>=')
 

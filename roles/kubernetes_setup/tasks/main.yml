@@ -14,7 +14,7 @@
     kube_apiserver: "registry.access.redhat.com/rhel7/kubernetes-apiserver"
     kube_controller_manager: "registry.access.redhat.com/rhel7/kubernetes-controller-mgr"
     kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
-  when: atomic_host['kubernetes-node'] | version_compare('1.6', '<')
+  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '<')
 
 - name: Define kube 1.6 images
   set_fact:
@@ -22,7 +22,7 @@
     kube_apiserver: "registry.fedoraproject.org/f26/kubernetes-apiserver"
     kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
     kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
-  when: atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
+  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
 
 - name: pull kubernetes api-server, controller-mgr, scheduler
   command: docker pull {{ item }}
@@ -34,15 +34,18 @@
     - "{{ kube_scheduler }}"
 
 - name: make db directory
-  file: path=/etc/kubernetes/manifests state=directory mode=0755
+  file:
+    path: /etc/kubernetes/manifests
+    state: directory
+    mode: 0755
 
 - name: template out apiserver, controller-manager, and scheduler pods
   template:
-    src=roles/kubernetes_setup/files/{{ item }}.j2
-    dest=/etc/kubernetes/manifests/{{ item }}.json
-    owner=root
-    group=root
-    mode=0644
+    src: roles/kubernetes_setup/files/{{ item }}.j2
+    dest: /etc/kubernetes/manifests/{{ item }}.json
+    owner: root
+    group: root
+    mode: 0644
   with_items:
     - apiserver-pod
     - controller-mgr-pod
@@ -76,8 +79,8 @@
 
 - name: stop docker, etcd, kube-proxy, kubelet
   service:
-    name={{ item }}
-    state=stopped
+    name: {{ item }}
+    state: stopped
   with_items:
     - docker
     - etcd
@@ -86,9 +89,9 @@
 
 - name: start docker, etcd, kube-proxy, kubelet
   service:
-    name={{ item }}
-    state=started
-    enabled=yes
+    name: {{ item }}
+    state: started
+    enabled: yes
   with_items:
     - docker
     - etcd
@@ -97,8 +100,8 @@
 
 - name: stop docker, kube-proxy.service, kubelet.service
   service:
-    name={{ item }}
-    state=stopped
+    name: {{ item }}
+    state: stopped
   with_items:
     - docker
     - kube-proxy.service
@@ -106,9 +109,9 @@
 
 - name: start docker, kube-proxy.service, kubelet.service
   service:
-    name={{ item }}
-    state=started
-    enabled=yes
+    name: {{ item }}
+    state: started
+    enabled: yes
   with_items:
     - docker
     - kube-proxy.service

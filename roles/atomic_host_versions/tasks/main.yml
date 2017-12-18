@@ -15,11 +15,11 @@
 #        rpm-ostree: 2017.9
 #
 # This role, with no parameters, will store version information for the list of
-# rpms in ahv_rpms to a dictionary named atomic_host.  ahv_rpms has default
+# rpms in ahv_rpms to a dictionary named g_atomic_host.  ahv_rpms has default
 # values in the defaults directory of this role.
 #
 # Optionally, ahv_rpms can be passed into this role to override the defaults.
-# The atomic_host dictionary is useful for conditional statements when
+# The g_atomic_host dictionary is useful for conditional statements when
 # functionality is different between older/newer version of a package. Use the
 # version_compare filter for these conditionals.
 #
@@ -47,6 +47,8 @@
   fail:
     msg: |
       Expected: {{ item.key }} is running version {{ ahv_requirements[item.key] }}
-      Actual: {{ item.key }} is running {{ atomic_host[item.key] }}
-  when: atomic_host[item.key] | version_compare(item.value, '<') and atomic_host[item.key] is defined
+      Actual: {{ item.key }} is running {{ g_atomic_host[item.key] }}
+  when:
+    - g_atomic_host[item.key] | version_compare(item.value, '<')
+    - g_atomic_host[item.key] is defined
   with_dict: "{{ ahv_requirements }}"

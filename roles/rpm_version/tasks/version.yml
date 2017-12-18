@@ -2,7 +2,7 @@
 # vim: set ft=ansible:
 #
 # This role takes a rpm and gets the version and stores it in a dictionary
-# named atomic_host
+# named g_atomic_host
 #
 # Parameters:
 #   rv_rpm (required) - rpm installed on atomic host
@@ -19,4 +19,4 @@
 - name: Set facts
   set_fact:
     rv_version: "{{ rpmq.stdout }}"
-    atomic_host: "{{ atomic_host|default({}) | combine( { rv_rpm: rpmq.stdout } ) }}"
+    g_atomic_host: "{{ g_atomic_host|default({}) | combine( { rv_rpm: rpmq.stdout } ) }}"
