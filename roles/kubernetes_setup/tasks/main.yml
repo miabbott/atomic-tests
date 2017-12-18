@@ -79,7 +79,7 @@
 
 - name: stop docker, etcd, kube-proxy, kubelet
   service:
-    name: {{ item }}
+    name: "{{ item }}"
     state: stopped
   with_items:
     - docker
@@ -89,7 +89,7 @@
 
 - name: start docker, etcd, kube-proxy, kubelet
   service:
-    name: {{ item }}
+    name: "{{ item }}"
     state: started
     enabled: yes
   with_items:
@@ -100,7 +100,7 @@
 
 - name: stop docker, kube-proxy.service, kubelet.service
   service:
-    name: {{ item }}
+    name: "{{ item }}"
     state: stopped
   with_items:
     - docker
@@ -109,7 +109,7 @@
 
 - name: start docker, kube-proxy.service, kubelet.service
   service:
-    name: {{ item }}
+    name: "{{ item }}"
     state: started
     enabled: yes
   with_items:
