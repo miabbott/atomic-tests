@@ -28,7 +28,7 @@
 #
 - name: Improved Sanity Test - Pre-Upgrade
   hosts: all
-  become: yes
+  become: "yes"
   force_handlers: true
 
   tags:
@@ -77,13 +77,14 @@
     # The 'archive' option will drop a YAML file into the playbook directory
     # with the value of the original checksum, refspec, and remote
     - role: booted_deployment_set_fact
-      archive: yes
+      archive: "yes"
       tags:
         - booted_deployment_set_fact
 
-    # Setup local branch and upgrade right away so packages are layered on top of
-    # the local branch.  If the local branch is created before the upgrade later in
-    # the test, it will only contain the origin content of the ostree.
+    # Setup local branch and upgrade right away so packages are layered on
+    # top of the local branch.  If the local branch is created before the
+    # upgrade later in the test, it will only contain the origin content
+    # of the ostree.
     - role: local_branch_setup
       branch_name: local-branch
       tags:
@@ -130,7 +131,8 @@
         - command_privilege_verify
 
     # TEST
-    # Verify that the output from 'atomic host status' matches 'rpm-ostree status'
+    # Verify that the output from 'atomic host status'
+    # matches 'rpm-ostree status'
     - role: atomic_host_status_verify
       tags:
         - atomic_host_status_verify
@@ -357,7 +359,7 @@
       version: test2
       tags:
         - local_branch_commit
-      check_mode: no
+      check_mode: "no"
 
     # TEST
     # Verify installation of etcd system container works
@@ -369,7 +371,7 @@
     - role: rpm_ostree_upgrade
       tags:
         - rpm_ostree_upgrade
-      check_mode: no
+      check_mode: "no"
 
     # Before we reboot, check the journal for anything that blew up
     - role: journal_fatal_msgs
@@ -387,7 +389,7 @@
 
 - name: Improved Sanity Test - Post-Upgrade
   hosts: all
-  become: yes
+  become: "yes"
   force_handlers: true
 
   tags:
@@ -395,7 +397,7 @@
 
   vars_files:
     - "vars/common.yml"
-    - [ "vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml" ]
+    - ["vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml"]
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -409,7 +411,7 @@
       handler_name: h_get_journal
       tags:
         - handler_notify_on_failure
-      check_mode: no
+      check_mode: "no"
 
     - role: atomic_host_check
       tags:
@@ -420,7 +422,7 @@
     - role: osname_set_fact
       tags:
         - osname_set_fact
-      check_mode: no
+      check_mode: "no"
 
     # Before we do any additional actions, let's check the journal to see if
     # anything blew up after reboot
@@ -512,11 +514,11 @@
 
     # Install etcd system container
     - role: etcd_sys_container_install
-      delete_key: True
+      delete_key: true
       tags:
         - etcd_sys_container_install
         - cloud_image
-      check_mode: no
+      check_mode: "no"
 
     # Uninstall etcd system container
     - role: atomic_system_uninstall
@@ -524,7 +526,7 @@
       tags:
         - atomic_system_uninstall
         - cloud_image
-      check_mode: no
+      check_mode: "no"
 
     # Verify etcd system container uninstall
     - role: atomic_system_uninstall_verify
@@ -654,7 +656,8 @@
         - atomic_installation_verify
 
     # TEST
-    # Run the previously created docker layered image, then remove the container and the image.
+    # Run the previously created docker layered image, then remove
+    # the container and the image.
     - role: atomic_run_verify
       container: "{{ g_httpd_name }}"
       tags:
@@ -721,7 +724,7 @@
 
 - name: Improved Sanity Test - Post-Rollback
   hosts: all
-  become: yes
+  become: "yes"
   force_handlers: true
 
   tags:
@@ -729,7 +732,7 @@
 
   vars_files:
     - "vars/common.yml"
-    - [ "vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml" ]
+    - ["vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml"]
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -744,7 +747,7 @@
       handler_name: h_get_journal
       tags:
         - handler_notify_on_failure
-      check_mode: no
+      check_mode: "no"
 
     # Ensure the host(s) are indeed Atomic Host(s)
     - role: atomic_host_check
