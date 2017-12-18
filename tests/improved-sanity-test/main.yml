@@ -69,8 +69,8 @@
         - rpm_signature_verify
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -434,9 +434,9 @@
     # We remove any subscriptions after the upgrade to verify that
     # 'rpm-ostree status' with the 'unconfigured-state' field present.
     # https://bugzilla.redhat.com/show_bug.cgi?id=1421867
-    - role: redhat_unsubscribe
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       unconfigured_state: true
-      when: ansible_distribution == 'RedHat'
       tags:
         - redhat_unsubscribe
 
@@ -455,8 +455,8 @@
         - atomic_host_status_verify
 
     # Re-subscribe
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -564,17 +564,17 @@
         - rpm_ostree_install_verify
 
     # Start httpd
-    - role: httpd_start
+    - when: ansible_distribution != 'CentOS'
+      role: httpd_start
       httpd_port: 8080
-      when: ansible_distribution != 'CentOS'
       tags:
         - httpd_start
 
     # Verify that httpd is serving on port 8080
-    - role: url_verify
+    - when: ansible_distribution != 'CentOS'
+      role: url_verify
       url: http://localhost:8080
       destination: /dev/null
-      when: ansible_distribution != 'CentOS'
       tags:
         - url_verify
 
@@ -879,8 +879,8 @@
         - rpm_ostree_cleanup_all
 
     # cleanup our subscriptions because we are nice people
-    - role: redhat_unsubscribe
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       tags:
         - redhat_unsubscribe
 
