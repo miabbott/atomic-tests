@@ -1,2 +1,5 @@
 ---
 allow_duplicates: true
+
+dependencies:
+  - role: install_jq

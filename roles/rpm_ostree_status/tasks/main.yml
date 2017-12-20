@@ -5,8 +5,12 @@
 #  rpm-ostree status --json output.  If no second deployment exists,
 #  ros_not_booted will be set to false
 #
+# Newer versions of 'rpm-ostree' include the RPM DB pacakge list in the
+# commit metadata.  This causes hundreds of pkg entries to be included
+# in the JSON output.  We can exclude this from the output by piping to
+# 'jq' and removing the noisy keys.
 - name: Get rpm-ostree status output
-  command: rpm-ostree status --json
+  shell: rpm-ostree status --json | {{ jq_path }} 'del(.deployments[]["layered-commit-meta"]["rpmostree.rpmdb.pkglist"], .deployments[]["base-commit-meta"]["rpmostree.rpmdb.pkglist"])'
   register: ros
 
 - name: Convert to JSON
@@ -26,4 +30,3 @@
   set_fact:
     ros_not_booted: "{{ item | default(false) }}"
   with_items: "{{ ros_json | json_query('deployments[?!booted]') }}"
-
