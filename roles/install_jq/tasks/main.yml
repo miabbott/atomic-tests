@@ -1,0 +1,16 @@
+---
+# vim: set ft=ansible:
+#
+- name: Test if 'jq' is installed
+  command: command -v jq
+  register: jq_installed
+  ignore_errors: true
+  become: false
+
+- when: jq_installed.rc == 1
+  block:
+    - name: Install 'jq' if it is not installed
+      command: "curl -L -o {{ jq_path }} {{ jq_url }}"
+
+    - name: Set executable bit
+      command: "chmod +x {{ jq_path }}"

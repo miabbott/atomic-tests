@@ -1,0 +1,3 @@
+---
+jq_path: /usr/local/bin/jq
+jq_url: https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
