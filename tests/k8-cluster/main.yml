@@ -18,7 +18,7 @@
 #
 - name: k8-cluster
   hosts: all
-  become: "yes"
+  become: true
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -60,7 +60,7 @@
 
 - name: Kubernetes Cluster - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup

@@ -45,7 +45,7 @@
 
 - name: Ostree Admin Unlock - Setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - setup
@@ -78,7 +78,7 @@
 
 - name: Ostree Admin Unlock - Add/Remove Package - Non-persistence
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - unlock_add_remove_package_non_persistence
@@ -126,7 +126,7 @@
 
 - name: Ostree Admin Unlock - Hotfix - Add/Remove Package Persistence
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - hotfix_add_remove_package_persistence
@@ -188,7 +188,7 @@
 
 - name: Ostree Admin Unlock - Hotfix - Rollback
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - hotfix_rollback
@@ -213,7 +213,7 @@
 
 - name: Ostree Admin Unlock - No Install Without Unlock
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cannot_install_without_unlock
@@ -243,7 +243,7 @@
 
 - name: Ostree Admin Unlock - Unlock Twice - Error Message
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - unlock_twice_error_message
@@ -299,7 +299,7 @@
 
 - name: Ostree Admin Unlock - Hotfix Unlock Twice - Error Message
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - hotfix_unlock_twice_error_message
@@ -361,7 +361,7 @@
 
 - name: Ostree Admin Unlock - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup

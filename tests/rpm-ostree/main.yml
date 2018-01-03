@@ -7,7 +7,7 @@
 #
 - name: rpm-ostree - Setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - setup
@@ -39,7 +39,7 @@
 
 - name: rpm-ostree - deploy by version
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - deploy_version
@@ -137,7 +137,7 @@
 
 - name: rpm-ostree - deploy by commit
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - deploy_commit
@@ -222,7 +222,7 @@
 
 - name: rpm-ostree - cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup_pending
@@ -296,7 +296,7 @@
 
 - name: rpm-ostree - upgrade and rebase
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - upgrade_rebase
@@ -409,7 +409,7 @@
 
 - name: rpm-ostree - upgrade and rebase + install and uninstall
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - upgrade_rebase_install_uninstall
@@ -601,7 +601,7 @@
 #####################################################################################
 - name: rpm-ostree livefs
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - livefs
@@ -727,7 +727,7 @@
 
 - name: rpm-ostree - client side initramfs
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - initramfs

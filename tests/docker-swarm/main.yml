@@ -14,7 +14,7 @@
 
 - name: Docker Swarm - Setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - setup
@@ -64,7 +64,7 @@
 
 - name: Docker Swarm - Basic Functional Test
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - basic
@@ -203,7 +203,7 @@
 
 - name: Docker Swarm - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup

@@ -3,7 +3,7 @@
 #
 - name: Atomic - Setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - setup
@@ -24,7 +24,7 @@
 
 - name: Atomic Fully Qualified Name
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - fq_name
@@ -89,7 +89,7 @@
 
 - name: Atomic Short Name
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - shortname
@@ -161,7 +161,7 @@
 
 - name: Atomic fully qualified container name
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - fq_name_name
@@ -231,7 +231,7 @@
 
 - name: Atomic Pull With Tags
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - pull_tags
@@ -278,7 +278,7 @@
 
 - name: Atomic Pull By Digest
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - pull_digest_simple
@@ -310,7 +310,7 @@
 
 - name: Atomic Pull Storage
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - pull_storage
@@ -363,7 +363,7 @@
 
 - name: Atomic Images Update
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - images_update

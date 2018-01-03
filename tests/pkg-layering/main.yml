@@ -43,7 +43,7 @@
 
 - name: Package Layering Tests - Setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - setup
@@ -79,7 +79,7 @@
 
 - name: Package Layering - Single package install and uninstall test
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - single_pkg_install_uninstall
@@ -112,7 +112,7 @@
 
 - name: Package Layering - Multiple package install and uninstall test
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - multi_pkg_install_uninstall
@@ -153,7 +153,7 @@
 
 - name: Package Layering - Reboot flag test
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - reboot_flag
@@ -180,7 +180,7 @@
 
 - name: Package Layering - Dry run tests
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - dry_run
@@ -206,7 +206,7 @@
 
 - name: Package Layering - Dry run does not affect installed packages tests
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - dry_run_interaction
@@ -276,7 +276,7 @@
 
 - name: Package Layering - install package from EPEL repo test
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - alternate_repo_install
@@ -297,8 +297,8 @@
         mirrorlist: >
           https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
         failovermethod: priority
-        gpgcheck: "yes"
-        enabled: "yes"
+        gpgcheck: true
+        enabled: true
         gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 
     - name: Install {{ g_epel_pkg }} from EPEL
@@ -316,7 +316,7 @@
 
 - name: Package Layering - Negative test - Uninstalling non-existent package
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - uninstall_invalid_pkg
@@ -341,7 +341,7 @@
 
 - name: Package Layering - Negative Test - Installing non-existent package
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - install_invalid_pkg
@@ -366,7 +366,7 @@
 
 - name: Package Layering - Installing existing package
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - install_existing_pkg
@@ -417,7 +417,7 @@
 
 - name: Package Layering - Installing non-root ownership package
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - install_nonroot_pkg
@@ -452,7 +452,7 @@
 
 - name: Package Layering - Negative - Install already layered package
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - install_previously_layered
@@ -468,7 +468,7 @@
 
 - name: Package Layering - Negative Test - Installing insufficient privileges
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - install_unprivileged
@@ -486,7 +486,7 @@
 
 - name: Package Layering - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup

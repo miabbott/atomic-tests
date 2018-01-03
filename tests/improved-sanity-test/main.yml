@@ -28,7 +28,7 @@
 #
 - name: Improved Sanity Test - Pre-Upgrade
   hosts: all
-  become: "yes"
+  become: true
   force_handlers: true
 
   tags:
@@ -77,7 +77,7 @@
     # The 'archive' option will drop a YAML file into the playbook directory
     # with the value of the original checksum, refspec, and remote
     - role: booted_deployment_set_fact
-      archive: "yes"
+      archive: true
       tags:
         - booted_deployment_set_fact
 
@@ -359,7 +359,7 @@
       version: test2
       tags:
         - local_branch_commit
-      check_mode: "no"
+      check_mode: false
 
     # TEST
     # Verify installation of etcd system container works
@@ -371,7 +371,7 @@
     - role: rpm_ostree_upgrade
       tags:
         - rpm_ostree_upgrade
-      check_mode: "no"
+      check_mode: false
 
     # Before we reboot, check the journal for anything that blew up
     - role: journal_fatal_msgs
@@ -389,7 +389,7 @@
 
 - name: Improved Sanity Test - Post-Upgrade
   hosts: all
-  become: "yes"
+  become: true
   force_handlers: true
 
   tags:
@@ -411,18 +411,18 @@
       handler_name: h_get_journal
       tags:
         - handler_notify_on_failure
-      check_mode: "no"
+      check_mode: false
 
     - role: atomic_host_check
       tags:
         - atomic_host_check
 
-    # Setup facts again. (Need to use the 'check_mode: no' option to ensure the
+    # Setup facts again. (Need to use the 'check_mode: false' option to ensure the
     # role runs again)
     - role: osname_set_fact
       tags:
         - osname_set_fact
-      check_mode: "no"
+      check_mode: false
 
     # Before we do any additional actions, let's check the journal to see if
     # anything blew up after reboot
@@ -518,7 +518,7 @@
       tags:
         - etcd_sys_container_install
         - cloud_image
-      check_mode: "no"
+      check_mode: false
 
     # Uninstall etcd system container
     - role: atomic_system_uninstall
@@ -526,7 +526,7 @@
       tags:
         - atomic_system_uninstall
         - cloud_image
-      check_mode: "no"
+      check_mode: false
 
     # Verify etcd system container uninstall
     - role: atomic_system_uninstall_verify
@@ -724,7 +724,7 @@
 
 - name: Improved Sanity Test - Post-Rollback
   hosts: all
-  become: "yes"
+  become: true
   force_handlers: true
 
   tags:
@@ -747,7 +747,7 @@
       handler_name: h_get_journal
       tags:
         - handler_notify_on_failure
-      check_mode: "no"
+      check_mode: false
 
     # Ensure the host(s) are indeed Atomic Host(s)
     - role: atomic_host_check

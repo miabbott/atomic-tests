@@ -22,7 +22,7 @@
 
 - name: Docker - Setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - setup
@@ -60,7 +60,7 @@
 
 - name: Docker - Functional Tests
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - functional
@@ -104,7 +104,7 @@
 
 - name: Docker - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup
@@ -132,7 +132,7 @@
         - name: Re-enable docker
           service:
             name: docker
-            enabled: "yes"
+            enabled: true
             state: started
       when: g_docker_latest
 

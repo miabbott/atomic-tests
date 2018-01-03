@@ -16,7 +16,7 @@
 #
 - name: Prepare container images for scanning
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - images_cve_scanner
@@ -44,7 +44,7 @@
         result_list: []
 
     - include_role:
-        allow_duplicates: "yes"
+        allow_duplicates: true
         vars:
           image: "{{ item }}'"
         name: container_image_scanner
@@ -63,7 +63,7 @@
 
 - name: Image scanning - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup

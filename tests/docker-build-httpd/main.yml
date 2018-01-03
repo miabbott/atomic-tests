@@ -19,7 +19,7 @@
 #
 - name: Docker build httpd - setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - docker_build_setup
@@ -84,7 +84,7 @@
       synchronize:
         src: files/
         dest: "{{ working_dir }}/"
-        recursive: "yes"
+        recursive: true
 
     - name: Pull all the upstream base images
       command: "docker pull {{ item }}"
@@ -106,7 +106,7 @@
 
 - name: Docker build httpd - test
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - docker_build_test
@@ -158,7 +158,7 @@
 
 - name: Docker build httpd - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - docker_build_cleanup

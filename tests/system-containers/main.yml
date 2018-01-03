@@ -34,7 +34,7 @@
 #
 - name: System Containers - Setup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - setup
@@ -76,7 +76,7 @@
 
 - name: System Containers - Install/Uninstall
   hosts: all
-  become: "yes"
+  become: true
 
   #  - Verify system containers can be installed through atomic command
   #  - Verify system containers can be uninstalled through the atomic command
@@ -106,7 +106,7 @@
 
 - name: System Containers - Reboot
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - reboot
@@ -170,7 +170,7 @@
 
 - name: System Containers - Pass Variables
   hosts: all
-  become: "yes"
+  become: true
 
   # - Verify environment variables can be pass to the container
 
@@ -219,7 +219,7 @@
 
 - name: System Containers - Update/Rollback
   hosts: all
-  become: "yes"
+  become: true
 
   # - Verify update/rollback of system containers
 
@@ -296,7 +296,7 @@
 
 - name: System Containers - Rootfs
   hosts: all
-  become: "yes"
+  become: true
 
   # - Verify specification of rootfs for system containers.
 
@@ -404,7 +404,7 @@
 
 - name: System Containers - Flannel & Etcd
   hosts: all
-  become: "yes"
+  become: true
 
   #  Flannel & Etcd Tests
 
@@ -434,14 +434,14 @@
       service:
         name: flanneld
         state: stopped
-        enabled: "no"
+        enabled: false
       when: rpm_flannel.rc == 0
 
     - name: Stop etcd service if etcd rpm present
       service:
         name: etcd
         state: stopped
-        enabled: "no"
+        enabled: false
       when: rpm_etcd.rc == 0
 
     # The `aivc_atomic_install_cmd` is set by the required role:
@@ -518,7 +518,7 @@
 
 - name: System Containers - Set RUN_DIRECTORY & STATE_DIRECTORY
   hosts: all
-  become: "yes"
+  become: true
 
   # - Verify setting RUN_DIRECTORY and STATE_DIRECTORY
 
@@ -576,7 +576,7 @@
 
 - name: System Containers - Negative Testing
   hosts: all
-  become: "yes"
+  become: true
 
   #  Negative Testing
   #    - Verify uninstalling a system container that does not exist fails
@@ -637,7 +637,7 @@
 
 - name: System Containers - Cleanup
   hosts: all
-  become: "yes"
+  become: true
 
   tags:
     - cleanup
