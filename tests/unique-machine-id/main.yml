@@ -7,7 +7,7 @@
 #
 - name: Verify that /etc/machine_id is unique across hosts
   hosts: all
-  sudo: yes
+  sudo: "yes"
 
   pre_tasks:
     - name: Fail if the inventory has more than 2 hosts
@@ -21,9 +21,11 @@
     - name: Set facts about distributions
       set_fact:
         host1_dist: "{{ hostvars[groups['all'][0]].ansible_distribution }}"
-        host1_dist_ver: "{{ hostvars[groups['all'][0]].ansible_distribution_version }}"
+        host1_dist_ver: >
+          "{{ hostvars[groups['all'][0]].ansible_distribution_version }}"
         host2_dist: "{{ hostvars[groups['all'][1]].ansible_distribution }}"
-        host2_dist_ver: "{{ hostvars[groups['all'][1]].ansible_distribution_version }}"
+        host2_dist_ver: >
+          "{{ hostvars[groups['all'][1]].ansible_distribution_version }}"
       run_once: true
 
     - name: Fail if the two hosts are not the same distribution

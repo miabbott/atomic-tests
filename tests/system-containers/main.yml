@@ -34,7 +34,7 @@
 #
 - name: System Containers - Setup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - setup
@@ -76,7 +76,7 @@
 
 - name: System Containers - Install/Uninstall
   hosts: all
-  become: yes
+  become: "yes"
 
   #  - Verify system containers can be installed through atomic command
   #  - Verify system containers can be uninstalled through the atomic command
@@ -106,7 +106,7 @@
 
 - name: System Containers - Reboot
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - reboot
@@ -170,7 +170,7 @@
 
 - name: System Containers - Pass Variables
   hosts: all
-  become: yes
+  become: "yes"
 
   # - Verify environment variables can be pass to the container
 
@@ -219,7 +219,7 @@
 
 - name: System Containers - Update/Rollback
   hosts: all
-  become: yes
+  become: "yes"
 
   # - Verify update/rollback of system containers
 
@@ -296,7 +296,7 @@
 
 - name: System Containers - Rootfs
   hosts: all
-  become: yes
+  become: "yes"
 
   # - Verify specification of rootfs for system containers.
 
@@ -370,15 +370,19 @@
     - name: Fail when rootfs dir is missing from main container
       fail:
         msg: |
-          Expected: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists is True
-          Actual: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists is {{ hw.stat.exists }}
+          Expected: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
+                    is True
+          Actual: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
+                  is {{ hw.stat.exists }}
       when: hw.stat.exists == False
 
     - name: Fail when rootfs dir exists for rootfs container
       fail:
         msg: |
-          Expected: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs exists is False
-          Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs exists is {{ hwr.stat.exists }}
+          Expected: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
+                    exists is False
+          Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
+                  exists is {{ hwr.stat.exists }}
       when: hwr.stat.exists != True
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -400,7 +404,7 @@
 
 - name: System Containers - Flannel & Etcd
   hosts: all
-  become: yes
+  become: "yes"
 
   #  Flannel & Etcd Tests
 
@@ -430,14 +434,14 @@
       service:
         name: flanneld
         state: stopped
-        enabled: no
+        enabled: "no"
       when: rpm_flannel.rc == 0
 
     - name: Stop etcd service if etcd rpm present
       service:
         name: etcd
         state: stopped
-        enabled: no
+        enabled: "no"
       when: rpm_etcd.rc == 0
 
     # The `aivc_atomic_install_cmd` is set by the required role:
@@ -514,7 +518,7 @@
 
 - name: System Containers - Set RUN_DIRECTORY & STATE_DIRECTORY
   hosts: all
-  become: yes
+  become: "yes"
 
   # - Verify setting RUN_DIRECTORY and STATE_DIRECTORY
 
@@ -539,7 +543,7 @@
         {{ g_hw_image }}
 
     - name: Get output of {{ g_hw_name }} info file
-      command:  cat /var/lib/containers/atomic/{{ g_hw_name }}/info
+      command: cat /var/lib/containers/atomic/{{ g_hw_name }}/info
       register: info_output
 
     - name: Convert output to JSON
@@ -550,14 +554,16 @@
       fail:
         msg: |
           Expected: RUN_DIRECTORY is set to {{ run_dir }}
-          Actual: RUN_DIRECTORY is set to {{ info_json['values']['RUN_DIRECTORY'] }}
+          Actual: RUN_DIRECTORY is set to
+                  {{ info_json['values']['RUN_DIRECTORY'] }}
       when: run_dir not in info_json['values']['RUN_DIRECTORY']
 
     - name: Verify STATE_DIRECTORY is set
       fail:
         msg: |
           Expected: STATE_DIRECTORY is set to {{ state_dir }}
-          Actual: STATE_DIRECTORY is set to {{ info_json['values']['STATE_DIRECTORY'] }}
+          Actual: STATE_DIRECTORY is set to
+                  {{ info_json['values']['STATE_DIRECTORY'] }}
       when: state_dir not in info_json['values']['STATE_DIRECTORY']
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
@@ -570,7 +576,7 @@
 
 - name: System Containers - Negative Testing
   hosts: all
-  become: yes
+  become: "yes"
 
   #  Negative Testing
   #    - Verify uninstalling a system container that does not exist fails
@@ -594,7 +600,9 @@
       register: aif_output
       failed_when: aif_output.rc == 0
 
-    - name: Create container with DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, HOST_GID
+    - name: >
+        Create container with DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID,
+        HOST_GID
       command: >
         atomic install
         --system
@@ -607,7 +615,7 @@
         {{ g_hw_image }}
 
     - name: Get output of {{ g_hw_name }} info file
-      command:  cat /var/lib/containers/atomic/{{ g_hw_name }}/info
+      command: cat /var/lib/containers/atomic/{{ g_hw_name }}/info
       register: info_output
 
     - name: Fail if {{ g_invalid_value }} in output
@@ -629,7 +637,7 @@
 
 - name: System Containers - Cleanup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - cleanup

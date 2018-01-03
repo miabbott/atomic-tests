@@ -14,7 +14,7 @@
 
 - name: Docker Swarm - Setup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - setup
@@ -64,7 +64,7 @@
 
 - name: Docker Swarm - Basic Functional Test
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - basic
@@ -82,7 +82,7 @@
         msg: |
           Expected: Swarm is not set to active
           Actual: {{ di.stdout }}
-      when:  "'Swarm: active' in di.stdout"
+      when: "'Swarm: active' in di.stdout"
 
     - name: Initialize docker swarm
       command: docker swarm init --advertise-addr 127.0.0.1
@@ -182,7 +182,8 @@
     - name: Fail if {{ g_service_name }} is still in docker service ls output
       fail:
         msg: |
-          Expected: {{ g_service_name }} should not be in docker service ls output
+          Expected: {{ g_service_name }} should not be in docker service ls
+                    output
           Actual: {{ dsls.stdout }}
       when: g_service_name in dsls.stdout
 
@@ -202,7 +203,7 @@
 
 - name: Docker Swarm - Cleanup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - cleanup

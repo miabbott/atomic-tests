@@ -7,7 +7,7 @@
 #
 - name: rpm-ostree - Setup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - setup
@@ -39,7 +39,7 @@
 
 - name: rpm-ostree - deploy by version
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - deploy_version
@@ -55,7 +55,8 @@
     # that what HEAD is on the remote.  So let's just get all the commit
     # metadata to be safe.
     - name: Pull all the commit data
-      command: ostree pull --commit-metadata-only --depth=-1 {{ ros_booted['origin'] }}
+      command: >
+        ostree pull --commit-metadata-only --depth=-1 {{ ros_booted['origin'] }}
       register: osp
       retries: 5
       delay: 60
@@ -64,7 +65,9 @@
     # Use the parent of the deployed commit as HEAD-1, in case the remote
     # is updated during the test.
     - name: Get parent of deployed commit
-      shell: ostree show $(ostree rev-parse {{ ros_booted['checksum'] }}^) --print-metadata-key version | tr -d \'
+      shell: >
+        ostree show $(ostree rev-parse {{ ros_booted['checksum'] }}^)
+        --print-metadata-key version | tr -d \'
       register: ostree_show
 
     # the rpm_ostree_status above sets the ros_booted variable used below
@@ -134,7 +137,7 @@
 
 - name: rpm-ostree - deploy by commit
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - deploy_commit
@@ -219,7 +222,7 @@
 
 - name: rpm-ostree - cleanup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - cleanup_pending
@@ -293,7 +296,7 @@
 
 - name: rpm-ostree - upgrade and rebase
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - upgrade_rebase
@@ -308,8 +311,8 @@
     # the rpm_ostree_status above sets the ros_booted variable used below
     - name: Set current commit version and refspec
       set_fact:
-         head_csum: "{{ ros_booted['checksum'] }}"
-         refspec: "{{ ros_booted['origin'] }}"
+        head_csum: "{{ ros_booted['checksum'] }}"
+        refspec: "{{ ros_booted['origin'] }}"
 
     - name: Get origin dir
       command: ostree admin --print-current-dir
@@ -320,10 +323,14 @@
 
     # update refspec in origin file so rpm-ostree upgrade uses local-branch
     - name: Update origin file
-      command: sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g' {{ current_dir.stdout }}.origin
+      command: >
+        sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g'
+        {{ current_dir.stdout }}.origin
 
     - name: Commit new local branch
-      command: ostree commit -b local-branch --tree=ref=local-branch --add-metadata-string version=test
+      command: >
+        ostree commit -b local-branch --tree=ref=local-branch
+        --add-metadata-string version=test
       register: new_commit
 
     # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
@@ -402,7 +409,7 @@
 
 - name: rpm-ostree - upgrade and rebase + install and uninstall
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - upgrade_rebase_install_uninstall
@@ -436,10 +443,14 @@
 
     # update refspec in origin file so rpm-ostree upgrade uses local-branch
     - name: Update origin file
-      command:  sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g' {{ current_dir.stdout }}.origin
+      command: >
+        sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g'
+        {{ current_dir.stdout }}.origin
 
     - name: Commit new local branch
-      command: ostree commit -b local-branch --tree=ref=local-branch --add-metadata-string version=test
+      command: >
+        ostree commit -b local-branch --tree=ref=local-branch
+        --add-metadata-string version=test
       register: new_commit
 
     # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
@@ -590,7 +601,7 @@
 #####################################################################################
 - name: rpm-ostree livefs
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - livefs
@@ -638,7 +649,8 @@
         checksum: "{{ rol_base_commit }}"
         packages: []
 
-    # Reboot and check that the deployment is now a typical package layered deployment
+    # Reboot and check that the deployment is now a typical package layered
+    # deployment
     - role: reboot
 
     - role: rpm_ostree_install_verify
@@ -673,8 +685,8 @@
 
     - role: rpm_ostree_rollback
 
-    # Reboot and verify that the system is back to the original deployment without livefs
-    # or layered packages
+    # Reboot and verify that the system is back to the original deployment
+    # without livefs or layered packages
     - role: reboot
 
     - role: rpm_ostree_uninstall_verify
@@ -715,7 +727,7 @@
 
 - name: rpm-ostree - client side initramfs
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - initramfs
@@ -735,7 +747,9 @@
         line: "rpm-ostree-test"
 
     - name: Enable initramfs
-      command: rpm-ostree initramfs --enable --arg="-I" --arg="/etc/rpmostree-file"
+      command: >
+        rpm-ostree initramfs --enable --arg="-I"
+        --arg="/etc/rpmostree-file"
 
     - include_role:
         name: reboot
@@ -775,7 +789,9 @@
         osname: "{{ ros_booted['osname'] }}"
 
     - name: Get bootloader entry
-      shell: grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf | sed -e 's,initrd ,/boot/,'
+      shell: >
+        grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf |
+        sed -e 's,initrd ,/boot/,'
       register: initrd
 
     - name: Check initramfs file
@@ -799,7 +815,9 @@
         name: reboot
 
     - name: Get bootloader entry
-      shell: grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf | sed -e 's,initrd ,/boot/,'
+      shell: >
+        grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf |
+        sed -e 's,initrd ,/boot/,'
       register: initrd_disabled
 
     - name: Check initramfs file

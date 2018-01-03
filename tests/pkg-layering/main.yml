@@ -18,23 +18,32 @@
 #   - Verify multiple rpm packages can be layered through rpm-ostree install
 #   - Verify rpm packages can be removed through rpm-ostree uninstall
 #   - Verify multiple rpm packages can be removed through rpm-ostree uninstall
-#   - Verify rpm-ostree status output displays "Package: <pkg1> <pkg2>.." when packages are layered
-#   - Verify the -r / --reboot flag reboots the host after rpm-ostree install or rpm-ostree uninstall
-#   - Verify the -n / --dry-run flag does not perform the package add/remove function and displays a summary of packages to be installed
-#   - Verify a dry-run of rpm-ostree install|uninstall does not affect an existing package that has been layered, but not rebooted.
-#   - Verify that after additional repos are enabled (i.e. EPEL), rpm-ostree install|uninstall can be successfully used for packages in those repos.
+#   - Verify rpm-ostree status output displays "Package: <pkg1> <pkg2>.." when
+#     packages are layered
+#   - Verify the -r / --reboot flag reboots the host after rpm-ostree install
+#     or rpm-ostree uninstall
+#   - Verify the -n / --dry-run flag does not perform the package add/remove
+#     function and displays a summary of packages to be installed
+#   - Verify a dry-run of rpm-ostree install|uninstall does not affect an
+#     existing package that has been layered, but not rebooted.
+#   - Verify that after additional repos are enabled (i.e. EPEL), rpm-ostree
+#     install|uninstall can be successfully used for packages in those repos.
 #
 # Negative Testing
 #   - Verify correct error is displayed removing a package that does not exist
-#   - Verify correct error is displayed when adding a package that does not exists in the repo
-#   - Verify correct error message is displayed when adding a package that is already in the deployment
-#   - Verify packages which have files with non-root ownership cannot be installed
-#   - Verify that install/uninstall operations cannot be performed by unprivileged users
+#   - Verify correct error is displayed when adding a package that does not
+#     exists in the repo
+#   - Verify correct error message is displayed when adding a package that is
+#     already in the deployment
+#   - Verify packages which have files with non-root ownership cannot be
+#     installed
+#   - Verify that install/uninstall operations cannot be performed by
+#     unprivileged users
 #
 
 - name: Package Layering Tests - Setup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - setup
@@ -70,7 +79,7 @@
 
 - name: Package Layering - Single package install and uninstall test
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - single_pkg_install_uninstall
@@ -103,7 +112,7 @@
 
 - name: Package Layering - Multiple package install and uninstall test
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - multi_pkg_install_uninstall
@@ -144,7 +153,7 @@
 
 - name: Package Layering - Reboot flag test
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - reboot_flag
@@ -171,7 +180,7 @@
 
 - name: Package Layering - Dry run tests
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - dry_run
@@ -197,7 +206,7 @@
 
 - name: Package Layering - Dry run does not affect installed packages tests
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - dry_run_interaction
@@ -235,21 +244,25 @@
     - name: Set packages when deployment 0 is not booted
       set_fact:
         pending_pkgs: "{{ pending_json['deployments'][0]['packages'] }}"
-      when: pending_json['deployments'][0] is defined and not pending_json['deployments'][0]['booted']
+      when: >
+        pending_json['deployments'][0] is defined
+        and not pending_json['deployments'][0]['booted']
 
     - name: Set packages when deployment 1 is not booted
       set_fact:
         pending_pkgs: "{{ pending_json['deployments'][1]['packages'] }}"
-      when: pending_json['deployments'][1] is defined and not pending_json['deployments'][1]['booted']
+      when: >
+        pending_json['deployments'][1] is defined
+        and not pending_json['deployments'][1]['booted']
 
-    - name: Fail if {{ g_pkg2 }} is in rpm-ostree status output for pending packages
+    - name: Fail if {{ g_pkg2 }} is in  pending packages
       fail:
         msg: |
           Expected: "{{ g_pkg2 }} should not be in rpm-ostree status output
           Actual: {{ pending_pkgs }}
       when: g_pkg2 in pending_pkgs
 
-    - name: Fail if {{ g_pkg1 }} is not in rpm-ostree status output for pending packages
+    - name: Fail if {{ g_pkg1 }} is not in pending packages
       fail:
         msg: |
           Expected: {{ g_pkg1 }}  in rpm-ostree status output
@@ -263,7 +276,7 @@
 
 - name: Package Layering - install package from EPEL repo test
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - alternate_repo_install
@@ -281,10 +294,11 @@
       yum_repository:
         name: epel
         description: Extra Packages for Enterprise Linux 7 - $basearch
-        mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+        mirrorlist: >
+          https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
         failovermethod: priority
-        gpgcheck: yes
-        enabled: yes
+        gpgcheck: "yes"
+        enabled: "yes"
         gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 
     - name: Install {{ g_epel_pkg }} from EPEL
@@ -302,7 +316,7 @@
 
 - name: Package Layering - Negative test - Uninstalling non-existent package
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - uninstall_invalid_pkg
@@ -327,7 +341,7 @@
 
 - name: Package Layering - Negative Test - Installing non-existent package
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - install_invalid_pkg
@@ -344,15 +358,15 @@
     - name: Fail if error not expected
       fail:
         msg: |
-          Expected: No package is contained in the rpm-ostree install output when
-                    attempting to install an invalid package
+          Expected: No package is contained in the rpm-ostree install output
+                    when attempting to install an invalid package
           Actual: {{ nonexist.stderr }}
       when: "'No package' not in nonexist.stderr"
 
 
 - name: Package Layering - Installing existing package
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - install_existing_pkg
@@ -374,18 +388,25 @@
       set_fact:
         req_json: "{{ req.stdout | from_json }}"
 
-    # This is a hack for requested-packages being displayed in rpm-ostree v2017.3 that should
-    # be fixed in v2017.4.  Once all streams are at v2017.4 we can fix this.  See
-    # https://github.com/projectatomic/rpm-ostree/pull/670
+    # This is a hack for requested-packages being displayed in rpm-ostree
+    # v2017.3 that should be fixed in v2017.4.  Fix this once  all streams
+    # are at v2017.4.
+    # See https://github.com/projectatomic/rpm-ostree/pull/670
     - name: Set packages when deployment 0 is booted
       set_fact:
-        req_pkgs: "{{ req_json['deployments'][0]['requested-packages'] if req_json['deployments'][0]['requested-packages'] is defined else {} }}"
+        req_pkgs: >
+           "{{ req_json['deployments'][0]['requested-packages']
+           if req_json['deployments'][0]['requested-packages'] is defined
+           else {} }}"
       when: req_json['deployments'][0]['booted']
 
     - name: Set packages when deployment 1 is booted
       set_fact:
-        req_pkgs: "{{ req_json['deployments'][1]['requested-packages'] if req_json['deployments'][1]['requested-packages'] is defined else {} }}"
-      when:  req_json['deployments'][1]['booted']
+        req_pkgs: >
+          "{{ req_json['deployments'][1]['requested-packages']
+          if req_json['deployments'][1]['requested-packages'] is defined
+          else {} }}"
+      when: req_json['deployments'][1]['booted']
 
     - name: Fail if {{ g_deployed_pkg }} is not in requested packages
       fail:
@@ -396,7 +417,7 @@
 
 - name: Package Layering - Installing non-root ownership package
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - install_nonroot_pkg
@@ -431,7 +452,7 @@
 
 - name: Package Layering - Negative - Install already layered package
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - install_previously_layered
@@ -440,14 +461,14 @@
     - vars.yml
 
   tasks:
-     - name: Install already layered package
-       command: rpm-ostree install {{ g_pkg1 }}
-       register: ros_install
-       failed_when: ros_install.rc == 0
+    - name: Install already layered package
+      command: rpm-ostree install {{ g_pkg1 }}
+      register: ros_install
+      failed_when: ros_install.rc == 0
 
-- name: Package Layering - Negative Test - Installing without sufficient privileges
+- name: Package Layering - Negative Test - Installing insufficient privileges
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - install_unprivileged
@@ -465,7 +486,7 @@
 
 - name: Package Layering - Cleanup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - cleanup
@@ -475,7 +496,8 @@
 
   pre_tasks:
     - name: Uninstall all packages
-      command: rpm-ostree uninstall {{ g_pkg1 }} {{ g_epel_pkg }} {{ g_deployed_pkg }}
+      command: >
+        rpm-ostree uninstall {{ g_pkg1 }} {{ g_epel_pkg }} {{ g_deployed_pkg }}
 
     - include: '../../common/ans_reboot.yml'
 

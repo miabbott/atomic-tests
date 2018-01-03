@@ -16,12 +16,17 @@
         # instance.  This can be done via the inventory file or on the command
         # line, like so:
         #
-        # $ ansible-playbook -i inventory -e cli_oo_host=10.0.36.120 tests/openshift-ansible-testing/main.yml
+        # $ ansible-playbook -i inventory -e cli_oo_host=10.0.36.120 \
+        #   tests/openshift-ansible-testing/main.yml
         #
         oo_host: "{{ cli_oo_host | default(ansible_default_ipv4.address) }}"
         oo_release: "{{ cli_oo_release | default('1.5.1') }}"
-        oo_py_interpreter: "{{ '-e ansible_python_interpreter=/usr/bin/python3' if ansible_distribution == 'Fedora' else '' }}"
-        oo_skip_memory_check: "{{ '-e openshift_disable_check=memory_availability' if ansible_memtotal_mb|int < 8192 else '' }}"
+        oo_py_interpreter: >
+          "{{ '-e ansible_python_interpreter=/usr/bin/python3'
+          if ansible_distribution == 'Fedora' else '' }}"
+        oo_skip_memory_check: >
+          "{{ '-e openshift_disable_check=memory_availability'
+          if ansible_memtotal_mb|int < 8192 else '' }}"
 
     - name: Make temp directory of holding
       command: mktemp -d
@@ -42,7 +47,9 @@
       delegate_to: localhost
 
     - name: Run the openshift-ansible playbook
-      command: "ansible-playbook -i cluster-inventory playbooks/byo/config.yml {{ oo_py_interpreter }} {{ oo_skip_memory_check }}"
+      command: >
+        ansible-playbook -i cluster-inventory playbooks/byo/config.yml
+        {{ oo_py_interpreter }} {{ oo_skip_memory_check }}"
       args:
         chdir: "{{ mktemp.stdout }}"
       delegate_to: localhost
@@ -52,12 +59,15 @@
         port: 8443
         delay: 60
 
-      # this may not be required
+    # this may not be required
     - name: Add admin user to cluster-admin role
-      command: /usr/local/bin/oadm policy add-cluster-role-to-user cluster-admin admin
+      command: >
+        /usr/local/bin/oadm policy add-cluster-role-to-user cluster-admin admin
 
     - name: Login to the cluster
-      command: "/usr/local/bin/oc login -u admin -p OriginAdmin https://{{ oo_public_host }}:8443"
+      command: >
+        /usr/local/bin/oc login -u admin -p OriginAdmin
+        https://{{ oo_public_host }}:8443
 
       # this is kind of a hack; sometimes need to wait (5m) for the pods
     - name: Verify pods are running

@@ -3,7 +3,7 @@
 #
 - name: Atomic - Setup
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - setup
@@ -24,7 +24,7 @@
 
 - name: Atomic Fully Qualified Name
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - fq_name
@@ -89,7 +89,7 @@
 
 - name: Atomic Short Name
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - shortname
@@ -161,7 +161,7 @@
 
 - name: Atomic fully qualified container name
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - fq_name_name
@@ -231,7 +231,7 @@
 
 - name: Atomic Pull With Tags
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - pull_tags
@@ -278,7 +278,7 @@
 
 - name: Atomic Pull By Digest
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - pull_digest_simple
@@ -287,7 +287,8 @@
     - name: Set image name
       set_fact:
         fq_name: "docker.io/busybox"
-        digest: "sha256:29f5d56d12684887bdfa50dcd29fc31eea4aaf4ad3bec43daf19026a7ce69912"
+        digest: >
+          "sha256:29f5d56d12684887bdfa50dcd29fc31eea4aaf4ad3bec43daf19026a7ce69912"
 
   roles:
     - name: atomic_pull
@@ -309,7 +310,7 @@
 
 - name: Atomic Pull Storage
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - pull_storage
@@ -362,7 +363,7 @@
 
 - name: Atomic Images Update
   hosts: all
-  become: yes
+  become: "yes"
 
   tags:
     - images_update
@@ -421,7 +422,7 @@
       expected_values:
         repo: "{{ local_name }}"
         tag: "latest"
-      expect_missing: True
+      expect_missing: true
 
     # Pull the image from the private registry
     - role: atomic_pull
