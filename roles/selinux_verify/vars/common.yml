@@ -21,6 +21,6 @@ common_files:
   - { key: '/usr/sbin/sshd', value: 'system_u:object_r:sshd_exec_t:s0' }
 
 common_procs:
-  - { key: 'NetworkManager', value: 'system_u:system_r:NetworkManager_t:s0' }
   - { key: 'rpm-ostreed', value: 'system_u:system_r:install_t:s0' }
+  - { key: 'NetworkManager', value: 'system_u:system_r:NetworkManager_t:s0' }
   - { key: 'sshd', value: 'system_u:system_r:sshd_t:s0' }
