@@ -244,18 +244,18 @@
     - name: Set packages when deployment 0 is not booted
       set_fact:
         pending_pkgs: "{{ pending_json['deployments'][0]['packages'] }}"
-      when: >
-        pending_json['deployments'][0] is defined
-        and not pending_json['deployments'][0]['booted']
+      when:
+        - pending_json['deployments'][0] is defined
+        - not pending_json['deployments'][0]['booted']
 
     - name: Set packages when deployment 1 is not booted
       set_fact:
         pending_pkgs: "{{ pending_json['deployments'][1]['packages'] }}"
-      when: >
-        pending_json['deployments'][1] is defined
-        and not pending_json['deployments'][1]['booted']
+      when:
+        - pending_json['deployments'][1] is defined
+        - not pending_json['deployments'][1]['booted']
 
-    - name: Fail if {{ g_pkg2 }} is in  pending packages
+    - name: Fail if {{ g_pkg2 }} is in pending packages
       fail:
         msg: |
           Expected: "{{ g_pkg2 }} should not be in rpm-ostree status output
