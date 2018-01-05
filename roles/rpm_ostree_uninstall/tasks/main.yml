@@ -69,7 +69,8 @@
   when: rou_reboot and rm_packages != "all"
   ignore_errors: true
 
-- include: ../../../common/ans_reboot.yml
+- include_role:
+    name: reboot
   vars:
     skip_shutdown: true # shutdown was already initiated
   when: rou_reboot and rm_packages != "all"

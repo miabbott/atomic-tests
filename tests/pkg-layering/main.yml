@@ -245,7 +245,7 @@
     - name: Fail if {{ g_pkg2 }} is in rpm-ostree status output for pending packages
       fail:
         msg: |
-          Expected: "{{ g_pkg2 }} should not be in rpm-ostree status output
+          Expected: {{ g_pkg2 }} should not be in rpm-ostree status output
           Actual: {{ pending_pkgs }}
       when: g_pkg2 in pending_pkgs
 
@@ -294,7 +294,8 @@
       delay: 60
       until: roi_epel|success
 
-    - include: ../../common/ans_reboot.yml
+    - include_role:
+        name: reboot
 
     - include: verify_package_deployed.yml
       vars:
@@ -364,7 +365,8 @@
     - name: Attempt to install package that is already in the deployment
       command: rpm-ostree install {{ g_deployed_pkg }}
 
-    - include: '../../common/ans_reboot.yml'
+    - include_role:
+        name: reboot
 
     - name: Get rpm-ostree status --json output
       command: rpm-ostree status --json
@@ -423,7 +425,8 @@
     - name: Uninstall httpd
       command: rpm-ostree uninstall httpd
 
-    - include: '../../common/ans_reboot.yml'
+    - include_role:
+        name: reboot
 
     - include: verify_package_not_deployed.yml
       vars:
@@ -477,7 +480,8 @@
     - name: Uninstall all packages
       command: rpm-ostree uninstall {{ g_pkg1 }} {{ g_epel_pkg }} {{ g_deployed_pkg }}
 
-    - include: '../../common/ans_reboot.yml'
+    - include_role:
+        name: reboot
 
   roles:
     - role: rpm_ostree_cleanup_all

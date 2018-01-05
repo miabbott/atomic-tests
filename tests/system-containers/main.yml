@@ -142,7 +142,8 @@
           Actual: {{ c_output.stdout }}
       when: "'Hi foo' not in c_output.stdout"
 
-    - include: ../../common/ans_reboot.yml
+    - include_role:
+        name: reboot
 
     - name: Verify {{ g_hw_name }} service is active
       command: systemctl is-active {{ g_hw_name }}
