@@ -2,4 +2,5 @@
 allow_duplicates: true
 
 dependencies:
-  - role: install_jq
+  - role: docker_pull
+    dp_image: docker.io/miabbott/aht-tools:latest
