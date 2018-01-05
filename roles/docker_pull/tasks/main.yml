@@ -14,3 +14,7 @@
 
 - name: Pull image
   command: docker pull {{ dp_image }} {{ pull_options }}
+  register: dp
+  retries: 5
+  delay: 60
+  until: dp|success
