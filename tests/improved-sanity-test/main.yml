@@ -878,6 +878,15 @@
       tags:
         - rpm_ostree_cleanup_all
 
+    # remove any docker artifacts
+    - role: docker_remove_all
+
+    # remove users
+    - role: user_del
+      ud_users:
+        - "{{ g_uid1 }}"
+        - "{{ g_uid2 }}"
+
     # cleanup our subscriptions because we are nice people
     - when: ansible_distribution == 'RedHat'
       role: redhat_unsubscribe
