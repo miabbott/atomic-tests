@@ -5,3 +5,7 @@ inventory*
 *.pyc
 *.pyo
 .*.swp
+
+# ignore test artifacts
+*bdsf_archive.yml
+*journal
