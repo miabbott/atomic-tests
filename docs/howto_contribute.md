@@ -329,7 +329,7 @@ following checklist may be useful to follow in order to minimize any extra
 changes that may be requested:
 
 - [ ] role/test has successfully run against the following platforms
-  - [ ] Fedora 25 Atomic Host
+  - [ ] Fedora 27 Atomic Host
   - [ ] CentOS 7 Atomic Host
   - [ ] [CentOS AH Continuous](https://wiki.centos.org/SpecialInterestGroup/Atomic/Devel) or [Fedora AH Continuous](https://pagure.io/fedora-atomic-host-continuous)
   - [ ] RHEL 7 Atomic Host (if available)
