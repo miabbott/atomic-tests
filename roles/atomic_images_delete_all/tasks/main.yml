@@ -2,7 +2,7 @@
 # vim: set ft=ansible:
 #
 - name: Remove all images
-  command: atomic --assumeyes images delete --all
+  command: atomic --assumeyes images delete --all --force
   ignore_errors: yes
 
 - name: Prune images
