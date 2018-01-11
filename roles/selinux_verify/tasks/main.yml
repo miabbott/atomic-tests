@@ -12,13 +12,13 @@
     - "{{ ansible_distribution|lower }}.yml"
 
 - name: Fail if required variables are not defined
-  fail:
-    msg: "The required variables are not defined.  Check files under roles/selinux_verify/vars/"
   when: mountpoints is undefined or
         common_files is undefined or
         common_procs is undefined or
         distro_files is undefined or
         distro_procs is undefined
+  fail:
+    msg: "The required variables are not defined.  Check files under roles/selinux_verify/vars/"
 
 - name: Check if getfattr installed
   stat:
@@ -26,9 +26,9 @@
   register: getfattr
 
 - name: Fail if getfattr not installed
+  when: getfattr.stat.exists == False
   fail:
     msg: "The getfattr utility is not installed"
-  when: getfattr.stat.exists == False
 
   # Rather than use the more complicated 'with_subelements' approach, it is
   # possible to just use a list of key,value pairs and iterate over them.
@@ -50,11 +50,11 @@
   # process labels.
 
 - name: Append failed common file labels to the list
+  when: item.item.value not in item.stdout
   set_fact:
     sv_failed_file_labels: |
       {{ sv_failed_file_labels|default([]) +
       [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
-  when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_file_labels.results }}"
 
 - name: Retrieve the distribution specific SELinux file labels
@@ -63,11 +63,11 @@
   with_items: "{{ distro_files }}"
 
 - name: Append failed distro file labels to the list
+  when: item.item.value not in item.stdout
   set_fact:
     sv_failed_file_labels: |
       {{ sv_failed_file_labels|default([]) +
       [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
-  when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_file_labels.results }}"
 
   # If the list of failed labels has been appended to, the variable will
@@ -77,6 +77,7 @@
   # we can use some Jinja2 templating hacks to iterate over the list of
   # failed files.
 - name: Fail if any SELinux file labels were incorrect
+  when: sv_failed_file_labels is defined
   fail:
     msg: |
       The following files had incorrect SELinux labels:
@@ -85,7 +86,6 @@
       {%- for i in sv_failed_file_labels %}
       {%- print i + '\n' %}
       {%- endfor %}
-  when: sv_failed_file_labels is defined
 
 - name: Run 'rpm-ostree status' to start daemon
   command: rpm-ostree status
@@ -96,11 +96,11 @@
   with_items: "{{ common_procs }}"
 
 - name: Append incorrect common SELinux process labels
+  when: item.item.value not in item.stdout
   set_fact:
     sv_failed_proc_labels: |
       {{ sv_failed_proc_labels|default([]) +
       [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
-  when: item.item.value not in item.stdout
   with_items: "{{ common_selinux_proc_labels.results }}"
 
 - name: Retrieve distribution specific SELinux process labels
@@ -109,14 +109,15 @@
   with_items: "{{ distro_procs }}"
 
 - name: Append incorrect distro SELinux process labels
+  when: item.item.value not in item.stdout
   set_fact:
     sv_failed_proc_labels: |
       {{ sv_failed_proc_labels|default([]) +
       [ item.item.key + ': ' + item.stdout + ' (expected: ' + item.item.value + ')' ] }}
-  when: item.item.value not in item.stdout
   with_items: "{{ distro_selinux_proc_labels.results }}"
 
 - name: Fail if any SELinux proc labels were incorrect
+  when: sv_failed_proc_labels is defined
   fail:
     msg: |
       The following procs had incorrect SELinux labels:
@@ -125,7 +126,6 @@
       {%- for i in sv_failed_proc_labels %}
       {%- print i + '\n' %}
       {%- endfor %}
-  when: sv_failed_proc_labels is defined
 
 - name: Look for files/dirs with 'default_t' label
   command: find {{ item }} -context '*:default_t:*'
@@ -133,12 +133,13 @@
   with_items: "{{ mountpoints }}"
 
 - name: Append files with 'default_t'
+  when: item.stdout|length > 0
   set_fact:
     sv_default_files: "{{ sv_default_files|default([]) + [ item.stdout ] }}"
-  when: item.stdout|length > 0
   with_items: "{{ find_default_t.results }}"
 
 - name: Fail if any files have the default_t SELinux label
+  when: sv_default_files is defined
   fail:
     msg: |
       The following files had the 'default_t' label:
@@ -147,7 +148,6 @@
       {%- for i in sv_default_files %}
       {%- print i + '\n' %}
       {%- endfor %}
-  when: sv_default_files is defined
 
 - name: Look for files/dir with 'unlabeled_t' label
   command: find {{ item }} -context '*:unlabeled_t:*'
@@ -155,12 +155,13 @@
   with_items: "{{ mountpoints }}"
 
 - name: Append files with 'unlabeled_t'
+  when: item.stdout|length > 0
   set_fact:
     sv_unlabeled_files: "{{ sv_unlabeled_files|default([]) + [ item.stdout ] }}"
-  when: item.stdout|length > 0
   with_items: "{{ find_file_t.results }}"
 
 - name: Fail if any files have the unlabeled_t SELinux label
+  when: sv_unlabeled_files is defined
   fail:
     msg: |
       The following files had the 'unlabeled_t' label:
@@ -169,4 +170,3 @@
       {%- for i in sv_unlabeled_files %}
       {%- print i + '\n' %}
       {%- endfor %}
-  when: sv_unlabeled_files is defined

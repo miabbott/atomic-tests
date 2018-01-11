@@ -4,9 +4,9 @@
 #  and database server
 #
   - name: Fail if ansible_docker0.ipv4.address is not defined
+    when: ansible_docker0.ipv4.address is not defined
     fail:
       msg: "ansible_docker0.ipv4.address it not defined!"
-    when: ansible_docker0.ipv4.address is not defined
     run_once: true
 
 

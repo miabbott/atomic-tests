@@ -10,9 +10,9 @@
 # under test.
 #
 - name: Fail if bdsf_saved_refspec is not defined
+  when: bdsf_saved_refspec is undefined
   fail:
     msg: "The 'bdsf_saved_refspec' variable is not defined"
-  when: bdsf_saved_refspec is undefined
 
 # We don't support internal RHELAH autobrew, the continuous streams, or
 # Fedora Rawhide
@@ -21,12 +21,12 @@
     rsv_rpm_sig_supported: false
 
 - name: Set rsv_rpm_sig_supported fact
-  set_fact:
-    rsv_rpm_sig_supported: true
   when:
     - "'buildmaster' not in bdsf_saved_refspec"
     - "'continuous' not in bdsf_saved_refspec"
     - "'rawhide' not in bdsf_saved_refspec"
+  set_fact:
+    rsv_rpm_sig_supported: true
 
 - block:
     # Even though this whole block is skipped if `rsv_rpm_sig_supported` is not defined
@@ -42,27 +42,27 @@
           skip: true
 
     - name: Fail if GPG key is not defined
+      when: rsv_gpg_key is undefined
       fail:
         msg: "There is no GPG key provided"
-      when: rsv_gpg_key is undefined
 
     - name: Get RPM signatures
       shell: rpm -qai | awk '/Signature/ {print substr($NF, length($NF)-16) }' | sort | uniq
       register: rsv_rpm_sig
 
     - name: Fail if GPG key is not found
+      when: rsv_gpg_key not in rsv_rpm_sig.stdout
       fail:
         msg: |
           RPMs not signed with appropriate GPG key.
           Expected: {{ rsv_gpg_key }}
           Result: {{ rsv_rpm_sig.stdout }}
-      when: rsv_gpg_key not in rsv_rpm_sig.stdout
 
     - name: Fail if more than one GPG key found
+      when: rsv_rpm_sig.stdout|length > 17
       fail:
         msg: |
           Multiple GPG keys found!
           Expected: {{ rsv_gpg_key }}
           Result: {{ rsv_rpm_sig.stdout }}
-      when: rsv_rpm_sig.stdout|length > 17
   when: rsv_rpm_sig_supported

@@ -2,9 +2,9 @@
 # vim: set ft=ansible:
 #
 - name: Fail if g_hostname is not defined
+  when: g_hostname is undefined
   fail:
     msg: "g_hostname is not defined"
-  when: g_hostname is undefined
 
 - name: Add entry to /etc/hosts
   lineinfile:

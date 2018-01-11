@@ -21,9 +21,9 @@
 #   across the roles.
 #
 - name: Fail if no package specified
+  when: roiv_package_name is undefined
   fail:
     msg: "No packages specified"
-  when: roiv_package_name is undefined
 
 # The 'binary' fact can be set to something other than the package name
 # if needed
@@ -37,12 +37,12 @@
 
 # ros_booted is pulled from the rpm_ostree_status role above
 - name: Fail if {{ roiv_package_name }} is not in list of installed packages
+  when: roiv_package_name not in ros_booted['packages'] and
+        roiv_status_check
   fail:
     msg: |
       {{ roiv_package_name }} is not in rpm-ostree status output
       Result: {{ ros_booted['packages'] }}
-  when: roiv_package_name not in ros_booted['packages'] and
-        roiv_status_check
 
 - name: Check for {{ roiv_binary_name }} binary
   command: command -v {{ roiv_binary_name }}

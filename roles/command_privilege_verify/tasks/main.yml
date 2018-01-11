@@ -10,11 +10,11 @@
 #  user (string) - user that runs the command
 #  expect_failure (boolean) - expect failure or not
 - name: Fail if cmd, user, or expect_failure is undefined
-  fail:
-    msg: "cmd, user, or expect_failure undefined"
   when: cmd is undefined or
         user is undefined or
         expect_failure is undefined
+  fail:
+    msg: "cmd, user, or expect_failure undefined"
 
 - name: Run {{ cmd }} as {{ user }}
   command: runuser -u {{ user }} {{ cmd }}

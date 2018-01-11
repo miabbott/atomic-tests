@@ -10,16 +10,16 @@
 #
 
 - name: Fail if cmd is not defined
+  when: cmd is undefined
   fail:
     msg: "cmd is undefined"
-  when: cmd is undefined
 
 - name: Run command
   shell: "{{ cmd }}"
   register: cmd_output
 
 - name: Verify output
-  fail:
-    msg: "{{ output }} is not in command output"
   when: output is defined and
         output not in cmd_output.stdout
+  fail:
+    msg: "{{ output }} is not in command output"

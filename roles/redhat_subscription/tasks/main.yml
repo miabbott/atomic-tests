@@ -37,10 +37,11 @@
 
     when: is_atomic
 
+
   - name: Fail if subscription_file is not defined
+    when: subscription_file is not defined
     fail:
       msg: "subscription_file is not defined!"
-    when: subscription_file is not defined
     run_once: true
 
   - name: Register with subscription-manager
@@ -84,11 +85,11 @@
   - block:
 
     - name: Revert refspec in origin after susbcription if it not the default refspec
+      when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
       replace:
         dest: "{{ origin_file.stdout }}.origin"
         regexp: '^refspec.*$'
         replace: "{{ refspec.stdout }}"
-      when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
 
     - name: Remove unconfigured state in origin file
       lineinfile:

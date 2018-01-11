@@ -1,17 +1,17 @@
 ---
 - name: Fail if required variables are not defined.
-  fail:
-    msg: "The required variables (test_dir + test_context) are not defined"
   when: test_dir is undefined or
         test_context is undefined
+  fail:
+    msg: "The required variables (test_dir + test_context) are not defined"
 
 - name: Retrieve the context
   shell: "semanage fcontext -l | grep {{ test_dir|quote }}"
   register: fcontext
 
 - name: Fail if the context does not match what is expected
+  when: test_context not in fcontext.stdout
   fail:
     msg: |
       Expected: SELinux fcontext: {{ test_context }}
       Actual: SELinux fcontext: {{ fcontext.stdout }}
-  when: test_context not in fcontext.stdout

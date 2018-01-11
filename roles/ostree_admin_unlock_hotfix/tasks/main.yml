@@ -9,6 +9,6 @@
 - include: '../../rpm_ostree_status/tasks/main.yml'
 
 - name: Fail if unlocked is not set to hotfix
+  when: "'hotfix' not in ros_booted['unlocked']"
   fail:
     msg: "Unlock is not set to hotfix"
-  when: "'hotfix' not in ros_booted['unlocked']"

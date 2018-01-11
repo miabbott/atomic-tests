@@ -4,21 +4,21 @@
 # Playbook to collect /etc/machine-id contents and compare
 #
 - name: Fail if g_host1_name fact are not defined
+  when: g_host1_name is not defined
   fail:
     msg: "The g_host1_name fact is not defined!"
-  when: g_host1_name is not defined
   run_once: true
 
 - name: Fail if g_host2_name fact are not defined
+  when: g_host2_name is not defined
   fail:
     msg: "The g_host2_name fact is not defined!"
-  when: g_host2_name is not defined
   run_once: true
 
 - name: Fail if g_tmp_dir is not defined
+  when: g_tmp_dir is not defined
   fail:
     msg: "The g_tmp_dir fact is not defined!"
-  when: g_tmp_dir is not defined
   run_once: true
 
 - name: Retrieve contents of /etc/machine-id

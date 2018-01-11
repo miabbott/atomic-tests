@@ -4,10 +4,10 @@
 #
 
 - name: Fail if dt_image or dt_tag is not defined
-  fail:
-    msg: "dt_image or dt_tag is not defined"
   when: dt_image is undefined or
         dt_tag is undefined
+  fail:
+    msg: "dt_image or dt_tag is not defined"
 
 - name: Tag image
   command: docker tag {{ dt_image }} {{ dt_tag }}

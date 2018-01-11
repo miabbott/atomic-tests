@@ -10,8 +10,8 @@
 - include: '../../rpm_ostree_status/tasks/main.yml'
 
 - name: Fail if unlocked is not set to development
+  when: "'development' not in ros_booted['unlocked']"
   fail:
     msg: |
       Unlocked is not set to development.
       Actual: {{ ros_booted['unlocked'] }}
-  when: "'development' not in ros_booted['unlocked']"

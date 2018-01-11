@@ -4,9 +4,9 @@
 # Removes package using rpm
 #
 - name: Fail if rpm_name
+  when: rpm_name is undefined
   fail:
     msg: "rpm_name is undefined"
-  when: rpm_name is undefined
 
 - name: Uninstall {{ rpm_name }}
   command:  rpm -e {{ rpm_name }}

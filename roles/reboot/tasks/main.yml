@@ -19,11 +19,11 @@
     timeout: "{{ cli_reboot_timeout | default('120') }}"
 
 - name: restart hosts
+  when: (not skip_shutdown is defined) or (not skip_shutdown)
   shell: sleep 3 && shutdown -r now
   async: 1
   poll: 0
   ignore_errors: true
-  when: (not skip_shutdown is defined) or (not skip_shutdown)
 
 # NB: The following tasks use local actions, so we need to explicitly ensure
 # that they don't use sudo, which may require a password, and is not necessary

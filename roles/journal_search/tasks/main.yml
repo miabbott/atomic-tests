@@ -10,9 +10,9 @@
 #   fail_if_found (bool) - cause the role to fail if the string is found (optional)
 #
 - name: Fail if the 'search_string' is undefined
+  when: search_string is undefined
   fail:
     msg: "The variable 'search_string' is undefined"
-  when: search_string is undefined
 
 - name: Setup "fail_if_found" and "extra_args" variable
   set_fact:
@@ -45,19 +45,19 @@
     found_string: "{{ j.rc == 0 }}"
 
 - name: Fail if the string was not found in the journal
-  fail:
-    msg: "Unable to find string '{{ search_string }}' in the journal"
   when:
     - not fif
     - not found_string
+  fail:
+    msg: "Unable to find string '{{ search_string }}' in the journal"
 
 - name: Fail if the string was found in the journal
+  when:
+    - fif
+    - found_string
   fail:
     msg: |
       Found the string '{{ search_string }}' in the journal
 
       Matching entries:
       {{ j.stdout }}
-  when:
-    - fif
-    - found_string

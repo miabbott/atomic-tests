@@ -4,9 +4,9 @@
 # runs container with atomic cli
 #
 - name: Fail if ar_image is undefined
+  when: ar_image is undefined
   fail:
     msg: "ar_image is not defined"
-  when: ar_image is undefined
 
 - name: Run {{ ar_image }}
   command: atomic run {{ ar_image }}

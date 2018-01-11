@@ -10,9 +10,9 @@
 #   - atomic stop
 #
 - name: Fail if container is undefined
+  when: container is undefined
   fail:
     msg: "No container specified"
-  when: container is undefined
 
 - name: atomic stop {{ container }}
   command: atomic stop {{ container }}
@@ -22,8 +22,8 @@
   register: dps
 
 - name: Fail if {{ container }} status is not exited
+  when: dps.stdout.find("Exited") == -1
   fail:
     msg: |
       Expected: Container has exited status
       Actual: {{ dps.stdout }}
-  when: dps.stdout.find("Exited") == -1

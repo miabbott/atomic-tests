@@ -2,25 +2,25 @@
 # vim: set ft=ansible:
 #
 - name: Fail if g_osname not set
+  when: g_osname is not defined
   fail:
     msg: "The g_osname variable is not defined"
-  when: g_osname is not defined
 
 - name: Fail if g_httpd_name not set
+  when: g_httpd_name is not defined
   fail:
     msg: "The g_httpd_name variable is not defined"
-  when: g_httpd_name is not defined
 
 - name: Get list of all containers
   command: docker ps -a
   register: ps_before
 
 - name: Fail if httpd container is not present
+  when: g_httpd_name not in ps_before.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} container is present in docker ps
       Actual: {{ ps_before.stdout }}
-  when: g_httpd_name not in ps_before.stdout
 
 - name: Remove the httpd container
   command: "docker rm {{ g_httpd_name }}"
@@ -30,9 +30,9 @@
   register: ps_after
 
 - name: Fail if httpd container is present
+  when: g_httpd_name in ps_after.stdout
   fail:
     msg: |
       The {{ g_httpd_name }} container is still present
       Expected: {{ g_httpd_name }} is missing from docker ps -a
       Actual: {{ ps_after.stdout }}
-  when: g_httpd_name in ps_after.stdout

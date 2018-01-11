@@ -9,28 +9,28 @@
 #  roi_reboot - boolean - pass -r flag to install command
 #
 - name: Fail if no packages specified
+  when: roi_packages is undefined
   fail:
     msg: "No packages specified"
-  when: roi_packages is undefined
 
 - name: Fail if reboot is undefined
+  when: roi_reboot is undefined
   fail:
     msg: "Reboot is not defined"
-  when: roi_reboot is undefined
 
 - name: Install {{ roi_packages }} and no reboot
+  when: not roi_reboot
   command: rpm-ostree install {{ roi_packages }}
   register: install
   retries: 5
   delay: 60
   until: install|success
-  when: not roi_reboot
 
 - name: Install {{ roi_packages }} and reboot
+  when: roi_reboot
   command: rpm-ostree install {{ roi_packages }} -r
   async: 60
   poll: 0
-  when: roi_reboot
   ignore_errors: true
 
 - include_role:

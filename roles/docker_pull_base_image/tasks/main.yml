@@ -2,9 +2,9 @@
 # vim: set ft=ansible:
 #
 - name: Fail if g_osname is not set
+  when: g_osname is not defined
   fail:
     msg: "The g_osname variable is not defined"
-  when: g_osname is not defined
 
 - name: Pull base image
   command: "docker pull {{ g_osname }}"
@@ -18,8 +18,8 @@
   register: docker_images
 
 - name: Fail if base image is missing
+  when: g_osname not in docker_images.stdout
   fail:
     msg: |
       The base image named {{ g_osname }} is missing
       Actual: {{ docker_images.stdout }}
-  when: g_osname not in docker_images.stdout

@@ -4,9 +4,9 @@
 # pulls image with atomic cli
 #
 - name: Fail if apl_image is undefined
+  when: apl_image is undefined
   fail:
     msg: "apl_image is not defined"
-  when: apl_image is undefined
 
 - name: Set options
   set_fact:

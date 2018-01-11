@@ -37,18 +37,18 @@
     ahv_missing_rpms: "{{ ahv_requirements.keys() | difference(ahv_rpms) }}"
 
 - name: Get versions if they were not retrieved
+  when: ahv_missing_rpms|length > 0
   include_role:
     name: rpm_version
   vars:
     rv_rpms: "{{ ahv_missing_rpms }}"
-  when: ahv_missing_rpms|length > 0
 
 - name: Fail if version requirement is not met
+  when:
+    - g_atomic_host[item.key] | version_compare(item.value, '<')
+    - g_atomic_host[item.key] is defined
   fail:
     msg: |
       Expected: {{ item.key }} is running version {{ ahv_requirements[item.key] }}
       Actual: {{ item.key }} is running {{ g_atomic_host[item.key] }}
-  when:
-    - g_atomic_host[item.key] | version_compare(item.value, '<')
-    - g_atomic_host[item.key] is defined
   with_dict: "{{ ahv_requirements }}"

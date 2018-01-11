@@ -2,25 +2,25 @@
 # vim: set ft=ansible:
 #
 - name: Fail if g_osname not set
+  when: g_osname is not defined
   fail:
     msg: "The g_osname variable is not defined"
-  when: g_osname is not defined
 
 - name: Fail if g_httpd_name is not set
+  when: g_httpd_name is not defined
   fail:
     msg: "The g_httpd_name variable is not defined"
-  when: g_httpd_name is not defined
 
 - name: Get all the docker images
   command: docker images
   register: images_before
 
 - name: Fail if the httpd image is not present
+  when: g_httpd_name not in images_before.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} container is in docker images
       Actual: docker images {{ images_before.stdout }}
-  when: g_httpd_name not in images_before.stdout
 
 - name: Remove the httpd container
   command: "docker rmi {{ g_httpd_name }}"
@@ -30,8 +30,8 @@
   register: images_after
 
 - name: Fail if the httpd image is present
+  when: g_httpd_name in images_after.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} is removed from docker images
       Actual: docker images: {{ images_after.stdout }}
-  when: g_httpd_name in images_after.stdout

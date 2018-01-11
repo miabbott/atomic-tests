@@ -9,20 +9,20 @@
     rv_rpms: kubernetes-node
 
 - name: Define kube 1.5 vars
+  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '<')
   set_fact:
     kube_maj_ver: "1.5"
     kube_apiserver: "registry.access.redhat.com/rhel7/kubernetes-apiserver"
     kube_controller_manager: "registry.access.redhat.com/rhel7/kubernetes-controller-mgr"
     kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
-  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '<')
 
 - name: Define kube 1.6 images
+  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
   set_fact:
     kube_maj_ver: "1.6"
     kube_apiserver: "registry.fedoraproject.org/f26/kubernetes-apiserver"
     kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
     kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
-  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
 
 - name: pull kubernetes api-server, controller-mgr, scheduler
   command: docker pull {{ item }}

@@ -8,9 +8,9 @@
 #  refspec (string) - refspec to add to booted origin file
 #
 - name: Fail if refspec is undefined
+  when: refspec is undefined
   fail:
     msg: "refspec is undefined"
-  when: refspec is undefined
 
 - name: Get current booted dir
   command: ostree admin --print-current-dir

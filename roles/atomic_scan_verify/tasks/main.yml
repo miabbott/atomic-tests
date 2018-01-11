@@ -26,9 +26,9 @@
   until: result|success
 
 - name: Check installation of openscap
+  when: "'Installation complete' not in result.stdout"
   fail:
     msg: "Atomic install was unsuccessful"
-  when: "'Installation complete' not in result.stdout"
 
   # Use 'docker pull' for now; maybe switch to 'atomic pull' once all the
   # streams have support for v1 schema manifests
@@ -44,9 +44,9 @@
   register: atomic_output
 
 - name: Catch atomic scan failures
+  when: "'Files associated' not in atomic_output.stdout"
   fail:
     msg: "Atomic scan failed"
-  when: "'Files associated' not in atomic_output.stdout"
 
 - name: Get scanner result directory
   shell: echo {{ atomic_output.stdout | quote }} | awk '/^Files associated/{print $8}' | sed "s/\.[\']*//"
@@ -58,6 +58,6 @@
   register: scan_dir
 
 - name: Fail if result directory does not exist
+  when: scan_dir.stat.exists == False
   fail:
     msg: "Scanner result directory does not exist."
-  when: scan_dir.stat.exists == False

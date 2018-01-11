@@ -10,6 +10,7 @@
   register: s
 
 - name: Fail if something on /tmp is fishy
+  when: s.stat.mode != "0777" or s.stat.gr_name != "root" or s.stat.pw_name != "root"
   fail:
     msg: |
       Permissions or ownership on /tmp is incorrect
@@ -21,4 +22,3 @@
         Mode: {{ s.stat.mode }}
         Group: {{ s.stat.gr_name }}
         Owner: {{ s.stat.pw_name }}
-  when: s.stat.mode != "0777" or s.stat.gr_name != "root" or s.stat.pw_name != "root"

@@ -1,9 +1,9 @@
 ---
 - name: Fail if variables are not defined
-  fail:
-    msg: "The required variables (test_dir_match + test_context) are not defined"
   when: test_dir_match is undefined or
         test_context is undefined
+  fail:
+    msg: "The required variables (test_dir_match + test_context) are not defined"
 
   # NB: this may return an error message on Fedora that looks like:
   # 'libsemanage.dbase_llist_query: could not query record value (No such file or directory).'

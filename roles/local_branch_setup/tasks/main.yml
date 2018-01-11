@@ -4,9 +4,9 @@
 # This role sets up local branch of the booted deployment
 #
 - name: Fail if branch_name is undefined
+  when: branch_name is undefined
   fail:
     msg: "branch_name is undefined"
-  when: branch_name is undefined
 
 - name: Get rpm-ostree status output
   command: rpm-ostree status --json
@@ -17,16 +17,16 @@
     ros_json: "{{ ros.stdout|from_json }}"
 
 - name: Save current booted checksum
-  set_fact:
-    checksum: "{{ ros_json['deployments'][0]['checksum'] }}"
   when: ros_json['deployments'][0] is defined and
         ros_json['deployments'][0]['booted']
+  set_fact:
+    checksum: "{{ ros_json['deployments'][0]['checksum'] }}"
 
 - name: Save current booted checksum
-  set_fact:
-    checksum: "{{ ros_json['deployments'][1]['checksum'] }}"
   when: ros_json['deployments'][1] is defined and
         ros_json['deployments'][1]['booted']
+  set_fact:
+    checksum: "{{ ros_json['deployments'][1]['checksum'] }}"
 
 - name: Create local branch
   command: ostree refs --create {{ branch_name }} {{ checksum }}

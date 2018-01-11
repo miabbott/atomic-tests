@@ -12,9 +12,9 @@
 #     remote_url (optional) - remote url will trigger adding of remote
 #
 - name: Fail if refspec is not defined
+  when: refspec is undefined
   fail:
     msg: "refspec is not defined"
-  when: refspec is undefined
 
 # Default to empty strings for everything but the refspec
 - name: Setup facts and assign defaults if needed
@@ -25,10 +25,10 @@
     ror_remote_url : "{{ remote_url | default('') }}"
 
 - name: Add the remote
-  command: ostree remote add --if-not-exists --no-gpg-verify {{ ror_remote_name }} {{ ror_remote_url }}
   when:
     - ror_remote_name != ''
     - ror_remote_url != ''
+  command: ostree remote add --if-not-exists --no-gpg-verify {{ ror_remote_name }} {{ ror_remote_url }}
 
 # Since we default to empty strings for everything but the refspec, we can
 # supply all the arguments to the 'rpm-ostree rebase' command and cover

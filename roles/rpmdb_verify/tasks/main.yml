@@ -6,6 +6,6 @@
   register: rpmdb
 
 - name: Fail if the RPM database is broken
+  when: rpmdb.stdout|int <= 0 or rpmdb.rc != 0
   fail:
     msg: "The RPM database is not usable"
-  when: rpmdb.stdout|int <= 0 or rpmdb.rc != 0

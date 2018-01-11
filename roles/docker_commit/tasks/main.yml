@@ -4,10 +4,10 @@
 #
 
 - name: Fail if dc_commit or dc_image is not defined
-  fail:
-    msg: "dc_commit or dc_image is not defined"
   when: dc_commit is undefined or
         dc_image is undefined
+  fail:
+    msg: "dc_commit or dc_image is not defined"
 
 - name: Commit change
   command: docker commit {{ dc_commit }} {{ dc_image }}

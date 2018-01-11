@@ -11,16 +11,16 @@
 #     keys are preserved even after uninstalling the system container
 #
 - name: Set facts
+  when: ansible_distribution == 'RedHat'
   set_fact:
     etcd_image: 'registry.access.redhat.com/rhel7/etcd'
     etcd_name: 'etcd'
-  when: ansible_distribution == 'RedHat'
 
 - name: Set facts
+  when: ansible_distribution != 'RedHat'
   set_fact:
     etcd_image: 'registry.fedoraproject.org/f26/etcd'
     etcd_name: 'etcd'
-  when: ansible_distribution != 'RedHat'
 
 # The `aivc_atomic_install_cmd` is set by the required role:
 # `atomic_install_version_check`
@@ -61,15 +61,15 @@
   failed_when: set_etcd.stdout != get_etcd.stdout
 
 - name: Delete key
+  when: delete_key is defined and delete_key
   command: >
     runc exec etcd etcdctl
     rm /atomic.io/network/config
-  when: delete_key is defined and delete_key
 
 - name: Verify key is deleted
+  when: delete_key is defined and delete_key
   command: >
     runc exec etcd etcdctl
     get /atomic.io/network/config
   register: get_etcd
   failed_when: get_etcd.rc == 0
-  when: delete_key is defined and delete_key

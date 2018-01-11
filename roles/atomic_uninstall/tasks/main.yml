@@ -4,9 +4,9 @@
 # uninstalls image with atomic cli
 #
 - name: Fail if au_image is undefined
+  when: au_image is undefined
   fail:
     msg: "au_image is not defined"
-  when: au_image is undefined
 
 - name: Set options
   set_fact:

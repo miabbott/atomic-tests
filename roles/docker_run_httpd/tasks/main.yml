@@ -2,25 +2,25 @@
 # vim: set ft=ansible:
 #
 - name: Fail if g_osname is not set
+  when: g_osname is not defined
   fail:
     msg: "The g_osname variable is not defined"
-  when: g_osname is not defined
 
 - name: Fail if g_httpd_name is not set
+  when: g_httpd_name is not defined
   fail:
     msg: "The g_httpd_name variable is not set"
-  when: g_httpd_name is not defined
 
 - name: Get list of Docker images
   command: docker images
   register: images
 
 - name: Fail if httpd image is missing
+  when: g_httpd_name not in images.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} in docker images output
       Actual: {{ images.stdout }}
-  when: g_httpd_name not in images.stdout
 
 - name: Run httpd container
   command: "docker run -d -p 80:80 --name {{ g_httpd_name }} {{ g_httpd_name }}"
@@ -30,11 +30,11 @@
   register: ps_run
 
 - name: Check for httpd container
+  when: g_httpd_name not in ps_run.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} is running
       Actual: {{ ps_run.stdout }}
-  when: g_httpd_name not in ps_run.stdout
 
 - name: Verify port 80 is open
   wait_for:
@@ -56,11 +56,11 @@
   register: ps_stop
 
 - name: Fail if httpd container is still running
+  when: g_httpd_name in ps_stop.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} is not running.
       Actual: {{ ps_stop.stdout }}
-  when: g_httpd_name in ps_stop.stdout
 
 - name: Start httpd container
   command: "docker start {{ g_httpd_name }}"
@@ -70,11 +70,11 @@
   register: ps_start
 
 - name: Fail if httpd container is not running
+  when: g_httpd_name not in ps_start.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} container is running
       Actual: {{ ps_start.stdout }}
-  when: g_httpd_name not in ps_start.stdout
 
 - name: Stop httpd container
   command: "docker stop {{ g_httpd_name }}"
@@ -84,8 +84,8 @@
   register: ps_stop
 
 - name: Fail if httpd container is still running
+  when: g_httpd_name in ps_stop.stdout
   fail:
     msg: |
       Expected: {{ g_httpd_name }} is stopped
       Actual: {{ ps_stop.stdout }}
-  when: g_httpd_name in ps_stop.stdout

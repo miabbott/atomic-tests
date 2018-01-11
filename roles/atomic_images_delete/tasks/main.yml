@@ -2,9 +2,9 @@
 # vim: set ft=ansible:
 #
 - name: Fail if aid_image is undefined
+  when: aid_image is undefined
   fail:
     msg: "aid_image is undefined"
-  when: aid_image is undefined
 
 - name: Set options
   set_fact:

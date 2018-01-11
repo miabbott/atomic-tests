@@ -11,14 +11,14 @@
 #
 
 - name: Fail if no packages specified
+  when: rou_packages is undefined
   fail:
     msg: "No packages specified"
-  when: rou_packages is undefined
 
 - name: Fail if reboot is undefined
+  when: rou_reboot is undefined
   fail:
     msg: "Reboot is not defined"
-  when: rou_reboot is undefined
 
 - block:
     - name: Get rpm-ostree status
@@ -30,23 +30,23 @@
         ros_json: "{{ ros.stdout|from_json }}"
 
     - name: Set ros variable if deployment 0 is booted
+      when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
       set_fact:
         ros_booted: "{{ ros_json['deployments'][0] }}"
         ros_not_booted: "{{ ros_json['deployments'][1] if ros_json['deployments'][1] is defined else false }}"
-      when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
 
     - name: Set ros variable if deployment 1 is booted
+      when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
       set_fact:
         ros_booted: "{{ ros_json['deployments'][1] }}"
         ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
-      when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
 
     # If the 'packages' key has a value, we create a list of packages to
     # uninstall, otherwise skip it
     - name: Get all installed packages
+      when: ros_booted['packages']|length > 0
       set_fact:
         all_installed: "{{ ros_booted['packages']|join(' ') }}"
-      when: ros_booted['packages']|length > 0
   when: rou_packages == "all"
 
 # Check to see if 'all_installed' was defined above, otherwise we use the
@@ -59,14 +59,14 @@
     rm_packages: "{{ all_installed if all_installed is defined else rou_packages }}"
 
 - name: Uninstall {{ rm_packages }}
-  command: rpm-ostree uninstall {{ rm_packages }}
   when: not rou_reboot and rm_packages != "all"
+  command: rpm-ostree uninstall {{ rm_packages }}
 
 - name: Uninstall {{ rm_packages }} and reboot
+  when: rou_reboot and rm_packages != "all"
   command: rpm-ostree uninstall {{ rm_packages }} -r
   async: 60
   poll: 0
-  when: rou_reboot and rm_packages != "all"
   ignore_errors: true
 
 - include_role:

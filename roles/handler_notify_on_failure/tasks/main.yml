@@ -29,9 +29,9 @@
 #
 
 - name: fail if handler_name is undefined
+  when: handler_name is undefined
   fail:
     msg: "handler_name is undefined"
-  when: handler_name is undefined
 
 - name: Notify test status handler
   command: /bin/true

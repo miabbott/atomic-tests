@@ -2,12 +2,12 @@
 # vim: set ft=ansible:
 #
 - name: Optionally stop the rpm-ostree daemon
-  service:
-    name: rpm-ostreed
-    state: stopped
   when:
     - stop_daemon is defined
     - stop_daemon
+  service:
+    name: rpm-ostreed
+    state: stopped
 
 - name: Run atomic host status
   command: atomic host status
@@ -18,9 +18,9 @@
   register: ros
 
 - name: Fail if output is not identical
+  when: ahs.stdout != ros.stdout
   fail:
     msg: |
       The output of atomic host status and rpm-ostree status are not the same.
       atomic host status: {{ ahs.stdout }}
       rpm-ostree status: {{ ros.stdout }}
-  when: ahs.stdout != ros.stdout

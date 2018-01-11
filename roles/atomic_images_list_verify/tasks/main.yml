@@ -12,10 +12,10 @@
 #       repo: docker.io/httpd
 #
 - name: Fail if expected_values or expected_values['repo'] is undefined
-  fail:
-    msg: "expected_values or expected_values['repo'] is undefined"
   when: expected_values is undefined or
         expected_values['repo'] is undefined
+  fail:
+    msg: "expected_values or expected_values['repo'] is undefined"
 
 - name: Set facts for role
   set_fact:
@@ -38,24 +38,24 @@
     ailv_match: "{{ ailv_ail_jq_match | json_query(ailv_tag_query) }}"
 
 - name: Fail if no matching image entry
-  fail:
-    msg: "No matching image entry or image is in list when it is not supposed to be"
   when: (ailv_match == True and ailv_em == True) or
         (ailv_match == False and ailv_em == False)
+  fail:
+    msg: "No matching image entry or image is in list when it is not supposed to be"
 
 # There is no way to skip the comparison in the next step if the container
 # is expected to not be in the containers list except setting the expected
 # dictionary to empty
 - name: Set expected for expected missing case
+  when: ailv_em
   set_fact:
     ailv_expected: {}
-  when: ailv_em
 
 - name: Fail if values are incorrect
+  when: ailv_match[item.key] is undefined or
+        item.value != ailv_match[item.key]
   fail:
     msg: |
       Expected: {{ item.key }}:{{ item.value }}
       Actual: {{ item.key }}:{{ ailv_match[item.key]}}
-  when: ailv_match[item.key] is undefined or
-        item.value != ailv_match[item.key]
   with_dict: "{{ ailv_expected }}"

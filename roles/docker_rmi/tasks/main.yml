@@ -4,9 +4,9 @@
 #
 
 - name: Fail if drmi_image
+  when: drmi_image is undefined
   fail:
     msg: "drmi_image is not defined"
-  when: drmi_image is undefined
 
 - name: Set options
   set_fact:

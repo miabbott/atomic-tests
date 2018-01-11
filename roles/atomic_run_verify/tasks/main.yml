@@ -8,9 +8,9 @@
 #   - atomic run
 #
 - name: Fail if container is undefined
+  when: container is undefined
   fail:
     msg: "No container specified"
-  when: container is undefined
 
 - name: atomic run {{ container }}
   command: atomic run {{ container }}
@@ -20,8 +20,8 @@
   register: dps
 
 - name: Fail if container is not running
+  when: (dps.stdout.find("Up") == -1 and dps.stdout.find("Created") == -1)
   fail:
     msg: |
       Expected: Container is Up or Created in docker ps -a output
       Actual: {{ dps.stdout }}
-  when: (dps.stdout.find("Up") == -1 and dps.stdout.find("Created") == -1)

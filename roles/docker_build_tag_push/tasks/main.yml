@@ -12,37 +12,37 @@
 
 # Need to handle the cases of building the docker containers for each variant
   - name: Fail if g_osname is undefined
+    when: g_osname is undefined
     fail:
       msg: "g_osname is undefined"
-    when: g_osname is undefined
     run_once: true
 
   - name: Fail if ansible_docker0.ipv4.address is not defined
+    when: ansible_docker0.ipv4.address is not defined
     fail:
       msg: "ansible_docker0.ipv4.address it not defined!"
-    when: ansible_docker0.ipv4.address is not defined
     run_once: true
 
 # Red Hat
   - name: copy db and web directories
+    when: ansible_distribution == "RedHat"
     synchronize:
       src: roles/docker_build_tag_push/files/rhel7
       dest: /tmp
-    when: ansible_distribution == "RedHat"
 
 # Fedora
   - name: copy db and web directories
+    when: ansible_distribution == "Fedora"
     synchronize:
       src: roles/docker_build_tag_push/files/fedora
       dest: /tmp
-    when: ansible_distribution == "Fedora"
 
 # CentOS
   - name: copy db and web directories
+    when: "'CentOS' in ansible_distribution"
     synchronize:
       src: roles/docker_build_tag_push/files/centos
       dest: /tmp
-    when: "'CentOS' in ansible_distribution"
 
 # Common build, tag, push
   - name: build db docker image

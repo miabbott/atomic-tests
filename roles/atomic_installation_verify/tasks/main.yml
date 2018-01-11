@@ -13,14 +13,14 @@
 #   - atomic uninstall
 #
 - name: Set cockpit container name for RHELAH
+  when: ansible_distribution == "RedHat"
   set_fact:
     cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"
-  when: ansible_distribution == "RedHat"
 
 - name: Set cockpit container name for Fedora/CentOS
+  when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
   set_fact:
     cockpit_cname: "registry.fedoraproject.org/f26/cockpit"
-  when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
 
 - name: Install cockpit container with tag
   command: "atomic install {{ cockpit_cname }}:latest"
@@ -35,9 +35,9 @@
   register: install_file
 
 - name: Fail if /etc/pam.d/cockpit file is not found
+  when: install_file.stat.exists == False
   fail:
     msg: "Cockpit installation failed"
-  when: install_file.stat.exists == False
 
 - name: Run cockpit container with tag
   command: "atomic run {{ cockpit_cname }}:latest"
@@ -69,9 +69,9 @@
   register: uninstall_file
 
 - name: Fail if /etc/pam.d/cockpit file is found
+  when: uninstall_file.stat.exists == True
   fail:
     msg: "Cockpit uninstall failed"
-  when: uninstall_file.stat.exists == True
 
 - name: Install cockpit container without tag
   command: atomic install {{ cockpit_cname }}
@@ -82,9 +82,9 @@
   register: install_file
 
 - name: Fail if /etc/pam.d/cockpit file is not found
+  when: install_file.stat.exists == False
   fail:
     msg: "Cockpit installation failed"
-  when: install_file.stat.exists == False
 
 - name: Run cockpit container without tag
   command: "atomic run {{ cockpit_cname }}"
@@ -116,6 +116,6 @@
   register: uninstall_file
 
 - name: Fail if /etc/pam.d/cockpit file is found
+  when: uninstall_file.stat.exists == True
   fail:
     msg: "Cockpit uninstall failed"
-  when: uninstall_file.stat.exists == True

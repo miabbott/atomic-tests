@@ -7,10 +7,10 @@
 #   - ud_users - list of users to be deleted
 #
 - name: Fail if ud_users is not defined
+  when: ud_users is undefined
   fail:
     msg: |
       You must supply at least one user as a value for 'ud_users'
-  when: ud_users is undefined
 
 - name: Delete users
   command: "userdel -r -f {{ item }}"

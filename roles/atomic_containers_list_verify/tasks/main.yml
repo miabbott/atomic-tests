@@ -12,10 +12,10 @@
 #       id: 21340928304932
 #
 - name: Fail if expected_values or expected_values['image_name'] is undefined
-  fail:
-    msg: "expected_values or expected_values['image_name'] is undefined"
   when: expected_values is undefined or
         expected_values['image_name'] is undefined
+  fail:
+    msg: "expected_values or expected_values['image_name'] is undefined"
 
 - name: Set role facts
   set_fact:
@@ -33,23 +33,23 @@
     query: "[?image_name=='{{ aclv_expected['image_name'] }}']"
 
 - name: Fail if no matching image entry
-  fail:
-    msg: "No matching container or container is in list when it is not supposed to be"
   when: (aclv_acl_jq_match == "" and not aclv_em) or
         (aclv_acl_jq_match != "" and aclv_em)
+  fail:
+    msg: "No matching container or container is in list when it is not supposed to be"
 
 # There is no way to skip the comparison in the next step if the container
 # is expected to not be in the containers list except setting the expected
 # dictionary to empty
 
 - name: Set expected for expected missing case
+  when: aclv_em
   set_fact:
     aclv_expected: {}
-  when: aclv_em
 
 - name: Fail if values are incorrect
-  fail:
-    msg: "{{ item.key }} is incorrect or does not exist."
   when: aclv_acl_jq_match[item.key] is undefined or
         item.value not in aclv_acl_jq_match[item.key]
+  fail:
+    msg: "{{ item.key }} is incorrect or does not exist."
   with_dict: "{{ aclv_expected }}"

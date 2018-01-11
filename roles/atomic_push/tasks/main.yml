@@ -4,9 +4,9 @@
 # Push image with atomic cli
 #
 - name: Fail if apsh_image is undefined
+  when: apsh_image is undefined
   fail:
     msg: "apsh_image is not defined"
-  when: apsh_image is undefined
 
 - name: Set options
   set_fact:

@@ -2,14 +2,14 @@
 # vim: set ft=ansible:
 #
 - name: Fail if avc_major is not defined
+  when: avc_major is undefined
   fail:
     msg: "The avc_major variable is undefined"
-  when: avc_major is undefined
 
 - name: Fail if avc_minor is not defined
+  when: avc_minor is undefined
   fail:
     msg: "The avc_minor variable is undefined"
-  when: avc_minor is undefined
 
 - name: Check if Ansible is the correct version (or newer)
   assert:

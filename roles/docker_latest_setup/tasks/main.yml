@@ -34,6 +34,7 @@
   register: dockerl_ver
 
 - name: Fail if docker version is not the same as docker-latest
+  when: docker_ver.stdout != dockerl_ver.stdout
   fail:
     msg: |
       Docker is not docker latest
@@ -41,6 +42,5 @@
       Result:
         Docker Version: {{ docker_ver.stdout }}
         Docker Latest: {{ dockerl_ver.stdout }}
-  when: docker_ver.stdout != dockerl_ver.stdout
 
 

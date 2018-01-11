@@ -15,39 +15,39 @@
     register: reg
 
   - name: Check for TOML formmated registries.conf
+    when: reg.stat.exists
     command: grep registries.search /etc/containers/registries.conf
     register: toml
-    when: reg.stat.exists
     ignore_errors: true
 
   - name: Add toml registries
+    when: reg.stat.exists and toml.rc == 0
     replace:
       regexp: "\\[registries.insecure\\]\nregistries = \\[\\]"
       replace: "[registries.insecure]\nregistries = ['{{ ansible_docker0.ipv4.address }}:5000']"
       dest: /etc/containers/registries.conf
-    when: reg.stat.exists and toml.rc == 0
 
   - name: Add registries
+    when: reg.stat.exists and toml.rc == 1
     blockinfile:
       dest: /etc/containers/registries.conf
       block: |
         insecure_registries:
           - {{ ansible_docker0.ipv4.address }}:5000
-    when: reg.stat.exists and toml.rc == 1
 
   - name: edit /etc/sysconfig/docker file to add private registry
+    when: reg.stat.exists == False
     replace:
       dest=/etc/sysconfig/docker
       regexp="^ADD_REGISTRY='--add-registry registry.access.redhat.com'"
       replace="ADD_REGISTRY='--add-registry {{ ansible_docker0.ipv4.address }}:5000 --add-registry registry.access.redhat.com'"
-    when: reg.stat.exists == False
 
   - name: edit /etc/sysconfig/docker file to enable insecure registry
+    when: reg.stat.exists == False
     replace:
       dest=/etc/sysconfig/docker
       regexp='^# INSECURE_REGISTRY=\'--insecure-registry\s?\''
       replace='INSECURE_REGISTRY=\'--insecure-registry {{ ansible_docker0.ipv4.address }}:5000\''
-    when: reg.stat.exists == False
 
   - name: stop docker
     service:

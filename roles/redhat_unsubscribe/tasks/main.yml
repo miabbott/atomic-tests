@@ -34,10 +34,10 @@
   delay: 60
 
 - name: Insert 'unconfigured-state' field
+  when:
+    - unconfigured_state is defined
+    - unconfigured_state
   lineinfile:
     dest: "{{ origin_file.stdout }}.origin"
     line: 'unconfigured-state=This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.'
     insertafter: EOF
-  when:
-    - unconfigured_state is defined
-    - unconfigured_state

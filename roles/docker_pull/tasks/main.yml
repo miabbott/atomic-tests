@@ -4,9 +4,9 @@
 # pulls image with docker
 #
 - name: Fail if dp_image is undefined
+  when: dp_image is undefined
   fail:
     msg: "dp_image is not defined"
-  when: dp_image is undefined
 
 - name: Set options
   set_fact:

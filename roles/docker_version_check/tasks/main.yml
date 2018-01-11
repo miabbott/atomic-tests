@@ -2,18 +2,18 @@
 # vim: set ft=ansible:
 #
 - name: Fail if required docker_version is not defined
+  when: docker_version is undefined
   fail:
     msg: "The docker_version undefined"
-  when: docker_version is undefined
 
 - name: Set actual docker
   shell: docker version -f \{\{.Server.Version\}\}
   register: actual_docker_version
 
 - name: Check if minimum version is met
+  when: actual_docker_version.stdout | version_compare(docker_version, '<')
   fail:
     msg: |
       Docker version too old.
       Expected Version: {{ docker_version }}
       Actual Version: {{ actual_docker_version.stdout }}
-  when: actual_docker_version.stdout | version_compare(docker_version, '<')

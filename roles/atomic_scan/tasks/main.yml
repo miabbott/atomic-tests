@@ -4,9 +4,9 @@
 #   This role verifies whether container image doesn't exist CVEs.
 #
 - name: Fail if image is undefined
+  when: image is undefined
   fail:
     msg: "Image is undefined"
-  when: image is undefined
 
 - name: Set scanner image (RHEL)
   set_fact:
@@ -17,9 +17,9 @@
   register: result
 
 - name: Check installation of openscap
+  when: "'Installation complete' not in result.stdout"
   fail:
     msg: "Atomic install was unsuccessful"
-  when: "'Installation complete' not in result.stdout"
 
 - name: Run atomic scan
   command: atomic --debug scan --verbose {{ image }}
@@ -30,6 +30,6 @@
     result_list: '{{result_list + [aio.stdout]}}'
 
 - name: Catch atomic scan failures
+  when: "'The following issues were found' in aio.stdout"
   fail:
     msg: "Found new CVEs."
-  when: "'The following issues were found' in aio.stdout"

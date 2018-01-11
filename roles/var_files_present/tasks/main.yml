@@ -11,14 +11,14 @@
     selinux_type: '{{ "container_file_t" if seinfo.rc == 0 else "svirt_sandbox_file_t" }}'
 
 - name: Fail if vfp_filename is not defined
+  when: vfp_filename is undefined
   fail:
     msg: "vfp_filename is undefined"
-  when: vfp_filename is undefined
 
 - name: Fail if vfp_dirname is not defined
+  when: vfp_dirname is undefined
   fail:
     msg: "vfp_dirname is undefined"
-  when: vfp_dirname is undefined
 
 - name: Verify that the directory is present
   stat:
@@ -26,28 +26,28 @@
   register: var_dir
 
 - name: Fail if directory not owned by root
+  when: var_dir.stat.uid != 0
   fail:
     msg: |
       /var/{{ vfp_dirname }} is not owned by root
       Expected:  UID = 0
       Actual: UID = {{ var_dir.stat.uid }}
-  when: var_dir.stat.uid != 0
 
 - name: Fail if the group of the owner of the directory is not root
+  when: var_dir.stat.gid != 0
   fail:
     msg: |
       /var/{{ vfp_dirname }} does not have the right GID
       Expected: GID = 0
       Actual: GID = {{ var_dir.stat.gid }}
-  when: var_dir.stat.gid != 0
 
 - name: Fail if permissions are incorrect on the directory
+  when: var_dir.stat.mode != "0755"
   fail:
     msg: |
       /var/{{ vfp_dirname }} does not have the correct permissions
       Expected: Mode = 0755
       Actual: Mode = {{ var_dir.stat.mode }}
-  when: var_dir.stat.mode != "0755"
 
 - name: Check for correct SELinux type
   command: "stat -c '%C' /var/{{ vfp_dirname }}"
@@ -60,28 +60,28 @@
   register: added_file
 
 - name: Fail if the owner of the file is not root
+  when: added_file.stat.uid != 0
   fail:
     msg: |
       The added file is not owned by root
       Expected: UID = 0
       Actual: UID = {{ added_file.stat.uid }}
-  when: added_file.stat.uid != 0
 
 - name: Fail if the group on the file is not root
+  when: added_file.stat.uid != 0
   fail:
     msg: |
       The group on the added file is not root
       Expected: UID = 0
       Actual: UID = {{ added_file.stat.uid }}
-  when: added_file.stat.uid != 0
 
 - name: Fail if the permissions are incorrect on the file
+  when: added_file.stat.mode != "0644"
   fail:
     msg: |
       The permissions on the added file are incorrect
       Expected: Mode = 0644
       Actual: Mode = {{ added_file.stat.mode }}
-  when: added_file.stat.mode != "0644"
 
 - name: Check for correct SELinux type
   command: "stat -c '%C' /var/{{ vfp_dirname }}/{{ vfp_filename }}"

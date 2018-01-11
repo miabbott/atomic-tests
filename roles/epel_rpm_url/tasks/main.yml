@@ -15,9 +15,9 @@
 #
 
 - name: Fail if rpm_name
+  when: rpm_name is undefined
   fail:
     msg: "rpm_name must be passed into this role/include"
-  when: rpm_name is undefined
 
 # Sorry download.fedoraproject.org, but you were giving me more trouble than
 # I would have liked, so dl.fedporaproject.org wins out.

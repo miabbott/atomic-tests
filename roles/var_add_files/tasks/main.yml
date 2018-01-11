@@ -11,14 +11,14 @@
     selinux_type: '{{ "container_file_t" if seinfo.rc == 0 else "svirt_sandbox_file_t" }}'
 
 - name: Fail if vaf_filename is not defined
+  when: vaf_filename is undefined
   fail:
     msg: "vaf_filename is undefined"
-  when: vaf_filename is undefined
 
 - name: Fail if vaf_dirname is not defined
+  when: vaf_dirname is undefined
   fail:
     msg: "vaf_dirname is undefined"
-  when: vaf_dirname is undefined
 
 - name: Make directory in /var
   file:
