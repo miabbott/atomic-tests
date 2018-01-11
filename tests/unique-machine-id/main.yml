@@ -11,11 +11,11 @@
 
   pre_tasks:
     - name: Fail if the inventory has more than 2 hosts
+      when: "{{ groups['all'] | length }} != 2"
       fail:
         msg: |
           Expected: inventory file contains 2 hosts
           Actual: inventory file contains {{ groups['all'] | length }} hosts
-      when: "{{ groups['all'] | length }} != 2"
       run_once: true
 
     - name: Set facts about distributions
@@ -29,14 +29,14 @@
       run_once: true
 
     - name: Fail if the two hosts are not the same distribution
+      when: (host1_dist != host2_dist) or
+            (host1_dist_ver != host2_dist_ver)
       fail:
         msg: |
           Expected: Both hosts under test are the same distribution or version
           Actual:
             Host 1 Distribution/Version: {{ host1_dist }}/{{ host1_dist_ver }}
             Host 2 Distribution/Version: {{ host2_dist }}/{{ host2_dist_ver }}
-      when: (host1_dist != host2_dist) or
-            (host1_dist_ver != host2_dist_ver)
       run_once: true
 
     - name: Set hostnames as facts

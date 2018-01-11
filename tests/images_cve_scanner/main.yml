@@ -33,8 +33,8 @@
         - ansible_version_check
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -55,11 +55,11 @@
         loop_var: image
 
     - name: Catch atomic scan failures
-      fail:
-        msg: "Found new CVEs."
       when: "'The following issues were found' in item"
       with_items:
         - "{{ result_list }}"
+      fail:
+        msg: "Found new CVEs."
 
 - name: Image scanning - Cleanup
   hosts: all
@@ -73,7 +73,7 @@
       tags:
         - docker_remove_all
 
-    - role: redhat_unsubscribe
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       tags:
         - redhat_unsubscribe

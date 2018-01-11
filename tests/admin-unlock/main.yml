@@ -55,12 +55,12 @@
 
   pre_tasks:
     - name: Verify all
-      fail:
-        msg: "Required variables are not defined.  Check vars.yml file."
       when: g_rpm_url is undefined or
             g_rpm_path is undefined or
             g_rpm_name is undefined or
             g_rpm_name_2 is undefined
+      fail:
+        msg: "Required variables are not defined.  Check vars.yml file."
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -71,8 +71,8 @@
         - ansible_version_check
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -231,12 +231,12 @@
         name: rpm_ostree_status
 
     - name: Fail if current deployment has unlocked not set to none
+      when: "'none' not in ros_booted['unlocked']"
       fail:
         msg: |
           Expected: booted deployment has unlocked set to none
           Actual: booted deployment unlocked is set to
                   {{ ros_booted['unlocked'] }}
-      when: "'none' not in ros_booted['unlocked']"
 
 - name: Ostree Admin Unlock - Unlock Twice - Error Message
   hosts: all
@@ -256,12 +256,12 @@
         name: rpm_ostree_status
 
     - name: Verify rpm_ostree status is unlocked and set to hotfix
+      when: "'development' not in ros_booted['unlocked']"
       fail:
         msg: |
           Expected: booted deployment has unlocked set to hotfix
           Actual: booted deployment unlocked is set to
                   {{ ros_booted['unlocked'] }}
-      when: "'development' not in ros_booted['unlocked']"
 
     - name: Run unlock twice (system is already unlocked)
       command: ostree admin unlock
@@ -269,6 +269,7 @@
       failed_when: double_unlock.rc != 1
 
     - name: Fail when error message is incorrect
+      when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
       fail:
         msg: |
           Expected: Error message should indicated the deployment is already in
@@ -283,13 +284,12 @@
       failed_when: double_hotfix_unlock.rc != 1
 
     - name: Fail when error message is incorrect
+      when: "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
       fail:
         msg: |
           Expected: Error message should indicate the deployment is already in
                     the unlocked state: development
           Actual: {{ double_unlock.stderr }}
-      when:
-        - "'Deployment is already in unlocked state: development' not in double_unlock.stderr"
 
     - include_role:
         name: reboot
@@ -312,20 +312,20 @@
         name: rpm_ostree_status
 
     - name: Verify rpm_ostree status has unlocked set to hotfix
+      when: "'hotfix' not in ros_booted['unlocked']"
       fail:
         msg: |
           Expected: booted deployment is unlocked and set to hotfix
           Actual: {{ ros_booted['unlocked'] }}
-      when: "'hotfix' not in ros_booted['unlocked']"
 
     - name: Fail if non booted deployment does not have same commit id as booted
+      when: ros_not_booted['checksum'] != ros_booted['checksum']
       fail:
         msg: |
           Expected: deployments should have the same commit id
           Actual:
             Booted Deployment Checksum: {{ ros_booted['checksum'] }}
             Non Booted Deployment Checksum: {{ ros_not_booted['checksum'] }}
-      when: ros_not_booted['checksum'] != ros_booted['checksum']
 
     - name: Run unlock twice (system is already unlocked)
       command: ostree admin unlock
@@ -333,13 +333,13 @@
       failed_when: double_unlock.rc != 1
 
     - name: Fail when error message is incorrect
+      when: 
+        - "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
       fail:
         msg: |
           Expected: Error message should indicated deployment is already in
                     unlocked state: hotfix
           Actual: {{ double_unlock.stderr }}
-      when:
-        - "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
 
     - name: Run unlock hotfix (system is already locked)
       command: ostree admin unlock --hotfix
@@ -347,13 +347,13 @@
       failed_when: double_hotfix_unlock.rc != 1
 
     - name: Fail when error message is incorrect
+      when:
+        - "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
       fail:
         msg: |
           Expected: Error message should indicated deployment is already in
                     unlocked state: hotfix
           Actual: {{ double_unlock.stderr }}
-      when:
-        - "'Deployment is already in unlocked state: hotfix' not in double_unlock.stderr"
 
 
 - name: Ostree Admin Unlock - Cleanup
@@ -379,7 +379,7 @@
       tags:
         - rpm_ostree_cleanup_all
 
-    - role: redhat_unsubscribe
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       tags:
         - redhat_unsubscribe

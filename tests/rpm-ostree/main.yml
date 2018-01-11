@@ -24,8 +24,8 @@
         - ansible_version_check
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -335,18 +335,18 @@
 
     # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
     - name: rpm-ostree reload
-      command: rpm-ostree reload
       when:
         - ansible_distribution != 'Fedora'
         - ansible_distribution_major_version != '26'
+      command: rpm-ostree reload
 
     - name: restart rpm-ostreed
-      service:
-        name: rpm-ostreed
-        state: restarted
       when:
         - ansible_distribution == 'Fedora'
         - ansible_distribution_major_version == '26'
+      service:
+        name: rpm-ostreed
+        state: restarted
 
     # rpm-ostree upgrade
     - include_role:
@@ -455,18 +455,18 @@
 
     # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
     - name: rpm-ostree reload
-      command: rpm-ostree reload
       when:
         - ansible_distribution != 'Fedora'
         - ansible_distribution_major_version != '26'
+      command: rpm-ostree reload
 
     - name: restart rpm-ostreed
-      service:
-        name: rpm-ostreed
-        state: restarted
       when:
         - ansible_distribution == 'Fedora'
         - ansible_distribution_major_version == '26'
+      service:
+        name: rpm-ostreed
+        state: restarted
 
     - name: Upgrade
       command: rpm-ostree upgrade --install {{ g_pkg }}
@@ -764,25 +764,25 @@
           regenerate-initramfs: true
 
     - name: Fail if initramfs does not have two arguments
+      when: ros_booted['initramfs-args']|length != 2
       fail:
         msg: |
           Expected: 2 arguments
           Actual: {{ ros_booted['initramfs-args'] | length }}
-      when: ros_booted['initramfs-args']|length != 2
 
     - name: Fail if first initramfs argument is not set
+      when: "'-I' not in ros_booted['initramfs-args'][0]"
       fail:
         msg: |
           Expected: -I in initramfs args
           Actual:  {{ ros_booted['initramfs-args'][0] }}
-      when: "'-I' not in ros_booted['initramfs-args'][0]"
 
     - name: Fail if second initramfs argument is not set
+      when: "'/etc/rpmostree-file' not in ros_booted['initramfs-args'][1]"
       fail:
         msg: |
           Expected: /etc/rpmostree-file in rpm-ostree initramfs-args
           Actual: {{ ros_booted['initramfs-args'][1] }}
-      when: "'/etc/rpmostree-file' not in ros_booted['initramfs-args'][1]"
 
     - name: set osname
       set_fact:
@@ -802,11 +802,11 @@
       register: lsinitrd
 
     - name: Fail if contents of initrd is incorrect
+      when: "'rpm-ostree-test' not in lsinitrd.stdout"
       fail:
         msg: |
           Expected: lsinitrd of /etc/rpm-ostree-file contains rpm-ostree-test
           Actual: {{ lsinitrd.stdout }}
-      when: "'rpm-ostree-test' not in lsinitrd.stdout"
 
     - name: Disable initramfs
       command: rpm-ostree initramfs --disable
@@ -828,11 +828,11 @@
       register: lsinitrd_disabled
 
     - name: Fail if contents of initramfs is incorrect
+      when: "'rpm-ostree-test' in lsinitrd_disabled.stdout"
       fail:
         msg: |
           Expected: initramfs of /etc/rpmostree-file contains rpm-ostree-test
           Actual: {{ lsinitrd_disabled.stdout }}
-      when: "'rpm-ostree-test' in lsinitrd_disabled.stdout"
 
     - name: Clean up deployments
       command: rpm-ostree cleanup -rpmb

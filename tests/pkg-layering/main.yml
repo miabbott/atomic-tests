@@ -53,14 +53,14 @@
 
   pre_tasks:
     - name: Verify all
-      fail:
-        msg: "Required variables are not defined.  Check vars.yml file."
       when: g_pkg1 is undefined or
             g_pkg2 is undefined or
             g_invalid_pkg is undefined or
             g_nonroot_pkg is undefined or
             g_deployed_pkg is undefined or
             g_epel_pkg is undefined
+      fail:
+        msg: "Required variables are not defined.  Check vars.yml file."
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -71,8 +71,8 @@
         - ansible_version_check
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -194,11 +194,11 @@
       register: dry
 
     - name: Fail if Exiting because of is not in output
+      when: "'Exiting because' not in dry.stdout"
       fail:
         msg: |
           Expected: Dry run output contains exiting because
           Actual: {{ dry.stdout }}
-      when: "'Exiting because' not in dry.stdout"
 
     - include: verify_package_not_deployed.yml
       vars:
@@ -227,11 +227,11 @@
       register: dryrun
 
     - name: Fail if Exiting because of is not in output
+      when: "'Exiting because' not in dryrun.stdout"
       fail:
         msg: |
           Expected: Dry run output contains exiting because
           Actual: {{ dryrun.stdout }}
-      when: "'Exiting because' not in dryrun.stdout"
 
     - name: Get rpm-ostree status --json output
       command: rpm-ostree status --json
@@ -242,32 +242,32 @@
         pending_json: "{{ installed.stdout | from_json }}"
 
     - name: Set packages when deployment 0 is not booted
-      set_fact:
-        pending_pkgs: "{{ pending_json['deployments'][0]['packages'] }}"
       when:
         - pending_json['deployments'][0] is defined
         - not pending_json['deployments'][0]['booted']
+      set_fact:
+        pending_pkgs: "{{ pending_json['deployments'][0]['packages'] }}"
 
     - name: Set packages when deployment 1 is not booted
-      set_fact:
-        pending_pkgs: "{{ pending_json['deployments'][1]['packages'] }}"
       when:
         - pending_json['deployments'][1] is defined
         - not pending_json['deployments'][1]['booted']
+      set_fact:
+        pending_pkgs: "{{ pending_json['deployments'][1]['packages'] }}"
 
     - name: Fail if {{ g_pkg2 }} is in pending packages
+      when: g_pkg2 in pending_pkgs
       fail:
         msg: |
           Expected: {{ g_pkg2 }} should not be in rpm-ostree status output
           Actual: {{ pending_pkgs }}
-      when: g_pkg2 in pending_pkgs
 
     - name: Fail if {{ g_pkg1 }} is not in pending packages
+      when: g_pkg1 not in pending_pkgs
       fail:
         msg: |
           Expected: {{ g_pkg1 }}  in rpm-ostree status output
           Actual: {{ pending_pkgs }}
-      when: g_pkg1 not in pending_pkgs
 
     - name: Fail if {{ g_pkg1 }} is installed
       command: command -v {{ g_pkg1 }}
@@ -332,12 +332,12 @@
       failed_when: uninstall.rc != 1
 
     - name: Fail if error not expected
+      when: "'\\'{{ g_invalid_pkg }}\\' is not currently requested' not in uninstall.stderr"
       fail:
         msg: |
           Expected: {{ g_invalid_pkg }} is not currently requested in rpm-ostree
                     uninstall output
           Actual: {{ uninstall.stderr }}
-      when: "'\\'{{ g_invalid_pkg }}\\' is not currently requested' not in uninstall.stderr"
 
 
 - name: Package Layering - Negative Test - Installing non-existent package
@@ -357,12 +357,12 @@
       failed_when: nonexist.rc != 1
 
     - name: Fail if error not expected
+      when: "'No package' not in nonexist.stderr"
       fail:
         msg: |
           Expected: No package is contained in the rpm-ostree install output
                     when attempting to install an invalid package
           Actual: {{ nonexist.stderr }}
-      when: "'No package' not in nonexist.stderr"
 
 
 - name: Package Layering - Installing existing package
@@ -395,27 +395,27 @@
     # are at v2017.4.
     # See https://github.com/projectatomic/rpm-ostree/pull/670
     - name: Set packages when deployment 0 is booted
+      when: req_json['deployments'][0]['booted']
       set_fact:
         req_pkgs: >
            "{{ req_json['deployments'][0]['requested-packages']
            if req_json['deployments'][0]['requested-packages'] is defined
            else {} }}"
-      when: req_json['deployments'][0]['booted']
 
     - name: Set packages when deployment 1 is booted
+      when:  req_json['deployments'][1]['booted']
       set_fact:
         req_pkgs: >
           "{{ req_json['deployments'][1]['requested-packages']
           if req_json['deployments'][1]['requested-packages'] is defined
           else {} }}"
-      when: req_json['deployments'][1]['booted']
 
     - name: Fail if {{ g_deployed_pkg }} is not in requested packages
+      when: g_deployed_pkg not in req_pkgs
       fail:
         msg: |
           Expected: {{ g_deployed_pkg }} is in rpm-ostree status output
           Actual: {{ req_pkgs }}
-      when: g_deployed_pkg not in req_pkgs
 
 - name: Package Layering - Installing non-root ownership package
   hosts: all
@@ -510,7 +510,7 @@
       tags:
         - rpm_ostree_cleanup_all
 
-    - role: redhat_unsubscribe
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       tags:
         - redhat_unsubscribe

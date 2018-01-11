@@ -29,19 +29,19 @@
 
   pre_tasks:
     - name: Fail if variables are not defined
+      when: base_images is undefined or image_names is undefined
       fail:
         msg: |
           Required variables are not defined.
           Please check tests/docker-build-httpd/vars.yml.
-      when: base_images is undefined or image_names is undefined
 
     - name: Fail if RHEL variables are not defined
+      when: (rhel_base_images is undefined or rhel_image_names is undefined) and
+            ansible_distribution == "RedHat"
       fail:
         msg: |
           Required RHEL variables are not defined.
           Please check tests/docker-build-httpd/vars.yml
-      when: (rhel_base_images is undefined or rhel_image_names is undefined) and
-            ansible_distribution == "RedHat"
 
     # Determining the right MTU for Docker interfaces running on OpenStack
     # can be tricky:
@@ -66,8 +66,8 @@
       tags:
         - ansible_version_check
 
-    - role: redhat_subscription
-      when: ansible_distribution == "RedHat"
+    - when: ansible_distribution == "RedHat"
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -95,13 +95,13 @@
       until: dp_upstream|success
 
     - name: Pull the Red Hat base images
+      when: ansible_distribution == "RedHat"
       command: "docker pull {{ item }}"
       with_items: "{{ rhel_base_images }}"
       register: dp_rhel
       retries: 5
       delay: 60
       until: dp_rhel|success
-      when: ansible_distribution == "RedHat"
 
 
 - name: Docker build httpd - test
@@ -116,20 +116,26 @@
 
   pre_tasks:
     - name: Fail if variables are not defined
+      when: base_images is undefined or image_names is undefined
       fail:
         msg: |
           Required variables are not defined.
           Please check tests/docker-build-httpd/vars.yml.
-      when: base_images is undefined or image_names is undefined
 
     - name: Fail if RHEL variables are not defined
+      when:
+        - (rhel_base_images is undefined or rhel_image_names is undefined)
+        - ansible_distribution == "RedHat"
       fail:
         msg: |
           Required RHEL variables are not defined.
           Please check tests/docker-build-httpd/vars.yml
-      when:
-        - (rhel_base_images is undefined or rhel_image_names is undefined)
-        - ansible_distribution == "RedHat"
+
+    - name: Fail if RHEL variables are not defined
+      when: (rhel_base_images is undefined or rhel_image_names is undefined) and
+            ansible_distribution == "RedHat"
+      fail:
+        msg: "Required RHEL variables are not defined.  Please check tests/docker-build-httpd/vars.yml"
   tasks:
     # I would have used a 'block' of 'roles' here, but that is not
     # compatible with the 'with_items' loop control, so I stuck all
@@ -147,13 +153,13 @@
         skipped_images: "{{ cli_skipped_images | default('') }}"
       with_items: "{{ image_names }}"
 
-    - include: tasks/build_run_remove.yml
+    - when: ansible_distribution == "RedHat"
+      include: tasks/build_run_remove.yml
       vars:
         base_dir: "{{ working_dir }}"
         image_name: "{{ item }}"
         skipped_images: "{{ cli_skipped_images | default('') }}"
       with_items: "{{ rhel_image_names }}"
-      when: ansible_distribution == "RedHat"
 
 
 - name: Docker build httpd - Cleanup

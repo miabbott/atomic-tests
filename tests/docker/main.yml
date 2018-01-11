@@ -33,16 +33,16 @@
 
   pre_tasks:
     - name: Check for docker-latest package if running against docker-latest
+      when: g_docker_latest
       command: rpm -qa
       register: pkgs
-      when: g_docker_latest
 
     - name: Fail if docker latest is not installed
-      fail:
-        msg: "This test is not valid because docker-latest is not installed"
       when:
         - g_docker_latest
         - "'docker-latest' not in pkgs.stdout"
+      fail:
+        msg: "This test is not valid because docker-latest is not installed"
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -53,8 +53,8 @@
         - ansible_version_check
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -113,7 +113,8 @@
     - vars.yml
 
   pre_tasks:
-    - block:
+    - when: g_docker_latest
+      block:
         - name: Stop and disable docker-latest
           service:
             name: docker-latest
@@ -134,14 +135,13 @@
             name: docker
             enabled: true
             state: started
-      when: g_docker_latest
 
   roles:
     - role: docker_remove_all
       tags:
         - docker_remove_all
 
-    - role: redhat_unsubscribe
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       tags:
         - redhat_unsubscribe

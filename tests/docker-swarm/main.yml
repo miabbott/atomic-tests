@@ -36,8 +36,8 @@
         - docker_version_check
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -50,17 +50,17 @@
       register: daemon_file
 
     - name: Turn off live restore
+      when: daemon_file.stat.exists
       replace:
         dest: /etc/docker/daemon.json
         regexp: 'true'
         replace: 'false'
-      when: daemon_file.stat.exists
 
     - name: Restart docker service
+      when: daemon_file.stat.exists
       service:
         name: docker
         state: restarted
-      when: daemon_file.stat.exists
 
 - name: Docker Swarm - Basic Functional Test
   hosts: all
@@ -78,11 +78,11 @@
       register: di
 
     - name: Fail if docker swarm is already running
+      when:  "'Swarm: active' in di.stdout"
       fail:
         msg: |
           Expected: Swarm is not set to active
           Actual: {{ di.stdout }}
-      when: "'Swarm: active' in di.stdout"
 
     - name: Initialize docker swarm
       command: docker swarm init --advertise-addr 127.0.0.1
@@ -92,11 +92,11 @@
       register: di
 
     - name: Fail if docker swarm is is not active
+      when: "'Swarm: active' not in di.stdout"
       fail:
         msg: |
           Expected: Swarm is set to active
           Actual: {{ di.stdout }}
-      when: "'Swarm: active' not in di.stdout"
 
     - name: Create docker swarm service
       command: >
@@ -111,11 +111,11 @@
       register: dsls
 
     - name: Fail if httpd is not in output
+      when: g_service_name not in dsls.stdout
       fail:
         msg: |
           Expected: {{ g_service_name }} is in docker service ls output
           Actual: {{ dsls.stdout }}
-      when: g_service_name not in dsls.stdout
 
     - name: Wait for the {{ g_service_name }} container to open port 80
       wait_for:
@@ -127,11 +127,11 @@
       register: dps
 
     - name: Fail if docker ps output does not contain {{ g_image_name }}
+      when: g_image_name not in dps.stdout
       fail:
         msg: |
           Expected: {{ g_image_name }} is in docker ps output
           Actual: {{ dps.stdout }}
-      when: g_image_name not in dps.stdout
 
     - name: Inspect the {{ g_service_name }} service
       command: docker inspect {{ g_service_name }}
@@ -139,11 +139,11 @@
 
     # check image
     - name: Fail when image is incorrect
+      when: g_image_name not in dis.stdout
       fail:
         msg: |
           Expected: {{ g_image_name }} is in docker inspect output
           Actual: {{ dis.stdout }}
-      when: g_image_name not in dis.stdout
 
     - name: Scale service to 5 instances
       command: docker service scale {{ g_service_name }}=5
@@ -156,11 +156,11 @@
       delay: 2
 
     - name: Fail if services did not scale
+      when: num_services.stdout != "5"
       fail:
         msg: |
           Expected: Number of services is set to 5
           Actual: Number of services is set to {{ num_services.stdout }}
-      when: num_services.stdout != "5"
 
     - name: Scale service back to 1 instance
       command: docker service scale {{ g_service_name }}=1
@@ -180,12 +180,12 @@
       register: dsls
 
     - name: Fail if {{ g_service_name }} is still in docker service ls output
+      when: g_service_name in dsls.stdout
       fail:
         msg: |
           Expected: {{ g_service_name }} should not be in docker service ls
                     output
           Actual: {{ dsls.stdout }}
-      when: g_service_name in dsls.stdout
 
     - name: Deactivate swarm
       command: docker swarm leave --force
@@ -195,11 +195,11 @@
       register: di
 
     - name: Fail if swarm is not inactive
+      when: "'Swarm: inactive' not in di.stdout"
       fail:
         msg: |
           Expected: Swarm set to inactive
           Actual: {{ di.stdout }}
-      when: "'Swarm: inactive' not in di.stdout"
 
 - name: Docker Swarm - Cleanup
   hosts: all
@@ -213,7 +213,7 @@
       tags:
         - docker_remove_all
 
-    - role: redhat_unsubscribe
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       tags:
         - redhat_unsubscribe

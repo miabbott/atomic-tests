@@ -44,20 +44,20 @@
 
   pre_tasks:
     - name: Set facts
+      when: ansible_distribution == 'RedHat'
       set_fact:
         etcd_image: 'registry.access.redhat.com/rhel7/etcd'
         etcd_name: 'etcd'
         flannel_image: 'registry.access.redhat.com/rhel7/flannel'
         flannel_name: 'flannel'
-      when: ansible_distribution == 'RedHat'
 
     - name: Set facts
+      when: ansible_distribution != 'RedHat'
       set_fact:
         etcd_image: 'registry.fedoraproject.org/f26/etcd'
         etcd_name: 'etcd'
         flannel_image: 'registry.fedoraproject.org/f26/flannel'
         flannel_name: 'flannel'
-      when: ansible_distribution != 'RedHat'
 
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
@@ -68,8 +68,8 @@
         - ansible_version_check
 
     # Subscribe if the system is RHEL
-    - role: redhat_subscription
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_subscription
       tags:
         - redhat_subscription
 
@@ -136,11 +136,11 @@
       register: c_output
 
     - name: Fail if output is incorrect
+      when: "'Hi foo' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi foo' not in c_output.stdout"
 
     - include_role:
         name: reboot
@@ -155,11 +155,11 @@
       register: c_output
 
     - name: Fail if output is incorrect
+      when: "'Hi foo' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
       vars:
@@ -203,11 +203,11 @@
       register: c_output
 
     - name: Fail if output is incorrect
+      when: "'Hi foo' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
       vars:
@@ -252,11 +252,11 @@
       register: c_output
 
     - name: Fail if Hi foo is not in output
+      when: "'Hi foo' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi foo' not in c_output.stdout"
 
     - name: Update system container
       command: atomic containers update --set=RECEIVER=bar {{ g_hw_name }}
@@ -266,11 +266,11 @@
       register: c_output
 
     - name: Fail if Hi bar is not in output
+      when: "'Hi bar' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi bar is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi bar' not in c_output.stdout"
 
     - name: Rollback system container
       command: atomic containers rollback {{ g_hw_name }}
@@ -280,11 +280,11 @@
       register: c_output
 
     - name: Fail if Hi foo is not in output
+      when: "'Hi foo' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi bar is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi foo' not in c_output.stdout"
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
       vars:
@@ -329,11 +329,11 @@
       register: c_output
 
     - name: Fail if Hi foo is not in output
+      when: "'Hi foo' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi foo' not in c_output.stdout"
 
     - name: Create another container using the first container as the rootfs
       command: atomic install
@@ -352,11 +352,11 @@
       register: c_output
 
     - name: Fail if Hi remote is not in output
+      when: "'Hi remote' not in c_output.stdout"
       fail:
         msg: |
           Expected: Hi remote is in curl output
           Actual: {{ c_output.stdout }}
-      when: "'Hi remote' not in c_output.stdout"
 
     - name: Verify first container has rootfs
       stat:
@@ -369,22 +369,22 @@
       register: hwr
 
     - name: Fail when rootfs dir is missing from main container
+      when: hw.stat.exists == False
       fail:
         msg: |
           Expected: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
                     is True
           Actual: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
                   is {{ hw.stat.exists }}
-      when: hw.stat.exists == False
 
     - name: Fail when rootfs dir exists for rootfs container
+      when: hwr.stat.exists != True
       fail:
         msg: |
           Expected: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
                     exists is False
           Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
                   exists is {{ hwr.stat.exists }}
-      when: hwr.stat.exists != True
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
       vars:
@@ -432,18 +432,18 @@
       ignore_errors: true
 
     - name: Stop flanneld server if flannel rpm present
+      when: rpm_flannel.rc == 0
       service:
         name: flanneld
         state: stopped
         enabled: false
-      when: rpm_flannel.rc == 0
 
     - name: Stop etcd service if etcd rpm present
+      when: rpm_etcd.rc == 0
       service:
         name: etcd
         state: stopped
         enabled: false
-      when: rpm_etcd.rc == 0
 
     # The `aivc_atomic_install_cmd` is set by the required role:
     # `atomic_install_version_check`
@@ -506,8 +506,8 @@
     # Upstream issue with flannel container installation stopping docker
     # https://github.com/projectatomic/atomic-system-containers/issues/23
     - name: Start docker
-      command: systemctl start docker
       when: "'gscrivano' in etcd_image"
+      command: systemctl start docker
 
     - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
       vars:
@@ -552,20 +552,20 @@
         info_json: "{{ info_output.stdout|from_json }}"
 
     - name: Verify RUN_DIRECTORY is set
+      when: run_dir not in info_json['values']['RUN_DIRECTORY']
       fail:
         msg: |
           Expected: RUN_DIRECTORY is set to {{ run_dir }}
           Actual: RUN_DIRECTORY is set to
                   {{ info_json['values']['RUN_DIRECTORY'] }}
-      when: run_dir not in info_json['values']['RUN_DIRECTORY']
 
     - name: Verify STATE_DIRECTORY is set
+      when: state_dir not in info_json['values']['STATE_DIRECTORY']
       fail:
         msg: |
           Expected: STATE_DIRECTORY is set to {{ state_dir }}
           Actual: STATE_DIRECTORY is set to
                   {{ info_json['values']['STATE_DIRECTORY'] }}
-      when: state_dir not in info_json['values']['STATE_DIRECTORY']
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
       vars:
@@ -620,12 +620,12 @@
       register: info_output
 
     - name: Fail if {{ g_invalid_value }} in output
+      when: g_invalid_value in info_output.stdout
       fail:
         msg: |
           Expected: Invalid value {{ g_invalid_value }} will not be set in
                     DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID
           Actual: {{ info_output.stdout }}
-      when: g_invalid_value in info_output.stdout
 
     - include: 'roles/atomic_system_uninstall/tasks/main.yml'
       vars:
@@ -651,7 +651,7 @@
       tags:
         - atomic_images_delete_all
 
-    - role: redhat_unsubscribe
-      when: ansible_distribution == 'RedHat'
+    - when: ansible_distribution == 'RedHat'
+      role: redhat_unsubscribe
       tags:
         - redhat_unsubscribe

@@ -48,7 +48,7 @@
 
     - name: Run the openshift-ansible playbook
       command: >
-        ansible-playbook -i cluster-inventory playbooks/byo/config.yml
+        "ansible-playbook -i cluster-inventory playbooks/byo/config.yml
         {{ oo_py_interpreter }} {{ oo_skip_memory_check }}"
       args:
         chdir: "{{ mktemp.stdout }}"
