@@ -25,45 +25,57 @@
 
   - name: insert private registry ip in webserver controller image yml
     replace:
-      dest=/root/db-rc.yml
-      regexp='PRIVATE'
-      replace='{{ ansible_docker0.ipv4.address }}'
+      dest: /root/db-rc.yml
+      regexp: 'PRIVATE'
+      replace: '{{ ansible_docker0.ipv4.address }}'
 
   - name: insert private registry ip in db controller image yml
     replace:
-      dest=/root/webserver-rc.yml
-      regexp='PRIVATE'
-      replace='{{ ansible_docker0.ipv4.address }}'
+      dest: /root/webserver-rc.yml
+      regexp: 'PRIVATE'
+      replace: '{{ ansible_docker0.ipv4.address }}'
 
   - name: wait for kubernetes apiserver to be available
     wait_for:
       port: 8080
       timeout: 120
 
+  - name: Define kubectl path for F27AH
+    when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
+          (ansible_distribution == "CentOSDev")
+    set_fact:
+      kubectl_path: "/usr/local/bin/kubectl"
+
+  - name: Define kubectl path for F26AH, Centos/RHEL
+    when: (ansible_distribution == "RedHat") or
+          (ansible_distribution == "Fedora" and ansible_distribution_major_version < '27') or
+          (ansible_distribution == "CentOS")
+    set_fact:
+      kubectl_path: "/usr/bin/kubectl"
 
   - name: create db and webserver service
-    command: kubectl create -f /root/{{ item }}
+    command: "{{ kubectl_path }} create -f /root/{{ item }}"
     with_items:
       - db-service.yml
       - webserver-service.yml
     ignore_errors: True
 
   - name: create db and webserver replication controller
-    command: kubectl create -f /root/{{ item }}
+    command: "{{ kubectl_path }} create -f /root/{{ item }}"
     with_items:
       - db-rc.yml
       - webserver-rc.yml
     ignore_errors: True
 
   - name: verify db pod is running
-    shell: kubectl get pods | grep db-controller
+    shell: "{{ kubectl_path }} get pods | grep db-controller"
     register: output
     until: output.stdout.find("Running") > -1
     retries: 12
     delay: 10
 
   - name: verify webserver-controller is running
-    shell: kubectl get pods | grep webserver-controller
+    shell: "{{ kubectl_path }} get pods | grep webserver-controller"
     register: output
     until: output.stdout.find("Running") > -1
     retries: 12

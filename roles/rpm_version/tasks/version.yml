@@ -15,8 +15,10 @@
 - name: Determine version of {{ rv_rpm }}
   command: rpm -q --queryformat '%{VERSION}' {{ rv_rpm }}
   register: rpmq
+  ignore_errors: true
 
 - name: Set facts
+  when: rpmq.rc == 0
   set_fact:
     rv_version: "{{ rpmq.stdout }}"
     g_atomic_host: "{{ g_atomic_host|default({}) | combine( { rv_rpm: rpmq.stdout } ) }}"
