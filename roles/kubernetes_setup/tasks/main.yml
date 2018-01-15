@@ -9,7 +9,9 @@
     rv_rpms: kubernetes-node
 
 - name: Define kube 1.5 vars
-  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '<')
+  when:
+    - g_atomic_host is defined
+    - g_atomic_host['kubernetes-node'] | version_compare('1.6', '<')
   set_fact:
     kube_maj_ver: "1.5"
     kube_apiserver: "registry.access.redhat.com/rhel7/kubernetes-apiserver"
@@ -17,14 +19,31 @@
     kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
 
 - name: Define kube 1.6 images
-  when: g_atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
+  when:
+    - g_atomic_host is defined
+    - g_atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
   set_fact:
     kube_maj_ver: "1.6"
     kube_apiserver: "registry.fedoraproject.org/f26/kubernetes-apiserver"
     kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
     kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
 
+- name: Define kube 1.7 master nodes, worker nodes and etcd images
+  when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
+        (ansible_distribution == "CentOSDev")
+
+  set_fact:
+    kube_maj_ver: "1.7"
+    kube_apiserver: "registry.fedoraproject.org/f27/kubernetes-apiserver"
+    kube_controller_manager: "registry.fedoraproject.org/f27/kubernetes-controller-manager"
+    kube_scheduler: "registry.fedoraproject.org/f27/kubernetes-scheduler"
+    kube_kubelet: "registry.fedoraproject.org/f27/kubernetes-kubelet"
+    kube_proxy: "registry.fedoraproject.org/f27/kubernetes-proxy"
+    etcd: "registry.fedoraproject.org/f27/etcd"
+
 - name: pull kubernetes api-server, controller-mgr, scheduler
+  when:
+    - g_atomic_host is defined
   command: docker pull {{ item }}
   register: pull
   failed_when: item not in pull.stdout
@@ -32,6 +51,37 @@
     - "{{ kube_apiserver }}"
     - "{{ kube_controller_manager }}"
     - "{{ kube_scheduler }}"
+
+- block:
+    - name: Pull k8 and etcd images from the registry
+      command:  atomic pull --storage ostree "{{ item }}"
+      register: ap
+      retries: 3
+      delay: 10
+      until: "ap.rc == 0"
+      with_items:
+        - "{{ kube_apiserver }}"
+        - "{{ kube_controller_manager }}"
+        - "{{ kube_scheduler }}"
+        - "{{ kube_kubelet }}"
+        - "{{ kube_proxy }}"
+        - "{{ etcd }}"
+
+    - name: Install master node system containers that is, k8-apiserver, k8-controller_manager and k8-scheduler
+      command: "{{ item }}"
+      with_items:
+        - atomic install --system --system-package=no --name kube-apiserver {{ kube_apiserver }}
+        - atomic install --system --system-package=no --name kube-controller-manager {{ kube_controller_manager }}
+        - atomic install --system --system-package=no --name kube-scheduler {{ kube_scheduler }}
+
+    - name: Install worker node system containers, that is k8-kubelet, k8-proxy and etcd
+      command: "{{ item }}"
+      with_items:
+        - atomic install --system --system-package=no --name kubelet {{ kube_kubelet }}
+        - atomic install --system --system-package=no --name kube-proxy {{ kube_proxy }}
+        - atomic install --system --system-package=no --storage=ostree --name etcd {{ etcd }}
+  when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
+        (ansible_distribution == "CentOSDev")
 
 - name: make db directory
   file:

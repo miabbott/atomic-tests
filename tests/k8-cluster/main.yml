@@ -20,6 +20,9 @@
   hosts: all
   become: true
 
+  vars_files:
+    - vars.yml
+
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
@@ -45,6 +48,11 @@
       tags:
         - docker_build_tag_push
 
+    - when: ansible_distribution == "CentOSDev"
+      role: resize_lv
+      tags:
+        - resize_lv
+
     - role: kubernetes_setup
       tags:
         - kubernetes_setup
@@ -54,7 +62,7 @@
         - k8_cluster_services_rc_setup
 
   post_tasks:
-    - name: check if everything works!
+    - name: Check if everything works!
       shell: curl http://localhost:80/cgi-bin/action | grep "RedHat rocks"
 
 
