@@ -225,10 +225,7 @@
     - name: Attempt to install rpm
       command: rpm -i {{ g_rpm_url }}
       register: attempted_install
-      retries: 5
-      delay: 60
-      until: attempted_install|success
-      failed_when: attempted_install.rc != 1
+      failed_when: attempted_install.rc == 0
 
     - include_role:
         name: rpm_ostree_status
