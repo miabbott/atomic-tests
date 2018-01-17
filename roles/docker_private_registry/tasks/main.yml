@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 #
 #  This role sets up and creates an insecure private registry on the localhost
 #  at port 5000.
@@ -8,6 +9,22 @@
       msg: "ansible_docker0.ipv4.address it not defined!"
     when: ansible_docker0.ipv4.address is not defined
     run_once: true
+
+#  This is workaround for
+#  https://github.com/CentOS/sig-atomic-buildscripts/issues/316
+  - name: Check for 'atomic-registries' package
+    command: rpm -q atomic-registries
+    register: ar
+    ignore_errors: true
+
+  - when: ar.rc == 1
+    block:
+      - name: Install 'atomic-registries'
+        command: rpm-ostree install atomic-registries
+
+      - include_role:
+          name: reboot
+# end workaround
 
   - name: Check for /etc/containers/registries.conf
     stat:
@@ -49,15 +66,21 @@
       regexp='^# INSECURE_REGISTRY=\'--insecure-registry\s?\''
       replace='INSECURE_REGISTRY=\'--insecure-registry {{ ansible_docker0.ipv4.address }}:5000\''
 
-  - name: stop docker
+  - name: stop docker + registries
     service:
-      name=docker
-      state=stopped
+      name: "{{ item }}"
+      state: stopped
+    with_items:
+      - registries
+      - docker
 
-  - name: start docker
+  - name: start docker + registries
     service:
-      name=docker
-      state=started
+      name: "{{ item }}"
+      state: started
+    with_items:
+      - registries
+      - docker
 
   - name: create private registry
     command: docker run -d -p 5000:5000 --restart=always --name registry registry:2
