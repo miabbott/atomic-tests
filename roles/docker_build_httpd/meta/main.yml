@@ -1,2 +1,5 @@
 ---
 allow_duplicates: true
+
+dependencies:
+  - role: osname_set_fact

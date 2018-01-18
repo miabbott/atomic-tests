@@ -21,32 +21,22 @@
 
 - name: Copy Dockerfile to temp directory
   copy:
-    src: "{{ g_httpd_name }}_Dockerfile"
+    src: "{{ g_osname }}/httpd/Dockerfile"
     dest: "{{ build_dir }}"
     owner: root
     group: root
     mode: 0644
 
 - name: Copy makecache.sh to temp directory
-  when: ansible_distribution != 'RedHat'
   copy:
-    src: makecache.sh
-    dest: "{{ build_dir }}"
-    owner: root
-    group: root
-    mode: 0744
-
-- name: Copy rhel_makecache.sh to temp directory
-  when: ansible_distribution == 'RedHat'
-  copy:
-    src: rhel_makecache.sh
+    src: "{{ g_osname }}/httpd/makecache.sh"
     dest: "{{ build_dir }}"
     owner: root
     group: root
     mode: 0744
 
 - name: Build httpd image
-  command: "docker build -t {{ g_httpd_name }} -f {{ build_dir }}/{{ g_httpd_name }}_Dockerfile {{ build_dir }}"
+  command: "docker build -t {{ g_httpd_name }} -f {{ build_dir }}/Dockerfile {{ build_dir }}"
   register: db
   retries: 5
   delay: 60

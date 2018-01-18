@@ -12,7 +12,7 @@ RUN /makecache.sh && \
     dnf -y install httpd && \
     dnf clean all
 
-RUN echo "SUCCESS fedora24_httpd" > /var/www/html/index.html
+RUN echo "SUCCESS fedora_httpd" > /var/www/html/index.html
 EXPOSE 80
 
 ENTRYPOINT [ "/usr/sbin/httpd" ]
