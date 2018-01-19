@@ -11,6 +11,13 @@ dependencies:
     fail_if_found: true
     extra_args: '_TRANSPORT=audit'
 
+  # check for SELinux denials from kernel
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1536690
+  - role: journal_search
+    search_string: 'avc:  denied'
+    fail_if_found: true
+    extra_args: '_TRANSPORT=kernel'
+
   # check for kernel Oops
   - role: journal_search
     search_string: Oops
