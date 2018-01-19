@@ -1,0 +1,38 @@
+---
+# vim: set ft=ansible:
+#
+# A generic role that can be used to remove a container from a host
+#
+# Required variables:
+#  - drc_container_name: name of the container to be removed
+#
+- name: Fail if container name not defined
+  when: drc_container_name is not defined
+  fail:
+    msg: "The variable drc_container_name must be defined"
+
+- name: Get list of all containers
+  command: docker ps -a
+  register: ps_before
+
+- name: Fail if container is not present
+  when: drc_container_name not in ps_before.stdout
+  fail:
+    msg: |
+      Expected: {{ drc_container_name }} container is present in docker ps
+      Actual: {{ ps_before.stdout }}
+
+- name: Remove the container
+  command: "docker rm -f {{ drc_container_name }}"
+
+- name: Get list of all containers again
+  command: docker ps -a
+  register: ps_after
+
+- name: Fail if container is present
+  when: drc_container_name in ps_after.stdout
+  fail:
+    msg: |
+      The {{ drc_container_name }} container is still present
+      Expected: {{ drc_container_name }} is missing from docker ps -a
+      Actual: {{ ps_after.stdout }}

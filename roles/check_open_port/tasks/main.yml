@@ -1,0 +1,30 @@
+---
+# vim: set ft=ansible:
+#
+# Simple role to check if a port is open and optionally use
+# 'curl' to retrieve a URL
+#
+# Required variables:
+#  - cop_port: port number
+#
+# Optional variables:
+#  - cop_url:  URL to try to retrieve
+#  - cop_timeout: timeout to wait for open port (default 30)
+#
+- name: Fail if the cop_port is not defined
+  when: cop_port is not defined
+  fail:
+    msg: 'The cop_port variable must be defined'
+
+- name: Wait for port to open
+  wait_for:
+    port: "{{ cop_port }}"
+    timeout: "{{ cop_timeout | default(30) }}"
+
+- name: Retrieve URL
+  when: cop_url is defined
+  command: "curl {{ cop_url }}"
+  register: curl
+  until: curl|success
+  retries: 6
+  delay: 10

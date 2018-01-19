@@ -310,9 +310,11 @@
         - docker_pull_base_image
 
     # Build a local httpd image
-    - role: docker_build_httpd
+    - role: docker_build
+      db_src: "roles/docker_build/files/{{ g_osname }}/httpd/"
+      db_image_name: "{{ g_httpd_name }}"
       tags:
-        - docker_build_httpd
+        - docker_build
 
     # TEST
     # Verify we can run a container via atomic
@@ -330,21 +332,33 @@
 
     # TEST
     # Verify we can remove the httpd container and it is no longer running
-    - role: docker_rm_httpd_container
+    - role: docker_rm_container
+      drc_container_name: "{{ g_httpd_name }}"
       tags:
-        - docker_rm_httpd_container
+        - docker_rm_container
 
     # TEST
     # Verify we can run the container again
-    - role: docker_run_httpd
+    - role: docker_run
+      dr_image_name: "{{ g_httpd_name }}"
+      dr_run_options: "-d -p 80:80"
       tags:
-        - docker_run_httpd
+        - docker_run
+
+    # TEST
+    # Verify port 80 is open and we can retrieve the URL
+    - role: check_open_port
+      cop_port: "80"
+      cop_url: "http://localhost:80"
+      tag:
+        - check_open_port
 
     # TEST
     # Verify we can remove the httpd container and it is no longer running
-    - role: docker_rm_httpd_container
+    - role: docker_rm_container
+      drc_container_name: "{{ g_httpd_name }}"
       tags:
-        - docker_rm_httpd_container
+        - docker_rm_container_again
 
     # TEST
     # Install, run and uninstall cockpit using atomic command
@@ -671,14 +685,16 @@
         - atomic_stop_verify
 
     # Remove the httpd container
-    - role: docker_rm_httpd_container
+    - role: docker_rm_container
+      drc_container_name: "{{ g_httpd_name }}"
       tags:
-        - docker_rm_httpd_container
+        - docker_rm_container
 
     # Remove the httpd image
-    - role: docker_rmi_httpd_image
+    - role: docker_rmi
+      drmi_image: "{{ g_httpd_name }}"
       tags:
-        - docker_rmi_httpd_image
+        - docker_rmi
 
     # Remove all things docker
     - role: docker_remove_all

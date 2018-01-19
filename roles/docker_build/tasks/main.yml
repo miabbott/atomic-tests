@@ -1,0 +1,52 @@
+---
+# vim: set ft=ansible:
+#
+# This is a generic role to handle the building of docker images when a
+# Dockerfile is provided.  You need to provide the location of the
+# Dockerfile (presumably in the repo) and the name you wish to call your
+# newly built image.
+#
+# NOTE:  the role uses the `syncrhonize` module to copy files to the host
+#        under test, so special attention is needed when providing the
+#        location of the Dockerfile
+#
+# Required variables:
+#   db_src:  path to the Dockerfile
+#   db_image_name:  name of the newly built docker image
+#
+- name: Fail if variables are not defined
+  when:
+    - db_src is not defined
+    - db_image_name is not defined
+  fail:
+    msg: |
+      The variables 'db_src' and 'db_image_name' must be defined.
+
+- name: Create temp directory for building
+  command: mktemp -d
+  register: m
+
+- name: Set build_dir fact
+  set_fact:
+    build_dir: "{{ m.stdout }}"
+
+- name: Copy files to host
+  synchronize:
+    src: "{{ db_src }}"
+    dest: "{{ build_dir }}"
+
+- name: Build httpd image
+  command: "docker build -t {{ db_image_name }} -f {{ build_dir }}/Dockerfile {{ build_dir }}"
+  register: db
+  retries: 5
+  delay: 60
+  until: db|success
+
+- name: Get docker images after build
+  command: docker images
+  register: build_images
+
+- name: Fail if httpd image not present
+  when: db_image_name not in build_images.stdout
+  fail:
+    msg: "The {{ db_image_name }} image is not present"

@@ -1,0 +1,46 @@
+---
+# vim: set ft=ansible:
+#
+# Generic role to run a docker image.  Can optionally take options to the
+# run command.
+#
+# Required variables:
+#  - dr_image_name:  name of the image to run
+#
+# Optional variables:
+#  - dr_run_options:  string of options to pass to 'docker run'
+#
+- name: Fail if dr_image_name is not defined
+  when: dr_image_name is not defined
+  fail:
+    msg: "The variable dr_image_name must be defined"
+
+- name: Get list of Docker images
+  command: docker images
+  register: images
+
+- name: Fail if image is missing
+  when: dr_image_name not in images.stdout
+  fail:
+    msg: |
+      Expected: {{ dr_image_name }} in docker images output
+      Actual: {{ images.stdout }}
+
+- name: Run container
+  when: dr_run_options is not defined
+  command: "docker run --name {{ dr_image_name }} {{ dr_image_name }}"
+
+- name: Run container with options
+  when: dr_run_options is defined
+  command: "docker run {{ dr_run_options }} --name {{ dr_image_name }} {{ dr_image_name }}"
+
+- name: Get running containers
+  command: "docker ps"
+  register: ps_run
+
+- name: Check for httpd container
+  when: dr_image_name not in ps_run.stdout
+  fail:
+    msg: |
+      Expected: {{ dr_image_name }} is running
+      Actual: {{ ps_run.stdout }}

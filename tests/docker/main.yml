@@ -86,21 +86,33 @@
       tags:
         - docker_pull_base_image
 
-    - role: docker_build_httpd
+    - role: docker_build
+      db_src: "roles/docker_build/files/{{ g_osname }}/httpd/"
+      db_image_name: "{{ g_httpd_name }}"
       tags:
-        - docker_build_httpd
+        - docker_build
 
-    - role: docker_run_httpd
+    - role: docker_run
+      dr_image_name: "{{ g_httpd_name }}"
+      dr_run_options: "-d -p 80:80"
       tags:
-        - docker_run_httpd
+        - docker_run
 
-    - role: docker_rm_httpd_container
-      tags:
-        - docker_rm_httpd_container
+    - role: check_open_port
+      cop_port: "80"
+      cop_url: "http://localhost:80"
+      tag:
+        - check_open_port
 
-    - role: docker_rmi_httpd_image
+    - role: docker_rm_container
+      drc_container_name: "{{ g_httpd_name }}"
       tags:
-        - docker_rmi_httpd_image
+        - docker_rm__container
+
+    - role: docker_rmi
+      drmi_image: "{{ g_httpd_name }}"
+      tags:
+        - docker_rmi
 
 - name: Docker - Cleanup
   hosts: all

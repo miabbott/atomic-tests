@@ -1,0 +1,4 @@
+---
+# vim: set ft=ansible:
+#
+allow_duplicates: true

@@ -1,8 +1,11 @@
 ---
+# vim: set ft=ansible:
 #
-#  Removes an image
+# Removes an image from the host
 #
-
+# Required variables:
+#  - drmi_image:  name of the image to be removed
+#
 - name: Fail if drmi_image
   when: drmi_image is undefined
   fail:
