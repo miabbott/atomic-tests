@@ -25,4 +25,4 @@ with con:
     print '</body>'
     print '</html>'
 
-    con.close()
+con.close()
