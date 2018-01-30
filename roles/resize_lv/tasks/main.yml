@@ -1,0 +1,46 @@
+---
+# vim: set ft=ansible:
+#
+# This is a role that can be used to resize a logical volume on the host.
+# It requires that you know the name of the logical volume and will try
+# to determine the name of the volume group.  Since this is to be used on
+# Atomic Host systems, the logical volume names are well known, but the
+# volume group names can differ based on install method.
+#
+# If you have advance knowledge of the sizes of the volume groups and
+# logical volumes, you can specify the desired size of the logical volume,
+# otherwise it defaults to consuming 50% of the available space in the
+# volume group.
+#
+# Required variables:
+#  - rl_lvname:  name of the logical volume
+#
+# Optional variables:
+#   - rl_lvsize:  desired size in G of the logical volume
+
+- name: Fail if variables aren't set
+  when: rl_lvname is not defined
+  fail:
+    msg: "The variable 'rl_lvname' was not defined"
+
+- name: Determine the name of the volume group
+  command: vgs --no-headings -o vg_name
+  register: rl_vgs_name
+
+- name: Set vgname fact
+  set_fact:
+    rl_vgname: "{{ rl_vgs_name.stdout|trim }}"
+
+- name: Resize the logical volume to known size
+  when: rl_lvsize is defined
+  lvol:
+    vg: "{{ rl_vgname }}"
+    lv: "{{ rl_lvname }}"
+    size: "{{ rl_lvsize }}G"
+
+- name: Resize the logical volume to consume 50% free space
+  when: rl_lvsize is not defined
+  lvol:
+    vg: "{{ rl_vgname }}"
+    lv: "{{ rl_lvname }}"
+    size: +50%FREE
