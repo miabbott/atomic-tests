@@ -7,21 +7,19 @@
 # Atomic Host systems, the logical volume names are well known, but the
 # volume group names can differ based on install method.
 #
-# If you have advance knowledge of the sizes of the volume groups and
-# logical volumes, you can specify the desired size of the logical volume,
-# otherwise it defaults to consuming 50% of the available space in the
-# volume group.
+# Additionally, you must specify the desired size of the logical volume
+# in units of G.  If the current size of the logical volume is less than
+# the desired value, the volume will be extended.
 #
 # Required variables:
-#  - rl_lvname:  name of the logical volume
-#
-# Optional variables:
+#   - rl_lvname:  name of the logical volume
 #   - rl_lvsize:  desired size in G of the logical volume
 
 - name: Fail if variables aren't set
-  when: rl_lvname is not defined
+  when: rl_lvname is not defined or
+        rl_lvsize is not defined
   fail:
-    msg: "The variable 'rl_lvname' was not defined"
+    msg: "The variables 'rl_lvaname' and 'rl_lvsize' must be defined"
 
 - name: Determine the name of the volume group
   command: vgs --no-headings -o vg_name
@@ -31,16 +29,17 @@
   set_fact:
     rl_vgname: "{{ rl_vgs_name.stdout|trim }}"
 
+- name: Get current size of logical volume
+  command: "lvs -o lv_size --no-headings --units G --nosuffix {{ rl_vgname }}/{{ rl_lvname }}"
+  register: rl_lvs_size
+
+- name: Set current lvsize fact
+  set_fact:
+    rl_lvsize_current: "{{ rl_lvs_size.stdout|trim|round|int }}"
+
 - name: Resize the logical volume to known size
-  when: rl_lvsize is defined
+  when: rl_lvsize_current|int < rl_lvsize|int
   lvol:
     vg: "{{ rl_vgname }}"
     lv: "{{ rl_lvname }}"
     size: "{{ rl_lvsize }}G"
-
-- name: Resize the logical volume to consume 50% free space
-  when: rl_lvsize is not defined
-  lvol:
-    vg: "{{ rl_vgname }}"
-    lv: "{{ rl_lvname }}"
-    size: +50%FREE
