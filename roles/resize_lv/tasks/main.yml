@@ -35,11 +35,18 @@
 
 - name: Set current lvsize fact
   set_fact:
-    rl_lvsize_current: "{{ rl_lvs_size.stdout|trim|round|int }}"
+    rl_lvsize_current: "{{ rl_lvs_size.stdout|trim|float|round|int }}"
 
-- name: Resize the logical volume to known size
-  when: rl_lvsize_current|int < rl_lvsize|int
-  lvol:
-    vg: "{{ rl_vgname }}"
-    lv: "{{ rl_lvname }}"
-    size: "{{ rl_lvsize }}G"
+- when: rl_lvsize_current|int < rl_lvsize|int
+  block:
+    - name: Resize the logical volume
+      lvol:
+        vg: "{{ rl_vgname }}"
+        lv: "{{ rl_lvname }}"
+        size: "{{ rl_lvsize }}G"
+
+    - name: Resize the filesystem
+      filesystem:
+        fstype: xfs
+        dev: "/dev/{{ rl_vgname }}/{{ rl_lvname }}"
+        resizefs: true
