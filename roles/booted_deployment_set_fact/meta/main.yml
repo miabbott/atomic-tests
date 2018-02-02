@@ -1,2 +1,6 @@
 ---
 allow_duplicates: true
+
+dependencies:
+  - role: docker_pull
+    dp_image: docker.io/miabbott/aht-tools:latest

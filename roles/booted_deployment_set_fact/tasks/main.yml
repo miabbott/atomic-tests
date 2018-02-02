@@ -12,7 +12,11 @@
     bdsf_ansible_host: "{{ ansible_host }}"
 
 - name: Get rpm-ostree status output
-  command: rpm-ostree status --json
+  shell: >
+    rpm-ostree status --json |
+    docker run -i docker.io/miabbott/aht-tools
+    jq 'del(.deployments[]["layered-commit-meta"]["rpmostree.rpmdb.pkglist"],
+            .deployments[]["base-commit-meta"]["rpmostree.rpmdb.pkglist"])'
   register: bdsf_ros_status
 
 - name: Set json output
