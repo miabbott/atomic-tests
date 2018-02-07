@@ -10,6 +10,8 @@ dependencies:
     search_string: 'avc:  denied'
     fail_if_found: true
     extra_args: '_TRANSPORT=audit'
+    tags:
+      - audit_avc_denied
 
   # check for SELinux denials from kernel
   # https://bugzilla.redhat.com/show_bug.cgi?id=1536690
@@ -17,12 +19,16 @@ dependencies:
     search_string: 'avc:  denied'
     fail_if_found: true
     extra_args: '_TRANSPORT=kernel'
+    tags:
+      - kernel_avc_denied
 
   # check for kernel Oops
   - role: journal_search
     search_string: Oops
     fail_if_found: true
     extra_args: '_TRANSPORT=kernel'
+    tags:
+      - oops_kernel
 
   # check for unmapped SELinux contexts
   # see https://bugzilla.redhat.com/show_bug.cgi?id=1465650#c8
@@ -30,3 +36,5 @@ dependencies:
     search_string: unmapped
     fail_if_found: true
     extra_args: '_TRANSPORT=kernel'
+    tags:
+      - unmapped_selinux
