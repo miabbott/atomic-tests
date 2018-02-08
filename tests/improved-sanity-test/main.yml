@@ -367,6 +367,37 @@
         - docker_rm_container_again
 
     # TEST
+    # Build non-priviledged systemd httpd container
+    - role: docker_build
+      db_src: "roles/docker_build/files/{{ g_osname }}/systemd_httpd/"
+      db_image_name: "{{ g_osname }}_systemd_httpd"
+      tags:
+        - docker_build_systemd
+
+    # TEST
+    # Run non-privileged systemd httpd container
+    - role: docker_run
+      dr_image_name: "{{ g_osname }}_systemd_httpd"
+      dr_run_options: "-d -p 80:80"
+      tags:
+        - docker_run_systemd
+
+    # TEST
+    # Verify that port 80 is open and the URL is accessible
+    - role: check_open_port
+      cop_port: "80"
+      cop_url: "http://localhost:80/"
+      tags:
+        - check_open_port_systemd
+
+    # TEST
+    # Remove the non-privileged systemd httpd container
+    - role: docker_rm_container
+      drc_container_name: "{{ g_osname }}_systemd_httpd"
+      tags:
+        - docker_rm_container_systemd
+
+    # TEST
     # Install, run and uninstall cockpit using atomic command
     - role: atomic_installation_verify
       tags:
@@ -708,6 +739,27 @@
       tags:
         - docker_rmi
 
+    # TEST
+    # Verify we can start the non-privileged systemd httpd container
+    - role: docker_run
+      dr_image_name: "{{ g_osname }}_systemd_httpd"
+      dr_run_options: "-d -p 80:80"
+      tags:
+        - docker_run_systemd
+
+    # Verify that port 80 is open and URL is accessible
+    - role: check_open_port
+      cop_port: "80"
+      cop_url: "http://localhost:80/"
+      tags:
+        - check_open_port_systemd
+
+    # Remove the systemd httpd container
+    - role: docker_rm_container
+      drc_container_name: "{{ g_osname }}_systemd_httpd"
+      tags:
+        - docker_rm_container_systemd
+
     # Remove all things docker
     - role: docker_remove_all
       tags:
@@ -748,7 +800,7 @@
       tags:
         - reboot_post_upgrade
 
-# --
+# ---
 
 - name: Improved Sanity Test - Post-Rollback
   hosts: all
