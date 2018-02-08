@@ -19,7 +19,7 @@
   when: rl_lvname is not defined or
         rl_lvsize is not defined
   fail:
-    msg: "The variables 'rl_lvaname' and 'rl_lvsize' must be defined"
+    msg: "The variables 'rl_lvname' and 'rl_lvsize' must be defined"
 
 - name: Determine the name of the volume group
   command: vgs --no-headings -o vg_name
