@@ -20,9 +20,6 @@
   hosts: all
   become: true
 
-  vars_files:
-    - vars.yml
-
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
@@ -50,6 +47,8 @@
 
     - when: ansible_distribution == "CentOSDev"
       role: resize_lv
+      rl_lvname: 'root'
+      rl_lvsize: '6'
       tags:
         - resize_lv
 
