@@ -1,6 +1,24 @@
 ---
 # vim: set ft=ansible:
 #
+# This role can be used to verify that various SELinux file labels and process
+# labels are correct on a system under test.  The role will check a set of
+# files/processes that are common to all the Atomic Host platforms, as well as
+# files/processes that may be unique to each distribution.
+#
+# Additionally, the role verifies that no files on the host have either the
+# 'unlabeled_t' or 'default_t' label.
+#
+# If there is a known problem in some of the SELinux labels on the host, you
+# can use following tags to exclude parts of the role from running (the tags
+# should be self-describing):
+#  - common_selinux_file_labels
+#  - distro_selinux_file_labels
+#  - common_selinux_proc_labels
+#  - distro_selinux_proc_labels
+#  - default_file_label
+#  - unlabeled_file_label
+#
 - name: Include common vars
   include_vars: common.yml
 
