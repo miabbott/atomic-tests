@@ -17,11 +17,25 @@
     - kube-proxy
     - kubelet
 
+- name: Define kubectl path for F27AH
+  when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
+        (ansible_distribution == "CentOSDev")
+  set_fact:
+    kubectl_path: "/usr/local/bin/kubectl"
+
+- name: Define kubectl path for F26AH, Centos/RHEL
+  when: (ansible_distribution == "RedHat") or
+        (ansible_distribution == "Fedora" and ansible_distribution_major_version < '27') or
+        (ansible_distribution == "CentOS")
+  set_fact:
+    kubectl_path: "/usr/bin/kubectl"
+
+
 - name: Remove all services
-  command: kubectl delete svc --all
+  command: "{{ kubectl_path }} delete svc --all"
 
 - name: Remove all RCs
-  command: kubectl delete rc --all
+  command: "{{ kubectl_path }} delete rc --all"
 
 - name: Remove all pods
-  command: kubectl delete po --all
+  command: "{{ kubectl_path }} delete po --all"
