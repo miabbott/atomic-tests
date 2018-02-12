@@ -38,7 +38,7 @@
   command: "docker ps"
   register: ps_run
 
-- name: Check for httpd container
+- name: "Check for {{ dr_image_name }} container"
   when: dr_image_name not in ps_run.stdout
   fail:
     msg: |
