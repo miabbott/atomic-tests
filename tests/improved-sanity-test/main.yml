@@ -692,7 +692,7 @@
 
     # Remove the httpd image
     - role: docker_rmi
-      drmi_image: "{{ g_httpd_name }}"
+      drmi_image_name: "{{ g_httpd_name }}"
       tags:
         - docker_rmi
 

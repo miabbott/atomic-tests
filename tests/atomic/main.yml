@@ -415,7 +415,7 @@
     # Remove the locally tagged image so we can pull it again from the private
     # registry
     - role: docker_rmi
-      drmi_image: "{{ local_name }}:latest"
+      drmi_image_name: "{{ local_name }}:latest"
       drmi_options: "-f"
 
     - role: atomic_images_list_verify
@@ -450,7 +450,7 @@
 
     # Remove the new commit image
     - role: docker_rmi
-      drmi_image: "{{ local_name }}:latest"
+      drmi_image_name: "{{ local_name }}:latest"
       drmi_options: "-f"
 
     - role: atomic_images_list_verify

@@ -1,19 +1,32 @@
 ---
 # vim: set ft=ansible:
 #
-# Removes an image from the host
-#
-# Required variables:
-#  - drmi_image:  name of the image to be removed
-#
-- name: Fail if drmi_image
-  when: drmi_image is undefined
+- name: Fail if drmi_image_name is not defined
+  when: drmi_image_name is not defined
   fail:
-    msg: "drmi_image is not defined"
+    msg: "The variable drmi_image_name must be defined"
 
-- name: Set options
-  set_fact:
-    del_options: "{{ drmi_options | default() }}"
+- name: Get all the docker images
+  command: docker images
+  register: images_before
 
-- name: Delete image
-  command: docker rmi {{ drmi_image }} {{ del_options }}
+- name: Fail if the image is not present
+  when: drmi_image_name not in images_before.stdout
+  fail:
+    msg: |
+      Expected: {{ drmi_image_name}} container is in docker images
+      Actual: docker images {{ images_before.stdout }}
+
+- name: Remove the image
+  command: "docker rmi -f {{ drmi_image_name }}"
+
+- name: Get the docker images against
+  command: docker images
+  register: images_after
+
+- name: Fail if the image is present
+  when: drmi_image_name in images_after.stdout
+  fail:
+    msg: |
+      Expected: {{ drmi_image_name }} is removed from docker images
+      Actual: docker images: {{ images_after.stdout }}
