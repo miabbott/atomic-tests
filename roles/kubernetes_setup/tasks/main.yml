@@ -1,49 +1,17 @@
 ---
+# vim: set ft=ansible:
 #
-#  This role sets up kubernetes apiserver, controller-mgr, and scheduler pods
+# This role sets up kubernetes apiserver, controller-mgr, and scheduler pods.
+# It requires that the `kubernetes_set_fact` role be run before it can be
+# successfully used.
 #
-- name: Get kubernetes version
-  include_role:
-    name: rpm_version
-  vars:
-    rv_rpms: kubernetes-node
-
-- name: Define kube 1.5 vars
-  when:
-    - g_atomic_host is defined
-    - g_atomic_host['kubernetes-node'] | version_compare('1.6', '<')
-  set_fact:
-    kube_maj_ver: "1.5"
-    kube_apiserver: "registry.access.redhat.com/rhel7/kubernetes-apiserver"
-    kube_controller_manager: "registry.access.redhat.com/rhel7/kubernetes-controller-mgr"
-    kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
-    use_system_containers: false
-
-- name: Define kube 1.6 images
-  when:
-    - g_atomic_host is defined
-    - g_atomic_host['kubernetes-node'] | version_compare('1.6', '>=')
-  set_fact:
-    kube_maj_ver: "1.6"
-    kube_apiserver: "registry.fedoraproject.org/f26/kubernetes-apiserver"
-    kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
-    kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
-    use_system_containers: false
-
-- name: Define kube 1.7 master nodes, worker nodes and etcd images
-  when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
-        (ansible_distribution == "CentOSDev")
-  set_fact:
-    kube_maj_ver: "1.7"
-    kube_apiserver: "registry.fedoraproject.org/f27/kubernetes-apiserver"
-    kube_controller_manager: "registry.fedoraproject.org/f27/kubernetes-controller-manager"
-    kube_scheduler: "registry.fedoraproject.org/f27/kubernetes-scheduler"
-    kube_kubelet: "registry.fedoraproject.org/f27/kubernetes-kubelet"
-    kube_proxy: "registry.fedoraproject.org/f27/kubernetes-proxy"
-    etcd: "registry.fedoraproject.org/f27/etcd"
-    use_system_containers: true
-
-- when: use_system_containers
+- name: Fail if kube_system_containers is not defined
+  when: kube_system_containers is not defined
+  fail:
+    msg: |
+      This role requires that the `kubernetes_set_fact` role is run
+      before it can be used.
+- when: kube_system_containers
   block:
     - name: Pull k8s and etcd images from the registry
       command: "atomic pull --storage ostree {{ item }}"
@@ -109,10 +77,9 @@
         - "kube-controller-manager"
         - "kube-scheduler"
 
-- when: not use_system_containers
+- when: not kube_system_containers
   block:
     - name: pull kubernetes api-server, controller-mgr, scheduler
-      when: not use_system_containers
       command: docker pull {{ item }}
       register: docker_pull
       retries: 6
