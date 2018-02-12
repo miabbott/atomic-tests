@@ -1,35 +1,15 @@
 ---
-- name: Remove all the manifests
-  file:
-    path: "/etc/kubernetes/manifests/{{ item }}"
-    state: absent
-  with_items:
-    - apiserver-pod.json
-    - controller-mgr-pod.json
-    - scheduler-pod.json
-
-- name: Disable services
-  service:
-    name: "{{ item }}"
-    enabled: no
-    state: stopped
-  with_items:
-    - kube-proxy
-    - kubelet
-
-- name: Define kubectl path for F27AH
-  when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
-        (ansible_distribution == "CentOSDev")
-  set_fact:
-    kubectl_path: "/usr/local/bin/kubectl"
-
-- name: Define kubectl path for F26AH, Centos/RHEL
-  when: (ansible_distribution == "RedHat") or
-        (ansible_distribution == "Fedora" and ansible_distribution_major_version < '27') or
-        (ansible_distribution == "CentOS")
-  set_fact:
-    kubectl_path: "/usr/bin/kubectl"
-
+# vim: set ft=ansible:
+#
+# This role removes any manifest files, kube services, kube rcs, and kube
+# pods from the host.  It has a dependency on the `kubernetes_set_facts`
+# role
+#
+- name: Fail if kubectl_path is not defined
+  when: kubectl_path is not defined
+  fail:
+    msg: |
+      This role requires that `kubectl_path` is defined before it can be used.
 
 - name: Remove all services
   command: "{{ kubectl_path }} delete svc --all"
@@ -39,3 +19,34 @@
 
 - name: Remove all pods
   command: "{{ kubectl_path }} delete po --all"
+
+- name: Remove all the manifests
+  file:
+    path: "/etc/kubernetes/manifests/{{ item }}"
+    state: absent
+  with_items:
+    - apiserver-pod.json
+    - controller-mgr-pod.json
+    - scheduler-pod.json
+
+- name: Disable system container services
+  when: kube_system_containers
+  service:
+    name: "{{ item }}"
+    enabled: false
+    state: "stopped"
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Disable core kube/etcd services
+  service:
+    name: "{{ item }}"
+    enabled: false
+    state: "stopped"
+  with_items:
+    - kube-proxy
+    - kubelet
+    - etcd
+

@@ -1,2 +1,5 @@
 ---
 allow_duplicates: true
+
+dependencies:
+  - role: kubernetes_set_facts

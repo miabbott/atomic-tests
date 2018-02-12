@@ -20,6 +20,7 @@
     kube_controller_manager: "registry.access.redhat.com/rhel7/kubernetes-controller-mgr"
     kube_scheduler: "registry.access.redhat.com/rhel7/kubernetes-scheduler"
     kube_system_containers: false
+    kubectl_path: "/usr/bin/kubectl"
 
 - name: Define kube 1.6 images
   when:
@@ -31,6 +32,7 @@
     kube_controller_manager: "registry.fedoraproject.org/f26/kubernetes-controller-manager"
     kube_scheduler: "registry.fedoraproject.org/f26/kubernetes-scheduler"
     kube_system_containers: false
+    kubectl_path: "/usr/bin/kubectl"
 
 - name: Define kube 1.7 master nodes, worker nodes and etcd images
   when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
@@ -44,3 +46,4 @@
     kube_proxy: "registry.fedoraproject.org/f27/kubernetes-proxy"
     etcd: "registry.fedoraproject.org/f27/etcd"
     kube_system_containers: true
+    kubectl_path: "/usr/local/bin/kubectl"
