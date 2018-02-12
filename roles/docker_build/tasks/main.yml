@@ -6,7 +6,7 @@
 # Dockerfile (presumably in the repo) and the name you wish to call your
 # newly built image.
 #
-# NOTE:  the role uses the `syncrhonize` module to copy files to the host
+# NOTE:  the role uses the `synchronize` module to copy files to the host
 #        under test, so special attention is needed when providing the
 #        location of the Dockerfile
 #
@@ -35,7 +35,7 @@
     src: "{{ db_src }}"
     dest: "{{ build_dir }}"
 
-- name: Build httpd image
+- name: "Build {{ db_image_name }} image"
   command: "docker build -t {{ db_image_name }} -f {{ build_dir }}/Dockerfile {{ build_dir }}"
   register: db
   retries: 5
@@ -46,7 +46,7 @@
   command: docker images
   register: build_images
 
-- name: Fail if httpd image not present
+- name: "Fail if {{ db_image_name }} image not present"
   when: db_image_name not in build_images.stdout
   fail:
     msg: "The {{ db_image_name }} image is not present"
