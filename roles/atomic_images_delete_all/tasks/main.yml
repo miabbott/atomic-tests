@@ -1,6 +1,10 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Remove all containers
+  command: atomic --assumeyes containers delete --all --force
+  ignore_errors: yes
+
 - name: Remove all images
   command: atomic --assumeyes images delete --all --force
   ignore_errors: yes

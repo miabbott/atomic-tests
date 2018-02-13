@@ -20,7 +20,7 @@
 - name: Set cockpit container name for Fedora/CentOS
   when: "'CentOS' in ansible_distribution or ansible_distribution == 'Fedora'"
   set_fact:
-    cockpit_cname: "registry.fedoraproject.org/f26/cockpit"
+    cockpit_cname: "registry.fedoraproject.org/f27/cockpit"
 
 - name: Install cockpit container with tag
   command: "atomic install {{ cockpit_cname }}:latest"
