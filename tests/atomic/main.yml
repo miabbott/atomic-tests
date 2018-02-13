@@ -416,7 +416,6 @@
     # registry
     - role: docker_rmi
       drmi_image_name: "{{ local_name }}:latest"
-      drmi_options: "-f"
 
     - role: atomic_images_list_verify
       expected_values:
@@ -451,7 +450,6 @@
     # Remove the new commit image
     - role: docker_rmi
       drmi_image_name: "{{ local_name }}:latest"
-      drmi_options: "-f"
 
     - role: atomic_images_list_verify
       expected_values:

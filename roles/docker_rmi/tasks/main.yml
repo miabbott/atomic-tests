@@ -1,17 +1,30 @@
 ---
 # vim: set ft=ansible:
 #
+# This role will forcefully delete a Docker image from the host.  It
+# requires that the name of an image is passed in as an argument.
+#
+# Required variables:
+#  - drmi_image_name:  image to be deleted (string)
+#
 - name: Fail if drmi_image_name is not defined
   when: drmi_image_name is not defined
   fail:
     msg: "The variable drmi_image_name must be defined"
 
-- name: Get all the docker images
-  command: docker images
+# By passing in the exact image name we are looking for to `docker images`
+# we can inspect the mount of stdout lines returned to determine if it exists.
+# This allows us to suppport untagged images (docker.io/alpine) or images
+# with tags supplied (docker.io.apline:latest)
+- name: Check the image is present before removal
+  command: "docker images {{ drmi_image_name }}"
   register: images_before
 
+# If the image is present, the stdout will have two lines:  one line of
+# headers from `docker images` and another line that is the exact image
+# we are looking for.
 - name: Fail if the image is not present
-  when: drmi_image_name not in images_before.stdout
+  when: images_before.stdout_lines|length != 2
   fail:
     msg: |
       Expected: {{ drmi_image_name}} container is in docker images
@@ -20,12 +33,14 @@
 - name: Remove the image
   command: "docker rmi -f {{ drmi_image_name }}"
 
-- name: Get the docker images against
-  command: docker images
+- name: Check the image has been removed successfully
+  command: "docker images {{ drmi_image_name }}"
   register: images_after
 
-- name: Fail if the image is present
-  when: drmi_image_name in images_after.stdout
+# If the image has been successfully removed, only the headers from the
+# `docker images` command should be returned.  Anything more is a failure.
+- name: Fail if the image is still present
+  when: images_after.stdout_lines|length > 1
   fail:
     msg: |
       Expected: {{ drmi_image_name }} is removed from docker images
