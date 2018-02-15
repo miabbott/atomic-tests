@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 #
 #  This playbook creates a kubernetes cluster on a single system using the
 #  example in the Red Hat documentation.  The cluster contains a database
@@ -63,6 +64,10 @@
   post_tasks:
     - name: Check if everything works!
       shell: curl http://localhost:80/cgi-bin/action | grep "RedHat rocks"
+      register: curl
+      retries: 6
+      delay: 10
+      until: curl|success
 
 
 - name: Kubernetes Cluster - Cleanup
