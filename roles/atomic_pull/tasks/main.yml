@@ -3,6 +3,12 @@
 #
 # pulls image with atomic cli
 #
+# Required variables:
+#  - apl_image: name of image to be pulled (string)
+#
+# Optional variables:
+#  - apl_options: options to be passed to 'atomic pull' (string)
+#
 - name: Fail if apl_image is undefined
   when: apl_image is undefined
   fail:
@@ -14,3 +20,7 @@
 
 - name: Pull image
   command: atomic pull {{ apl_image }} {{ pull_options }}
+  register: pull
+  retries: 6
+  delay: 10
+  until: pull|success
