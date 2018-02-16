@@ -24,7 +24,7 @@
     - name: Verify firewalld is disabled by default
       command: systemctl is-enabled -q firewalld
       register: is_enabled
-      failed_when: is_enabled.rc == 0
+      failed_when: is_enabled|success
 
     # Because of the declarative nature of Ansible, we don't have to perform
     # a second check to see if the service was successfully enabled/started.
@@ -46,7 +46,7 @@
     - name: Verify firewalld package is not installed
       command: rpm -q firewalld
       register: rpmq
-      failed_when: rpmq.rc == 0
+      failed_when: rpmq|success
 
     - name: Verify firewalld cannot be enabled/started
       service:
