@@ -36,7 +36,8 @@
 
 - name: Define kube 1.7 master nodes, worker nodes and etcd images
   when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
-        (ansible_distribution == "CentOSDev")
+        (ansible_distribution == "CentOSDev") or
+        (g_atomic_host is not defined)
   set_fact:
     kube_maj_ver: "1.7"
     kube_apiserver: "registry.fedoraproject.org/f27/kubernetes-apiserver"
