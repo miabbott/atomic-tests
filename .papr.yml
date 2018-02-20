@@ -1,11 +1,11 @@
 cluster:
   hosts:
     - name: testnode
-      distro: fedora/26/atomic
+      distro: fedora/27/atomic
   container:
-    image: registry.fedoraproject.org/fedora:26
+    image: registry.fedoraproject.org/fedora:27
 
-context: fedora/26/atomic
+context: fedora/27/atomic
 
 packages:
   - python-virtualenv
@@ -25,21 +25,9 @@ inherit: true
 cluster:
   hosts:
     - name: testnode
-      distro: fedora/27/atomic
-  container:
-    image: registry.fedoraproject.org/fedora:26
-
-context: fedora/27/atomic
-
----
-inherit: true
-
-cluster:
-  hosts:
-    - name: testnode
       distro: centos/7/atomic
   container:
-      image: registry.fedoraproject.org/fedora:26
+      image: registry.fedoraproject.org/fedora:27
 
 context: centos/7/atomic
 
@@ -51,6 +39,6 @@ cluster:
     - name: testnode
       distro: centos/7/atomic/continuous
   container:
-      image: registry.fedoraproject.org/fedora:26
+      image: registry.fedoraproject.org/fedora:27
 
 context: centos/7/atomic/continuous
