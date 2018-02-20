@@ -1,11 +1,6 @@
 #!/bin/bash
 set -xeuo pipefail
 
-EXTRA_ARGS=""
-if [ $# -gt 0 ]; then
-    EXTRA_ARGS="$1"
-fi
-
 VIRTUAL_ENV_DISABLE_PROMPT=1
 
 if [ ! -d venv ]; then
@@ -23,7 +18,7 @@ NEW_TESTS=( $(git diff --name-only $(git merge-base origin/master HEAD) | grep '
 # no new tests found, just run improved sanity test
 if [ ${#NEW_TESTS[@]} -eq 0 ]; then
     ansible-playbook --syntax-check tests/improved-sanity-test/main.yml
-    ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml $EXTRA_ARGS
+    ansible-playbook -vi testnode, tests/improved-sanity-test/main.yml "$@"
 else
     # added or modified tests found, iterate through and run each one
     printf '%s\n' "${NEW_TESTS[@]}"
@@ -31,7 +26,7 @@ else
         # diff may contain deleted tests so only run tests that exist
         if [ -f $NEW_TEST ]; then
             ansible-playbook --syntax-check $NEW_TEST
-            ansible-playbook -vi testnode, $NEW_TEST $EXTRA_ARGS
+            ansible-playbook -vi testnode, $NEW_TEST "$@"
         fi
     done
 fi
