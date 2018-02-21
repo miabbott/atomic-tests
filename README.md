@@ -149,34 +149,27 @@ handlers:
 ### Vagrant
 
 You can see how the playbooks would run by using the supplied
-Vagrantfile which defines multiple boxes to test with. The Vagrantfile
-requires a 'vagrant-reload' plugin available from the following GitHub repo:
+Vagrantfile which defines multiple boxes to test with.
 
-https://github.com/aidanns/vagrant-reload
-
-With the plugin installed, you should be able to choose a CentOS AH box, a
-Fedora 24/25 AH box, or a CentOS AH Continuous (CAHC) box.
+You should be able to choose a CentOS AH box, a Fedora 27 AH box,
+or a CentOS AH Continuous (CAHC) box.
 
 ```
 $ vagrant up centos
 
 or
 
-$ vagrant up {fedora24|fedora25}
+$ vagrant up fedora27
 
 or
 
 $ vagrant up cahc
 ```
 
-By default, the Vagrantfile will run the `tests/improved-sanity-test/main.yml`
-playbook after Vagrant completes the provisioning of the box.  The playbook
-which is run can be changed by setting the environment variable `PLAYBOOK_FILE`
-to point to a playbook in the repo.
+By default, the Vagrantfile will run the `tests/improved-sanity-test/main.yml`.
+The playbook which is run can be changed by setting the environment variable
+`PLAYBOOK_FILE` to point to a playbook in the repo.
 
 ```
 $ PLAYBOOK_FILE=tests/docker-swarm/main.yml vagrant up cahc
 ```
-
-**NOTE**: By default, the Vagrant boxes will provision HEAD-1 of the flavor of
-Atomic Host you want to bring up.
