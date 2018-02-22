@@ -20,26 +20,17 @@
   fail:
     msg: "Reboot is not defined"
 
-- block:
-    - name: Get rpm-ostree status
-      command: rpm-ostree status --json
-      register: ros
-
-    - name: Convert to JSON
-      set_fact:
-        ros_json: "{{ ros.stdout|from_json }}"
-
-    - name: Set ros variable if deployment 0 is booted
-      when: ros_json['deployments'][0] is defined and ros_json['deployments'][0]['booted']
-      set_fact:
-        ros_booted: "{{ ros_json['deployments'][0] }}"
-        ros_not_booted: "{{ ros_json['deployments'][1] if ros_json['deployments'][1] is defined else false }}"
-
-    - name: Set ros variable if deployment 1 is booted
-      when: ros_json['deployments'][1] is defined and ros_json['deployments'][1]['booted']
-      set_fact:
-        ros_booted: "{{ ros_json['deployments'][1] }}"
-        ros_not_booted: "{{ ros_json['deployments'][0] if ros_json['deployments'][0] is defined else false }}"
+- when: rou_packages == "all"
+  block:
+    # This role provides the following variables:
+    #  - ros: result of 'rpm-ostree status --json'
+    #  - ros_json: ros.stdout piped through the from_json filter
+    #  - ros_num_deployments:  number of deployments on host
+    #  - ros_booted: JSON object of the booted deployment
+    #  - ros_not_booted: JSON object of the not booted deployment
+    - name: Get rpm-ostree status output
+      include_role:
+        name: rpm_ostree_status
 
     # If the 'packages' key has a value, we create a list of packages to
     # uninstall, otherwise skip it
@@ -47,7 +38,6 @@
       when: ros_booted['packages']|length > 0
       set_fact:
         all_installed: "{{ ros_booted['packages']|join(' ') }}"
-  when: rou_packages == "all"
 
 # Check to see if 'all_installed' was defined above, otherwise we use the
 # original value of 'packages'.  It could be 'all', which means we want to
@@ -69,8 +59,9 @@
   poll: 0
   ignore_errors: true
 
-- include_role:
+- name: Reboot if necessary
+  when: rou_reboot and rm_packages != "all"
+  include_role:
     name: reboot
   vars:
     skip_shutdown: true # shutdown was already initiated
-  when: rou_reboot and rm_packages != "all"

@@ -1,32 +1,29 @@
-# vim: set ft=ansible:
 ---
+# vim: set ft=ansible:
+#
 - name: Fail when package is undefined
+  when: package is undefined
   fail:
     msg: "Package is undefined"
-  when: package is undefined
 
-- name: Get rpm-ostree status --json output
-  command: rpm-ostree status --json
-  register: installed
+# This role provides the following variables:
+#  - ros: result of 'rpm-ostree status --json'
+#  - ros_json: ros.stdout piped through the from_json filter
+#  - ros_num_deployments:  number of deployments on host
+#  - ros_booted: JSON object of the booted deployment
+#  - ros_not_booted: JSON object of the not booted deployment
+- name: Get rpm-ostree status output
+  include_role:
+    name: rpm_ostree_status
 
-- name: Convert rpm-ostree status output to jinja2 json
+- name: Set packages for booted deployment
   set_fact:
-    installed_json: "{{ installed.stdout | from_json }}"
-
-- name: Set packages when deployment 0 is booted
-  set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][0]['packages'] }}"
-  when: installed_json['deployments'][0]['packages'] is defined and installed_json['deployments'][0]['booted']
-
-- name: Set packages when deployment 1 is booted
-  set_fact:
-    installed_pkgs: "{{ installed_json['deployments'][1]['packages'] }}"
-  when: installed_json['deployments'][1]['packages'] is defined and installed_json['deployments'][1]['booted']
+    installed_pkgs: "{{ ros_booted['packages'] }}"
 
 - name: Fail if {{ package }} is not in rpm-ostree status output
+  when: package not in installed_pkgs
   fail:
     msg: "{{ package }} not in rpm-ostree status output"
-  when: package not in installed_pkgs
 
 - name: Verify {{ package }} is installed
   command: command -v {{ package }}

@@ -5,7 +5,7 @@
 #  rpm-ostree status --json output.  If no second deployment exists,
 #  ros_not_booted will be set to false
 #
-# Newer versions of 'rpm-ostree' include the RPM DB pacakge list in the
+# Newer versions of 'rpm-ostree' include the RPM DB package list in the
 # commit metadata.  This causes hundreds of pkg entries to be included
 # in the JSON output.  We can exclude this from the output by piping to
 # 'jq' and removing the noisy keys.

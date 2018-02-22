@@ -11,30 +11,23 @@
     bdsf_archive: "{{ archive | default('false') }}"
     bdsf_ansible_host: "{{ ansible_host }}"
 
+# This role provides the following variables:
+#  - ros: result of 'rpm-ostree status --json'
+#  - ros_json: ros.stdout piped through the from_json filter
+#  - ros_num_deployments:  number of deployments on host
+#  - ros_booted: JSON object of the booted deployment
+#  - ros_not_booted: JSON object of the not booted deployment
 - name: Get rpm-ostree status output
-  shell: >
-    rpm-ostree status --json |
-    docker run -i docker.io/miabbott/aht-tools
-    jq 'del(.deployments[]["layered-commit-meta"]["rpmostree.rpmdb.pkglist"],
-            .deployments[]["base-commit-meta"]["rpmostree.rpmdb.pkglist"])'
-  register: bdsf_ros_status
-
-- name: Set json output
-  set_fact:
-     bdsf_ros_json: "{{ bdsf_ros_status.stdout | from_json }}"
-
-- name: Discover the booted deployment
-  set_fact:
-    bdsf_ros_booted: "{{ item }}"
-  with_items: "{{ bdsf_ros_json | json_query('deployments[?booted]') }}"
+  include_role:
+    name: rpm_ostree_status
 
 - name: Save refspec and checksum
   set_fact:
-    bdsf_saved_checksum: "{{ bdsf_ros_booted['checksum'] }}"
+    bdsf_saved_checksum: "{{ ros_booted['checksum'] }}"
     # If the host is on a local branch, we have to skip splitting the 'origin'
     # because there is no remote portion
-    bdsf_saved_refspec: "{{ bdsf_ros_booted['origin'].split(':')[1] if ':' in bdsf_ros_booted['origin'] else bdsf_ros_booted['origin'] }}"
-    bdsf_saved_remote_name: "{{ bdsf_ros_booted['origin'].split(':')[0] if ':' in bdsf_ros_booted['origin'] else '' }}"
+    bdsf_saved_refspec: "{{ ros_booted['origin'].split(':')[1] if ':' in ros_booted['origin'] else ros_booted['origin'] }}"
+    bdsf_saved_remote_name: "{{ ros_booted['origin'].split(':')[0] if ':' in ros_booted['origin'] else '' }}"
 
 # If 'bdsf_archve' is true, we setup the following global variables in a YAML
 # file:

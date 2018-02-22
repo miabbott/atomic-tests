@@ -233,27 +233,19 @@
           Expected: Dry run output contains exiting because
           Actual: {{ dryrun.stdout }}
 
-    - name: Get rpm-ostree status --json output
-      command: rpm-ostree status --json
-      register: installed
+    # This role provides the following variables:
+    #  - ros: result of 'rpm-ostree status --json'
+    #  - ros_json: ros.stdout piped through the from_json filter
+    #  - ros_num_deployments:  number of deployments on host
+    #  - ros_booted: JSON object of the booted deployment
+    #  - ros_not_booted: JSON object of the not booted deployment
+    - name: Get rpm-ostree status output
+      include_role:
+        name: rpm_ostree_status
 
-    - name: Convert rpm-ostree status output to jinja2 json
+    - name: Set packages when deployment is not booted
       set_fact:
-        pending_json: "{{ installed.stdout | from_json }}"
-
-    - name: Set packages when deployment 0 is not booted
-      when:
-        - pending_json['deployments'][0] is defined
-        - not pending_json['deployments'][0]['booted']
-      set_fact:
-        pending_pkgs: "{{ pending_json['deployments'][0]['packages'] }}"
-
-    - name: Set packages when deployment 1 is not booted
-      when:
-        - pending_json['deployments'][1] is defined
-        - not pending_json['deployments'][1]['booted']
-      set_fact:
-        pending_pkgs: "{{ pending_json['deployments'][1]['packages'] }}"
+        pending_pkgs: "{{ ros_not_booted['packages'] }}"
 
     - name: Fail if {{ g_pkg2 }} is in pending packages
       when: g_pkg2 in pending_pkgs
@@ -382,33 +374,19 @@
     - include_role:
         name: reboot
 
-    - name: Get rpm-ostree status --json output
-      command: rpm-ostree status --json
-      register: req
+    # This role provides the following variables:
+    #  - ros: result of 'rpm-ostree status --json'
+    #  - ros_json: ros.stdout piped through the from_json filter
+    #  - ros_num_deployments:  number of deployments on host
+    #  - ros_booted: JSON object of the booted deployment
+    #  - ros_not_booted: JSON object of the not booted deployment
+    - name: Get rpm-ostree status output
+      include_role:
+        name: rpm_ostree_status
 
-    - name: Convert rpm-ostree status output to jinja2 json
+    - name: Set packages for booted deployment
       set_fact:
-        req_json: "{{ req.stdout | from_json }}"
-
-    # This is a hack for requested-packages being displayed in rpm-ostree
-    # v2017.3 that should be fixed in v2017.4.  Fix this once  all streams
-    # are at v2017.4.
-    # See https://github.com/projectatomic/rpm-ostree/pull/670
-    - name: Set packages when deployment 0 is booted
-      when: req_json['deployments'][0]['booted']
-      set_fact:
-        req_pkgs: >
-           "{{ req_json['deployments'][0]['requested-packages']
-           if req_json['deployments'][0]['requested-packages'] is defined
-           else {} }}"
-
-    - name: Set packages when deployment 1 is booted
-      when:  req_json['deployments'][1]['booted']
-      set_fact:
-        req_pkgs: >
-          "{{ req_json['deployments'][1]['requested-packages']
-          if req_json['deployments'][1]['requested-packages'] is defined
-          else {} }}"
+        req_pkgs: "{{ ros_booted['requested-packages'] }}"
 
     - name: Fail if {{ g_deployed_pkg }} is not in requested packages
       when: g_deployed_pkg not in req_pkgs
