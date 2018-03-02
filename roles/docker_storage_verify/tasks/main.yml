@@ -19,12 +19,6 @@
   register: storage_driver
   failed_when: storage_driver.stdout != driver
 
-- name: Check for F25 Docker mount
-  when:
-    - ansible_distribution == 'Fedora'
-    - ansible_distribution_major_version <= '25'
-  command: findmnt /var/lib/docker/devicemapper
-
 - name: Check for F26 Docker mount
   when:
     - ansible_distribution == 'Fedora'
