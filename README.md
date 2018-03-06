@@ -1,6 +1,7 @@
 Stream | Version/Status | Log File
 :--- | :---: | :---:
 Centos Atomic Host Continuous | ![cahc status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/cahc/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/cahc/latest/improved-sanity-test.log)
+Centos Atomic Host | ![centosah status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/centosah/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/centosah/latest/improved-sanity-test.log)
 Fedora Atomic Host Continuous | ![fahc status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fahc/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fahc/latest/improved-sanity-test.log)
 Fedora 26 Atomic Host | ![fedora 26 atomic status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic/latest/improved-sanity-test.log)
 Fedora 26 Atomic Testing | ![fedora 26 atomic testing status](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic-testing/latest/status.png) | [log](https://s3.amazonaws.com/aos-ci/atomic-host-tests/improved-sanity-test/fedora-26-atomic-testing/latest/improved-sanity-test.log)
