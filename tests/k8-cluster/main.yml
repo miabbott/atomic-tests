@@ -21,6 +21,39 @@
   hosts: all
   become: true
 
+# This giant mess of pre-tasks is here to workaround the problem that is fixed
+# in this PR - https://github.com/projectatomic/atomic/pull/1185
+#
+# The fallout from that missing functionality is that the 'kube-proxy' system
+# container will not start correctly unless atomic 1.22 is used to install
+# the system container with the right SELinux labels.
+#
+  pre_tasks:
+    - include_role:
+        name: rpm_version
+      vars:
+        rv_rpms: atomic
+
+    - when:
+        - ansible_distribution == 'Fedora'
+        - ansible_distribution_major_version | version_compare('26', '>')
+        - g_atomic_host is defined
+        - g_atomic_host['atomic'] | version_compare('1.22', '<=')
+      block:
+        - name: Grab the atomic 1.22 RPMs
+          get_url:
+            url: "{{ item }}"
+            dest: /root/
+          with_items:
+            - https://kojipkgs.fedoraproject.org//packages/atomic/1.22.1/1.fc27/x86_64/atomic-1.22.1-1.fc27.x86_64.rpm
+            - https://kojipkgs.fedoraproject.org//packages/atomic/1.22.1/1.fc27/x86_64/atomic-registries-1.22.1-1.fc27.x86_64.rpm
+
+        - name: Override the atomic package
+          command: rpm-ostree override replace /root/atomic-1.22.1-1.fc27.x86_64.rpm /root/atomic-registries-1.22.1-1.fc27.x86_64.rpm
+
+        - include_role:
+            name: reboot
+
   roles:
     # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
