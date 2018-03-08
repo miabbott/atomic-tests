@@ -6,5 +6,5 @@ LABEL maintainer="Micah Abbott <miabbott@redhat.com>" \
       version="1.0"
 ENV container docker
 COPY Dockerfile /root/
-RUN microdnf install jq && \
+RUN microdnf install jq git && \
     microdnf clean all

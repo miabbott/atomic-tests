@@ -2,6 +2,7 @@ Small tools container for use with [atomic-host-tests](https://github.com/projec
 
 As of 09-Jan-2017, the following utilities/packages are installed
   - `jq`
+  - `git`
 
 To run the container:
 
