@@ -862,9 +862,15 @@
         ansible_distribution == "Fedora" or
         ansible_distribution == "CentOSDev"
       block:
-        - name: Set common facts
+        - name: Set base dir
           set_fact:
             base_dir: '/var/srv'
+
+        - name: Set common facts
+          set_fact:
+            compose_pkg: 'wget'
+            cache_dir: '{{ base_dir }}/cache'
+            repo_dir: '{{ base_dir }}/repo'
 
         - name: Set Fedora facts
           when: ansible_distribution == "Fedora"
@@ -906,7 +912,7 @@
 
         - name: Create repo directory
           file:
-            path: '{{ base_dir }}/repo'
+            path: '{{ repo_dir }}'
             state: directory
             mode: 0755
 
@@ -917,7 +923,7 @@
 
         - name: Create cache directory
           file:
-            path: '{{ base_dir }}/cache'
+            path: '{{ cache_dir }}'
             state: directory
             mode: 0755
 
@@ -930,7 +936,7 @@
             dest: '{{ base_dir }}/{{ repo_name }}/{{ base_json }}'
             state: present
             insertafter: '"docker",$'
-            line: '         "wget",'
+            line: '         "{{ compose_pkg }}",'
 
         - name: Modify base package json
           when: base_json is undefined
@@ -938,13 +944,13 @@
             dest: '{{ base_dir }}/{{ repo_name }}/{{ json_file }}'
             state: present
             insertafter: '"docker",$'
-            line: '         "wget",'
+            line: '         "{{ compose_pkg }}",'
 
         - name: Compose new tree
           command: >
             rpm-ostree compose tree
-              --cachedir={{ base_dir }}/cache
-              --repo={{ base_dir }}/repo
+              --cachedir={{ cache_dir }}
+              --repo={{ repo_dir }}
               {{ base_dir }}/{{ repo_name }}/{{ json_file }}
           register: rct_output
 
@@ -987,13 +993,13 @@
               Expected: booted commit is {{ rct_commit_id[0] }}
               Actual: booted commit is {{ booted_checksum }}
           vars:
-            booted_checksum: "{{ ros_booted['checksum'] }}"
+            booted_checksum: '{{ ros_booted["checksum"] }}'
 
-        # use the rpm_ostree_install_verify to ensure wget was part of the compose
-        # but do not check that wget is layered
+        # use the rpm_ostree_install_verify to ensure compose_pkg  was part
+        # of the compose but do not check that it is layered
         - include_role:
             name: rpm_ostree_install_verify
           vars:
-            roiv_package_name: 'wget'
-            roiv_binary_name: 'wget'
+            roiv_package_name: '{{ compose_pkg }}'
+            roiv_binary_name: '{{ compose_pkg }}'
             roiv_status_check: false
