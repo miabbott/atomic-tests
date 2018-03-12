@@ -836,3 +836,164 @@
 
     - name: Clean up deployments
       command: rpm-ostree cleanup -rpmb
+
+
+#####################################################################################
+#
+# rpm-ostree compose
+#   - test creating custom composes
+#
+#####################################################################################
+
+- name: rpm-ostree compose
+  hosts: all
+  become: true
+
+  tags:
+    - compose
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    # Only run this test on Fedora and CentOS Atomic Host Continuous
+    # RHEL Atomic Host and CentOS do not have compose abilities enabled
+    - when: >
+        ansible_distribution == "Fedora" or
+        ansible_distribution == "CentOSDev"
+      block:
+        - name: Set common facts
+          set_fact:
+            base_dir: '/var/srv'
+
+        - name: Set Fedora facts
+          when: ansible_distribution == "Fedora"
+          set_fact:
+            repo_url: 'https://pagure.io/fedora-atomic.git'
+            repo_name: 'fedora-atomic'
+            json_file: 'fedora-atomic-host-base.json'
+
+        - name: Set CentOS Continuous facts
+          when: ansible_distribution == "CentOSDev"
+          set_fact:
+            repo_url: 'https://github.com/CentOS/sig-atomic-buildscripts.git'
+            repo_name: 'centos'
+            base_json: 'centos-atomic-host.json'
+            json_file: 'centos-atomic-host-continuous.json'
+
+        # CentOS Atomic Host runs out of space in the root partition when
+        # creating a tree and rebasing to it so the root partition needs
+        # to be increased
+        - name: Resize partition for CentOS
+          when: ansible_distribution == "CentOSDev"
+          command: lvextend -r -L 6G atomicos/root
+
+        - name: Clone fedora 27 repo
+          when: ansible_distribution == "Fedora"
+          command: >
+            docker run -i --privileged -v {{ base_dir }}:{{ base_dir }}:z
+              docker.io/miabbott/aht-tools /bin/bash -c
+              "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
+               cd {{ base_dir }}/{{ repo_name }}; git checkout f27"
+
+        - name: Clone sig-atomic-buildscripts repo
+          when: ansible_distribution == "CentOSDev"
+          command: >
+            docker run -i --privileged -v {{ base_dir }}:{{ base_dir }}:z
+              docker.io/miabbott/aht-tools /bin/bash -c
+              "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
+               cd {{ base_dir }}/{{ repo_name }};"
+
+        - name: Create repo directory
+          file:
+            path: '{{ base_dir }}/repo'
+            state: directory
+            mode: 0755
+
+        - name: Initialize repo directory
+          command: ostree --repo=repo init --mode=archive-z2
+          args:
+            chdir: '{{ base_dir }}'
+
+        - name: Create cache directory
+          file:
+            path: '{{ base_dir }}/cache'
+            state: directory
+            mode: 0755
+
+        # base_json is required because the CAHC json file uses the centos
+        # atomic host base json which contains the package list that needs
+        # to be modified
+        - name: Modify base package json
+          when: base_json is defined
+          lineinfile:
+            dest: '{{ base_dir }}/{{ repo_name }}/{{ base_json }}'
+            state: present
+            insertafter: '"docker",$'
+            line: '         "wget",'
+
+        - name: Modify base package json
+          when: base_json is undefined
+          lineinfile:
+            dest: '{{ base_dir }}/{{ repo_name }}/{{ json_file }}'
+            state: present
+            insertafter: '"docker",$'
+            line: '         "wget",'
+
+        - name: Compose new tree
+          command: >
+            rpm-ostree compose tree
+              --cachedir={{ base_dir }}/cache
+              --repo={{ base_dir }}/repo
+              {{ base_dir }}/{{ repo_name }}/{{ json_file }}
+          register: rct_output
+
+        - name: Set refspec and commit id
+          set_fact:
+            rct_refspec: "{{ rct_output.stdout | regex_search(regexp, '\\1') }}"
+            rct_commit_id: "{{ rct_output.stdout | regex_search(regexp, '\\2') }}"
+          vars:
+            regexp: '(.*)\s=>\s(.*)'
+
+        # Fire the http server and forget about it using the async option
+        # This http server will die when the system is rebooted after rebase
+        - name: Start http server and keep it running
+          command: python -m SimpleHTTPServer 80
+          args:
+            chdir: '{{ base_dir }}'
+          async: 1000
+          poll: 0
+          tags:
+            - start
+
+        - include_role:
+            name: rpm_ostree_rebase
+          vars:
+            refspec: '{{ rct_refspec[0] }}'
+            remote_name: local
+            remote_url: http://localhost:80/repo
+
+        - include_role:
+            name: reboot
+
+        - include_role:
+            name: rpm_ostree_status
+
+        - name: Fail if booted commit is incorrect
+          when:
+            - rct_commit_id[0] != booted_checksum
+          fail:
+            msg: |
+              Expected: booted commit is {{ rct_commit_id[0] }}
+              Actual: booted commit is {{ booted_checksum }}
+          vars:
+            booted_checksum: "{{ ros_booted['checksum'] }}"
+
+        # use the rpm_ostree_install_verify to ensure wget was part of the compose
+        # but do not check that wget is layered
+        - include_role:
+            name: rpm_ostree_install_verify
+          vars:
+            roiv_package_name: 'wget'
+            roiv_binary_name: 'wget'
+            roiv_status_check: false
