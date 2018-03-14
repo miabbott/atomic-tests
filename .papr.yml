@@ -31,6 +31,10 @@ cluster:
 
 context: centos/7/atomic/continuous
 
+tests:
+  # skipping 'default_t' checks until atomic 1.22 lands with (projectatomic/atomic#1185)
+  - ./.test_director --skip-tags default_file_label
+
 ---
 inherit: true
 
