@@ -1008,10 +1008,6 @@
             roiv_binary_name: '{{ compose_pkg }}'
             roiv_status_check: false
 
-        - name: debug3
-          debug:
-            msg: "test"
-
         - include_role:
             name: rpm_ostree_rollback
 
