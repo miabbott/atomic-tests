@@ -892,12 +892,16 @@
         # to be increased
         - name: Resize partition for CentOS
           when: ansible_distribution == "CentOSDev"
-          command: lvextend -r -L 6G atomicos/root
+          include_role:
+            name: resize_lv
+          vars:
+            rl_lvname: 'root'
+            rl_lvsize: '6'
 
         - name: Clone fedora 27 repo
           when: ansible_distribution == "Fedora"
           command: >
-            docker run -i --privileged -v {{ base_dir }}:{{ base_dir }}:z
+            docker run -v {{ base_dir }}:{{ base_dir }}:z
               docker.io/miabbott/aht-tools /bin/bash -c
               "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
                cd {{ base_dir }}/{{ repo_name }}; git checkout f27"
@@ -905,7 +909,7 @@
         - name: Clone sig-atomic-buildscripts repo
           when: ansible_distribution == "CentOSDev"
           command: >
-            docker run -i --privileged -v {{ base_dir }}:{{ base_dir }}:z
+            docker run -v {{ base_dir }}:{{ base_dir }}:z
               docker.io/miabbott/aht-tools /bin/bash -c
               "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
                cd {{ base_dir }}/{{ repo_name }};"
@@ -930,7 +934,7 @@
         # base_json is required because the CAHC json file uses the centos
         # atomic host base json which contains the package list that needs
         # to be modified
-        - name: Modify base package json
+        - name: Modify base package json for CAHC
           when: base_json is defined
           lineinfile:
             dest: '{{ base_dir }}/{{ repo_name }}/{{ base_json }}'
@@ -938,7 +942,7 @@
             insertafter: '"docker",$'
             line: '         "{{ compose_pkg }}",'
 
-        - name: Modify base package json
+        - name: Modify base package json for Fedora
           when: base_json is undefined
           lineinfile:
             dest: '{{ base_dir }}/{{ repo_name }}/{{ json_file }}'
@@ -1003,3 +1007,17 @@
             roiv_package_name: '{{ compose_pkg }}'
             roiv_binary_name: '{{ compose_pkg }}'
             roiv_status_check: false
+
+        - name: debug3
+          debug:
+            msg: "test"
+
+        - include_role:
+            name: rpm_ostree_rollback
+
+        - include_role:
+            name: reboot
+
+        - name: Clean up deployments
+          command: rpm-ostree cleanup -rpmb
+
