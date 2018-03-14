@@ -31,6 +31,9 @@ cluster:
 
 context: centos/7/atomic/continuous
 
+tests:
+  - ./.test_director --skip-tags default_file_label
+
 ---
 inherit: true
 
