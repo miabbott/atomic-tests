@@ -27,7 +27,7 @@
 # The fallout from that missing functionality is that the 'kube-proxy' system
 # container will not start correctly unless atomic 1.22 is used to install
 # the system container with the right SELinux labels.
-#
+
   pre_tasks:
     - include_role:
         name: rpm_version

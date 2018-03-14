@@ -36,18 +36,19 @@
     kube_system_containers: false
     kubectl_path: "/usr/bin/kubectl"
 
-- name: Define kube 1.7 master nodes, worker nodes and etcd images
+- name: Define kube 1.9 master nodes, worker nodes and etcd images
   when: (ansible_distribution == "Fedora" and ansible_distribution_major_version > '26') or
         (ansible_distribution == "CentOSDev") or
         (g_atomic_host is not defined) or
         (g_atomic_host['kubernetes-node'] is not defined)
   set_fact:
-    kube_maj_ver: "1.7"
+    kube_maj_ver: "1.9"
     kube_apiserver: "registry.fedoraproject.org/f27/kubernetes-apiserver"
     kube_controller_manager: "registry.fedoraproject.org/f27/kubernetes-controller-manager"
     kube_scheduler: "registry.fedoraproject.org/f27/kubernetes-scheduler"
-    kube_kubelet: "registry.fedoraproject.org/f27/kubernetes-kubelet:0-4.f27container"
-    kube_proxy: "registry.fedoraproject.org/f27/kubernetes-proxy:0-7.f27container"
+    kube_kubelet: "registry.fedoraproject.org/f27/kubernetes-kubelet"
+    kube_proxy: "registry.fedoraproject.org/f27/kubernetes-proxy"
     etcd: "registry.fedoraproject.org/f27/etcd"
     kube_system_containers: true
+    kubeconfig_path: "/etc/kubernetes/kubelet.kubeconfig"
     kubectl_path: "/usr/local/bin/kubectl"

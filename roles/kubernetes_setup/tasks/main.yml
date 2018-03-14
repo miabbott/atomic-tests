@@ -70,13 +70,21 @@
         state: 'started'
         enabled: true
 
+    - name: Copy kubelet.kubeconfig file
+      copy:
+        src: roles/kubernetes_setup/files/kubelet.kubeconfig
+        dest: "{{ kubeconfig_path }}"
+        owner: root
+        group: root
+        mode: 0644
+
     - name: Add args to /etc/kubernetes/kubelet
       lineinfile:
         dest: /etc/kubernetes/kubelet
         backup: true
         backrefs: true
         regexp: '(^KUBELET_ARGS=\".*)\"\s*$'
-        line: '\1 --register-node=true"'
+        line: '\1 --kubeconfig={{ kubeconfig_path }} --register-node=true"'
 
     # Start the rest of the services
     - name: Start kubernetes services
