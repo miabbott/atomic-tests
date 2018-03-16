@@ -146,11 +146,19 @@ interfere with your current workspace.
 To setup a virtualenv, follow the steps below after cloning atomic-host-tests:
 
 ```
-pip install virtualenv
 virtualenv my_env
 source my_env/bin/activate
 pip install -r requirements.txt
 ```
+
+The above instructions assume you have some existing tooling installed on your
+workstation.  For example, on a Fedora 27 system the following packages needed
+to be installed ahead of time:
+
+`# dnf -y install gcc git python2-virtualenv redhat-rpm-config rsync sshpass`
+
+Your package requirements may be different on your distribution.
+
 
 ### Running Playbooks
 All the playbooks should be able to be run without any extra options on the
