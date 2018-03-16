@@ -152,7 +152,7 @@ pip install -r requirements.txt
 ```
 
 The above instructions assume you have some existing tooling installed on your
-workstation.  For example, on a Fedora 27 system the following packages needed
+workstation.  For example, on a Fedora 27 system the following packages need
 to be installed ahead of time:
 
 `# dnf -y install gcc git python2-virtualenv redhat-rpm-config rsync sshpass`
