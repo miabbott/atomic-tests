@@ -366,6 +366,16 @@
       tags:
         - docker_rm_container_again
 
+    # Configure container_manage_cgroup boolean
+    # See - https://bugzilla.redhat.com/show_bug.cgi?id=1510139
+    #     - https://bugzilla.redhat.com/show_bug.cgi?id=1554881
+    - when: ansible_distribution == "RedHat" or
+            ansible_distribution == "Fedora"
+      role: selinux_boolean
+      g_seboolean: "container_manage_cgroup"
+      tags:
+        - container_manage_cgroup_bool
+
     # TEST
     # Build non-priviledged systemd httpd container
     - role: docker_build
