@@ -375,6 +375,7 @@
       g_seboolean: "container_manage_cgroup"
       tags:
         - container_manage_cgroup_bool
+        - non_priv_systemd_httpd_container
 
     # TEST
     # Build non-priviledged systemd httpd container
@@ -383,6 +384,7 @@
       db_image_name: "{{ g_osname }}_systemd_httpd"
       tags:
         - docker_build_systemd
+        - non_priv_systemd_httpd_container
 
     # TEST
     # Run non-privileged systemd httpd container
@@ -391,6 +393,7 @@
       dr_run_options: "-d -p 80:80"
       tags:
         - docker_run_systemd
+        - non_priv_systemd_httpd_container
 
     # TEST
     # Verify that port 80 is open and the URL is accessible
@@ -399,6 +402,7 @@
       cop_url: "http://localhost:80/"
       tags:
         - check_open_port_systemd
+        - non_priv_systemd_httpd_container
 
     # TEST
     # Remove the non-privileged systemd httpd container
@@ -406,6 +410,7 @@
       drc_container_name: "{{ g_osname }}_systemd_httpd"
       tags:
         - docker_rm_container_systemd
+        - non_priv_systemd_httpd_container
 
     # TEST
     # Install, run and uninstall cockpit using atomic command
@@ -756,6 +761,7 @@
       dr_run_options: "-d -p 80:80"
       tags:
         - docker_run_systemd
+        - non_priv_systemd_httpd_container
 
     # Verify that port 80 is open and URL is accessible
     - role: check_open_port
@@ -763,12 +769,14 @@
       cop_url: "http://localhost:80/"
       tags:
         - check_open_port_systemd
+        - non_priv_systemd_httpd_container
 
     # Remove the systemd httpd container
     - role: docker_rm_container
       drc_container_name: "{{ g_osname }}_systemd_httpd"
       tags:
         - docker_rm_container_systemd
+        - non_priv_systemd_httpd_container
 
     # Remove all things docker
     - role: docker_remove_all
