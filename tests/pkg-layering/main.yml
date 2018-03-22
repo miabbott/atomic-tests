@@ -307,6 +307,93 @@
       vars:
         package: "{{ g_epel_pkg }}"
 
+- name: Package Layering - GPG Test
+  hosts: all
+  become: true
+
+  tags:
+    - gpg
+
+  tasks:
+    - name: Make /srv/localrepo directory
+      file:
+        path: /srv/localrepo
+        state: directory
+        mode: 0755
+
+    - name: Copy aht-dummy rpm to /srv/localrepo
+      copy:
+         src: ../../rpm/aht-dummy-1.0-1.noarch.rpm
+         dest: /srv/localrepo
+         owner: root
+         group: root
+         mode: 0644
+
+    - name: Create /etc/yum.repos.d/local.repo
+      file:
+        path: /etc/yum.repos.d/local.repo
+        group: root
+        owner: root
+        mode: 0644
+        state: touch
+
+    - name: Add file contents to local.repo with gpgcheck enabled
+      blockinfile:
+         path: /etc/yum.repos.d/local.repo
+         marker: ''
+         block: |
+           [local]
+           baseurl=http://localhost
+           gpgcheck=1
+           enabled=1
+
+    - name: Create repo and start http server in container
+      command: >
+         docker run -d -p 80:80
+         -v /srv/localrepo:/srv/localrepo:z
+         -w /srv/localrepo
+         docker.io/miabbott/aht-tools
+         /bin/bash -c 'createrepo_c .; python -m SimpleHTTPServer 80'
+
+    - name: Wait for port 80 to open
+      wait_for:
+        port: 80
+        delay: 5
+        timeout: 30
+
+    - name: Attempt to install unsigned rpm with gpgcheck enabled
+      command: rpm-ostree install aht-dummy
+      register: ros_install
+      failed_when: ros_install|success
+
+    - name: Modify local.repo to disable gpg checking
+      replace:
+         path: /etc/yum.repos.d/local.repo
+         regexp: 'gpgcheck=1'
+         replace: 'gpgcheck=0'
+
+    - name: Attempt to install unsigned rpm with gpgcheck disabled
+      command: rpm-ostree install aht-dummy
+      register: ros_install
+      failed_when: ros_install|failed
+
+    # cleanup
+    - include_role:
+        name: rpm_ostree_cleanup_all
+
+    - include_role:
+        name: docker_remove_all
+
+    - name: Delete /etc/yum.repos.d/local.repo
+      file:
+        path: /etc/yum.repos.d/local.repo
+        state: absent
+
+    - name: Delete /srv/localrepo
+      file:
+        path: /srv/localrepo/
+        state: absent
+
 - name: Package Layering - Negative test - Uninstalling non-existent package
   hosts: all
   become: true
