@@ -27,11 +27,12 @@
 # are more expansive should be handled in separate playbooks.
 #
 - name: Improved Sanity Test - Pre-Upgrade
-  hosts: all
+  hosts: "{{ subjects | default('all') }}"
   become: true
   force_handlers: true
 
   tags:
+    - atomic
     - pre_upgrade
 
   vars_files:
@@ -454,11 +455,12 @@
 # ---
 
 - name: Improved Sanity Test - Post-Upgrade
-  hosts: all
+  hosts: "{{ subjects | default('all') }}"
   become: true
   force_handlers: true
 
   tags:
+    - atomic
     - post_upgrade
 
   vars_files:
@@ -821,11 +823,12 @@
 # ---
 
 - name: Improved Sanity Test - Post-Rollback
-  hosts: all
+  hosts: "{{ subjects | default('all') }}"
   become: true
   force_handlers: true
 
   tags:
+    - atomic
     - post_rollback
 
   vars_files:
