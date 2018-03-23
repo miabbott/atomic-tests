@@ -339,7 +339,7 @@
 
     - name: Add file contents to local.repo with gpgcheck enabled
       blockinfile:
-         path: /etc/yum.repos.d/local.repo
+         dest: /etc/yum.repos.d/local.repo
          marker: ''
          block: |
            [local]
@@ -368,7 +368,7 @@
 
     - name: Modify local.repo to disable gpg checking
       replace:
-         path: /etc/yum.repos.d/local.repo
+         dest: /etc/yum.repos.d/local.repo
          regexp: 'gpgcheck=1'
          replace: 'gpgcheck=0'
 
