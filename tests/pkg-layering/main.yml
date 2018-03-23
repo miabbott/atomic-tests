@@ -323,7 +323,7 @@
 
     - name: Copy aht-dummy rpm to /srv/localrepo
       copy:
-         src: ../../rpm/aht-dummy-1.0-1.noarch.rpm
+         src: '{{ playbook_dir}}/../../rpm/aht-dummy-1.0-1.noarch.rpm'
          dest: /srv/localrepo
          owner: root
          group: root
