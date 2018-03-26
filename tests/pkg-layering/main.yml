@@ -366,6 +366,14 @@
       register: ros_install
       failed_when: ros_install|success
 
+    - name: Check error message
+      fail:
+        msg: |
+          Expected: Error message contains
+                    "cannot be verified and repo local is GPG enabled"
+          Actual: {{ ros_install.stderr }}
+      when: "'cannot be verified and repo local is GPG enabled' not in ros_install.stderr"
+
     - name: Modify local.repo to disable gpg checking
       replace:
          dest: /etc/yum.repos.d/local.repo
