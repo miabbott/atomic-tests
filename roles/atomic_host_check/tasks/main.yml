@@ -1,16 +1,11 @@
 ---
 # vim: set ft=ansible:
 #
-# Playbook to verify that hosts under tests are actually Atomic Hosts
+# Dumb role to verify that hosts under tests are actually Atomic Hosts
 #
-# Logic borrowed from:
-# https://github.com/kubernetes/contrib/blob/master/ansible/roles/common/tasks/main.yml
+# Depends on 'set_is_atomic' role
 #
-
-- name: Determine is_atomic True/False
-  include: '../../common/set_is_atomic.yml'
-
 - name: Fail if system is not an Atomic Host
-  when: not is_atomic
+  when: not g_is_atomic
   fail:
     msg: "The system is not an Atomic Host"
