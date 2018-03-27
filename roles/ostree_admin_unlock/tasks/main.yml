@@ -7,7 +7,8 @@
 - name: Unlock system
   command: ostree admin unlock
 
-- include: '../../rpm_ostree_status/tasks/main.yml'
+- include_role:
+    name: rpm_ostree_status
 
 - name: Fail if unlocked is not set to development
   when: "'development' not in ros_booted['unlocked']"
