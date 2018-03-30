@@ -47,7 +47,11 @@
 - name: wait for hosts to come back up
   local_action:
     wait_for host={{ real_ansible_host }}
-    port={{ real_ansible_port | default('22') }} state=started delay={{ wf_delay }} timeout={{ timeout }}
+    port={{ real_ansible_port | default('22') }}
+    state=started
+    delay={{ wf_delay }}
+    timeout={{ timeout }}
+    search_regex="OpenSSH"
   become: false
 
 # I'm not sure the retries are even necessary, but I'm keeping them in
