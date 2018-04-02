@@ -17,7 +17,6 @@
 - set_fact:
     real_ansible_host: "{{ ansible_host }}"
     timeout: "{{ cli_reboot_timeout | default('120') }}"
-    wf_delay: "{{ cli_wf_delay | default('30') }}"
 
 # Have to account for both because Fedora STR uses the old version of these
 # inventory values for some reason.
@@ -49,7 +48,7 @@
     wait_for host={{ real_ansible_host }}
     port={{ real_ansible_port | default('22') }}
     state=started
-    delay={{ wf_delay }}
+    delay=30
     timeout={{ timeout }}
     search_regex="OpenSSH"
   become: false
