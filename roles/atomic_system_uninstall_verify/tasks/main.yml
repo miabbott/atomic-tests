@@ -4,16 +4,16 @@
 #  This role verifies the specified container is not in the atomic containers
 #   list output
 #
-- name: Fail if image is undefined
-  when: image is undefined
+- name: Fail if asuv_image is undefined
+  when: asuv_image is undefined
   fail:
-    msg: "Image is undefined"
+    msg: "asuv_image is undefined"
 
 - name: Get atomic containers list output
   command: atomic containers list --all --no-trunc
   register: acl_output
 
-- name: Fail if image is in list output
-  when: image in acl_output.stdout
+- name: Fail if asuv_image is in list output
+  when: asuv_image in acl_output.stdout
   fail:
-    msg: "{{ image }} is in list output"
+    msg: "{{ asuv_image }} is in list output"

@@ -4,10 +4,10 @@
 #  This role uninstalls a system container (by name) through the atomic install
 #    command
 #
-- name: Fail if name is undefined
-  when: name is undefined
+- name: Fail if asu_name is undefined
+  when: asu_name is undefined
   fail:
-    msg: "Name is undefined"
+    msg: "asu_name is undefined"
 
 - name: Uninstall system container
-  command: atomic uninstall {{ name }}
+  command: atomic uninstall {{ asu_name }}

@@ -4,15 +4,15 @@
 #  This role installs a system container through the atomic install --system
 #    command
 #
-- name: Fail if image is undefined
-  when: image is undefined
+- name: Fail if asi_image is undefined
+  when: asi_image is undefined
   fail:
-    msg: "Image is undefined"
+    msg: "asi_image is undefined"
 
 # The `aivc_atomic_install_cmd` is set by the required role:
 # `atomic_install_version_check`
 - name: Install system container
-  command: "{{ aivc_atomic_install_cmd }} {{ image }}"
+  command: "{{ aivc_atomic_install_cmd }} {{ asi_image }}"
   register: ais
   retries: 5
   delay: 60
