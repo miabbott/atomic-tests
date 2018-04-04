@@ -200,7 +200,7 @@
           Expected: Dry run output contains exiting because
           Actual: {{ dry.stdout }}
 
-    - include: verify_package_not_deployed.yml
+    - include_tasks: verify_package_not_deployed.yml
       vars:
         package: "{{ g_pkg1 }}"
 
@@ -303,7 +303,7 @@
     - include_role:
         name: reboot
 
-    - include: verify_package_deployed.yml
+    - include_tasks: verify_package_deployed.yml
       vars:
         package: "{{ g_epel_pkg }}"
 
@@ -419,7 +419,9 @@
       failed_when: uninstall.rc != 1
 
     - name: Fail if error not expected
-      when: "'\\'{{ g_invalid_pkg }}\\' is not currently requested' not in uninstall.stderr"
+      when:
+        - "'is not currently requested' not in uninstall.stderr"
+        - "g_invalid_pkg not in uninstall.stderr"
       fail:
         msg: |
           Expected: {{ g_invalid_pkg }} is not currently requested in rpm-ostree
@@ -522,7 +524,7 @@
     - include_role:
         name: reboot
 
-    - include: verify_package_not_deployed.yml
+    - include_tasks: verify_package_not_deployed.yml
       vars:
         package: httpd
 

@@ -139,14 +139,14 @@
   tasks:
     # I would have used a 'block' of 'roles' here, but that is not
     # compatible with the 'with_items' loop control, so I stuck all
-    # the tasks into a single role file and used an 'include:'
+    # the tasks into a single role file and used an 'include_tasks:'
     # statement on that file.
     #
     # Added the ability to skip broken images with the 'cli_skipped_images'
     # variable.  This can be set via the CLI like so:
     # ansible-playbook -e "cli_skipped_images=busybox_httpd,debian_httpd"
     #
-    - include: tasks/build_run_remove.yml
+    - include_tasks: tasks/build_run_remove.yml
       vars:
         base_dir: "{{ working_dir }}"
         image_name: "{{ item }}"
@@ -154,7 +154,7 @@
       with_items: "{{ image_names }}"
 
     - when: ansible_distribution == "RedHat"
-      include: tasks/build_run_remove.yml
+      include_tasks: tasks/build_run_remove.yml
       vars:
         base_dir: "{{ working_dir }}"
         image_name: "{{ item }}"
