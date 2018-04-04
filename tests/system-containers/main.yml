@@ -91,18 +91,18 @@
 
   roles:
     - role: atomic_system_install
-      image: "{{ g_hw_image }}"
+      asi_image: "{{ g_hw_image }}"
 
     - role: atomic_system_install_verify
-      image: "{{ g_hw_image }}"
+      asiv_image: "{{ g_hw_image }}"
 
     - role: atomic_system_uninstall
-      name: "{{ g_hw_name }}"
+      asu_name: "{{ g_hw_name }}"
 
     # uninstall can only be done by name because multiple system containers can
     #  use the same image https://github.com/projectatomic/atomic/issues/705
     - role: atomic_system_uninstall_verify
-      image: "{{ g_hw_image }}"
+      asuv_image: "{{ g_hw_image }}"
 
 - name: System Containers - Reboot
   hosts: all
@@ -127,9 +127,10 @@
     - name: Start hello-world service
       command: systemctl start {{ g_hw_name }}
 
-    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_install_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asiv_image: "{{ g_hw_image }}"
 
     - name: Verify system container is running with the parameters passed in
       command: curl http://localhost:8080
@@ -161,13 +162,15 @@
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ g_hw_name }}"
+        asu_name: "{{ g_hw_name }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asuv_image: "{{ g_hw_image }}"
 
 - name: System Containers - Pass Variables
   hosts: all
@@ -194,9 +197,10 @@
     - name: Start hello-world service
       command: systemctl start {{ g_hw_name }}
 
-    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_install_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asiv_image: "{{ g_hw_image }}"
 
     - name: Verify system container is running with the parameters passed in
       command: curl http://localhost:8080
@@ -209,13 +213,15 @@
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ g_hw_name }}"
+        asu_name: "{{ g_hw_name }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asuv_image: "{{ g_hw_image }}"
 
 
 - name: System Containers - Update/Rollback
@@ -243,9 +249,10 @@
     - name: Start hello-world service
       command: systemctl start {{ g_hw_name }}
 
-    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_install_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asiv_image: "{{ g_hw_image }}"
 
     - name: Verify system container is running with the parameters passed in
       command: curl http://localhost:8080
@@ -286,13 +293,15 @@
           Expected: Hi bar is in curl output
           Actual: {{ c_output.stdout }}
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ g_hw_name }}"
+        asu_name: "{{ g_hw_name }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify/
       vars:
-        image: "{{ g_hw_image }}"
+        asuv_image: "{{ g_hw_image }}"
 
 
 - name: System Containers - Rootfs
@@ -320,9 +329,10 @@
     - name: Start {{ g_hw_name }} service
       command: systemctl start {{ g_hw_name }}
 
-    - include: 'roles/atomic_system_install_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_install_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asiv_image: "{{ g_hw_image }}"
 
     - name: Verify system container is running with the parameters passed in
       command: curl http://localhost:8080
@@ -386,21 +396,25 @@
           Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
                   exists is {{ hwr.stat.exists }}
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ g_hw_name }}-remote"
+        asu_name: "{{ g_hw_name }}-remote"
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ g_hw_name }}"
+        asu_name: "{{ g_hw_name }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ g_hw_name }}"
+        asuv_image: "{{ g_hw_name }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ g_hw_name }}-remote"
+        asuv_image: "{{ g_hw_name }}-remote"
 
 
 - name: System Containers - Flannel & Etcd
@@ -495,13 +509,15 @@
       register: flannel_output
       failed_when: "'active' not in flannel_output.stdout"
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ etcd_name }}"
+        asu_name: "{{ etcd_name }}"
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ flannel_name }}"
+        asu_name: "{{ flannel_name }}"
 
     # Upstream issue with flannel container installation stopping docker
     # https://github.com/projectatomic/atomic-system-containers/issues/23
@@ -509,13 +525,15 @@
       when: "'gscrivano' in etcd_image"
       command: systemctl start docker
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ etcd_image }}"
+        asuv_image: "{{ etcd_image }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ flannel_image }}"
+        asuv_image: "{{ flannel_image }}"
 
 - name: System Containers - Set RUN_DIRECTORY & STATE_DIRECTORY
   hosts: all
@@ -567,13 +585,15 @@
           Actual: STATE_DIRECTORY is set to
                   {{ info_json['values']['STATE_DIRECTORY'] }}
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ g_hw_name }}"
+        asu_name: "{{ g_hw_name }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asuv_image: "{{ g_hw_image }}"
 
 - name: System Containers - Negative Testing
   hosts: all
@@ -627,13 +647,15 @@
                     DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID
           Actual: {{ info_output.stdout }}
 
-    - include: 'roles/atomic_system_uninstall/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall
       vars:
-        name: "{{ g_hw_name }}"
+        asu_name: "{{ g_hw_name }}"
 
-    - include: 'roles/atomic_system_uninstall_verify/tasks/main.yml'
+    - include_role:
+        name: atomic_system_uninstall_verify
       vars:
-        image: "{{ g_hw_image }}"
+        asuv_image: "{{ g_hw_image }}"
 
 
 - name: System Containers - Cleanup
