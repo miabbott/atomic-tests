@@ -6,7 +6,7 @@
 - name: Unlock system with hotfix
   command: ostree admin unlock --hotfix
 
-- include_role:
+- import_role:
     name: rpm_ostree_status
 
 - name: Fail if unlocked is not set to hotfix

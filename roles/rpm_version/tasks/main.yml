@@ -7,6 +7,6 @@
 # This role takes a list of rpms, retrieves the version, and stores it in a
 # dict named g_atomic_host
 #
-- include_tasks: version.yml
+- import_tasks: version.yml
   rv_rpm: "{{ item }}"
   with_items: "{{ rv_rpms }}"

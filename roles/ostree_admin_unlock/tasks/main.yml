@@ -7,7 +7,7 @@
 - name: Unlock system
   command: ostree admin unlock
 
-- include_role:
+- import_role:
     name: rpm_ostree_status
 
 - name: Fail if unlocked is not set to development
