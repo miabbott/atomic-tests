@@ -33,7 +33,7 @@
     roiv_status_check: "{{ roiv_status_check | default(true) }}"
     roiv_binary_check: "{{ roiv_binary_check | default(true) }}"
 
-- include_role:
+- import_role:
     name: rpm_ostree_status
 
 # ros_booted is pulled from the rpm_ostree_status role above

@@ -200,7 +200,7 @@
           Expected: Dry run output contains exiting because
           Actual: {{ dry.stdout }}
 
-    - include_tasks: verify_package_not_deployed.yml
+    - import_tasks: verify_package_not_deployed.yml
       vars:
         package: "{{ g_pkg1 }}"
 
@@ -240,7 +240,7 @@
     #  - ros_booted: JSON object of the booted deployment
     #  - ros_not_booted: JSON object of the not booted deployment
     - name: Get rpm-ostree status output
-      include_role:
+      import_role:
         name: rpm_ostree_status
 
     - name: Set packages when deployment is not booted
@@ -300,10 +300,10 @@
       delay: 60
       until: roi_epel|success
 
-    - include_role:
+    - import_role:
         name: reboot
 
-    - include_tasks: verify_package_deployed.yml
+    - import_tasks: verify_package_deployed.yml
       vars:
         package: "{{ g_epel_pkg }}"
 
@@ -386,10 +386,10 @@
       failed_when: ros_install|failed
 
     # cleanup
-    - include_role:
+    - import_role:
         name: rpm_ostree_cleanup_all
 
-    - include_role:
+    - import_role:
         name: docker_remove_all
 
     - name: Delete /etc/yum.repos.d/local.repo
@@ -468,7 +468,7 @@
     - name: Attempt to install package that is already in the deployment
       command: rpm-ostree install {{ g_deployed_pkg }}
 
-    - include_role:
+    - import_role:
         name: reboot
 
     # This role provides the following variables:
@@ -478,7 +478,7 @@
     #  - ros_booted: JSON object of the booted deployment
     #  - ros_not_booted: JSON object of the not booted deployment
     - name: Get rpm-ostree status output
-      include_role:
+      import_role:
         name: rpm_ostree_status
 
     - name: Set packages for booted deployment
@@ -521,10 +521,10 @@
     - name: Uninstall httpd
       command: rpm-ostree uninstall httpd
 
-    - include_role:
+    - import_role:
         name: reboot
 
-    - include_tasks: verify_package_not_deployed.yml
+    - import_tasks: verify_package_not_deployed.yml
       vars:
         package: httpd
 
@@ -577,7 +577,7 @@
       command: >
         rpm-ostree uninstall {{ g_pkg1 }} {{ g_epel_pkg }} {{ g_deployed_pkg }}
 
-    - include_role:
+    - import_role:
         name: reboot
 
   roles:

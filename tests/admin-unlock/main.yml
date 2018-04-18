@@ -227,7 +227,7 @@
       register: attempted_install
       failed_when: attempted_install.rc == 0
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     - name: Fail if current deployment has unlocked not set to none
@@ -252,7 +252,7 @@
     - name: Unlock system
       command: ostree admin unlock
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     - name: Verify rpm_ostree status is unlocked and set to hotfix
@@ -289,7 +289,7 @@
                     the unlocked state: development
           Actual: {{ double_unlock.stderr }}
 
-    - include_role:
+    - import_role:
         name: reboot
 
 - name: Ostree Admin Unlock - Hotfix Unlock Twice - Error Message
@@ -306,7 +306,7 @@
     - name: Unlock system with hotfix
       command: ostree admin unlock --hotfix
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     - name: Verify rpm_ostree status has unlocked set to hotfix

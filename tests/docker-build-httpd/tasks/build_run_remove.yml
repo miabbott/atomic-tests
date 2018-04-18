@@ -4,7 +4,7 @@
 # There is some duplicate tasks in here that can be found in other roles.
 # However, because of how 'roles' and 'with_items' work together, all the
 # tasks needed to be stuck into a single role that is actually used via
-# 'include_tasks:' statement.
+# 'import_tasks:' statement.
 #
 - block:
    - name: Build the httpd image

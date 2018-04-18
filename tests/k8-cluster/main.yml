@@ -29,7 +29,7 @@
 # the system container with the right SELinux labels.
 
   pre_tasks:
-    - include_role:
+    - import_role:
         name: rpm_version
       vars:
         rv_rpms: atomic
@@ -51,7 +51,7 @@
         - name: Override the atomic package
           command: rpm-ostree override replace /root/atomic-1.22.1-1.fc27.x86_64.rpm /root/atomic-registries-1.22.1-1.fc27.x86_64.rpm
 
-        - include_role:
+        - import_role:
             name: reboot
 
   roles:

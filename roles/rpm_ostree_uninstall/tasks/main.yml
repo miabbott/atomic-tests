@@ -29,7 +29,7 @@
     #  - ros_booted: JSON object of the booted deployment
     #  - ros_not_booted: JSON object of the not booted deployment
     - name: Get rpm-ostree status output
-      include_role:
+      import_role:
         name: rpm_ostree_status
 
     # If the 'packages' key has a value, we create a list of packages to
@@ -61,7 +61,7 @@
 
 - name: Reboot if necessary
   when: rou_reboot and rm_packages != "all"
-  include_role:
+  import_role:
     name: reboot
   vars:
     skip_shutdown: true # shutdown was already initiated

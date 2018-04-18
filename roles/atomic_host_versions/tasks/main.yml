@@ -38,7 +38,7 @@
 
 - name: Get versions if they were not retrieved
   when: ahv_missing_rpms|length > 0
-  include_role:
+  import_role:
     name: rpm_version
   vars:
     rv_rpms: "{{ ahv_missing_rpms }}"

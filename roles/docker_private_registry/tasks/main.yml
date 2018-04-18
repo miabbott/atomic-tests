@@ -22,7 +22,7 @@
       - name: Install 'atomic-registries'
         command: rpm-ostree install atomic-registries
 
-      - include_role:
+      - import_role:
           name: reboot
 # end workaround
 

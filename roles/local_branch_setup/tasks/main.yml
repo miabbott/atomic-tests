@@ -15,7 +15,7 @@
 #  - ros_booted: JSON object of the booted deployment
 #  - ros_not_booted: JSON object of the not booted deployment
 - name: Get rpm-ostree status output
-  include_role:
+  import_role:
     name: rpm_ostree_status
 
 - name: Save current booted checksum

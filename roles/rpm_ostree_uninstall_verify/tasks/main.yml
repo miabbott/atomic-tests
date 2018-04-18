@@ -31,7 +31,7 @@
     rouv_binary_name: "{{ rouv_binary_name if rouv_binary_name is defined else rouv_package_name }}"
     rouv_status_check: "{{ rouv_status_check | default(true) }}"
 
-- include_role:
+- import_role:
     name: rpm_ostree_status
 
 # ros_booted is pulled from rpm_ostree_status role above

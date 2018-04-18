@@ -143,7 +143,7 @@
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
 
-    - include_role:
+    - import_role:
         name: reboot
 
     - name: Verify {{ g_hw_name }} service is active
@@ -431,7 +431,7 @@
 
   pre_tasks:
     - name: Check the version of 'atomic'
-      include_role:
+      import_role:
         name: atomic_install_version_check
 
   tasks:

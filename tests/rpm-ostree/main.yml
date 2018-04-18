@@ -52,7 +52,7 @@
     - name: Run ostree admin status as a quick sanity check
       command: ostree admin status
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     # It's possible that the test could be run against a commit that is older
@@ -89,7 +89,7 @@
       until: ros_deploy|success
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify version in deployment 0
@@ -103,11 +103,11 @@
           version: "{{ hmo_version }}"
 
     # rollback to head
-    - include_role:
+    - import_role:
         name: rpm_ostree_rollback
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     - include_role:
@@ -150,7 +150,7 @@
     - vars.yml
 
   tasks:
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     # Get the parent of the deployed commit, which we will use as HEAD-1
@@ -174,7 +174,7 @@
       until: ros_deploy|success
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify booted checksum
@@ -188,11 +188,11 @@
           checksum: "{{ hmo_csum }}"
 
     - name: Rollback to HEAD
-      include_role:
+      import_role:
         name: rpm_ostree_rollback
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify HEAD checksum is booted
@@ -235,7 +235,7 @@
     - vars.yml
 
   tasks:
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     # Get the parent of the deployed commit, which we will use as HEAD-1
@@ -309,7 +309,7 @@
     - vars.yml
 
   tasks:
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     # the rpm_ostree_status above sets the ros_booted variable used below
@@ -353,11 +353,11 @@
         state: restarted
 
     # rpm-ostree upgrade
-    - include_role:
+    - import_role:
         name: rpm_ostree_upgrade
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify upgrade info
@@ -379,7 +379,7 @@
       until: ros_rebase|success
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify rebase back to original refspec
@@ -422,7 +422,7 @@
     - vars.yml
 
   tasks:
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     # Get the parent of the deployed commit, which we will use as HEAD-1
@@ -480,7 +480,7 @@
       until: ros_upgrade|success
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify upgrade info
@@ -504,7 +504,7 @@
       command: rpm-ostree rebase {{ refspec }} {{ head_csum }}
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify rebase info
@@ -525,7 +525,7 @@
         roiv_binary_name: "{{ g_pkg }}"
 
     # refresh rpm-ostree status variables
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     - name: Deploy HEAD-1
@@ -536,7 +536,7 @@
       until: ros_deploy|success
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify package is no longer installed
@@ -565,7 +565,7 @@
       until: rosd_head|success
 
     # reboot
-    - include_role:
+    - import_role:
         name: reboot
 
     # verify package is still not installed
@@ -755,7 +755,7 @@
         rpm-ostree initramfs --enable --arg="-I"
         --arg="/etc/rpmostree-file"
 
-    - include_role:
+    - import_role:
         name: reboot
 
     - include_role:
@@ -815,7 +815,7 @@
     - name: Disable initramfs
       command: rpm-ostree initramfs --disable
 
-    - include_role:
+    - import_role:
         name: reboot
 
     - name: Get bootloader entry
@@ -896,7 +896,7 @@
         # to be increased
         - name: Resize partition for CentOS
           when: ansible_distribution == "CentOSDev"
-          include_role:
+          import_role:
             name: resize_lv
           vars:
             rl_lvname: 'root'
@@ -987,10 +987,10 @@
             remote_name: local
             remote_url: http://localhost:80/repo
 
-        - include_role:
+        - import_role:
             name: reboot
 
-        - include_role:
+        - import_role:
             name: rpm_ostree_status
 
         - name: Fail if booted commit is incorrect
@@ -1012,10 +1012,10 @@
             roiv_binary_name: '{{ compose_pkg }}'
             roiv_status_check: false
 
-        - include_role:
+        - import_role:
             name: rpm_ostree_rollback
 
-        - include_role:
+        - import_role:
             name: reboot
 
         - name: Clean up deployments

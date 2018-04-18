@@ -33,7 +33,7 @@
   poll: 0
   ignore_errors: true
 
-- include_role:
+- import_role:
     name: reboot
   vars:
     skip_shutdown: true # shutdown was already initiated

@@ -321,7 +321,7 @@
         fq_name: "docker.io/busybox"
 
     - name: Delete all images
-      include_role:
+      import_role:
         name: atomic_images_delete_all
 
     - name: Pull {{ fq_name }} using ostree
@@ -342,7 +342,7 @@
         "ostree" not in ail_output.stdout
 
     - name: Delete all images
-      include_role:
+      import_role:
         name: atomic_images_delete_all
 
     - include_role:
