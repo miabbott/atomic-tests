@@ -224,8 +224,6 @@ we have used thusfar.
 
   roles:
     - role: ansible_version_check
-      avc_major: "2"
-      avc_minor: "2"
       tags:
         - ansible_version_check
 

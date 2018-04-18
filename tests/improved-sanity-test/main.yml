@@ -39,10 +39,7 @@
     - "vars/common.yml"
 
   roles:
-    # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
-      avc_major: "2"
-      avc_minor: "2"
       tags:
         - ansible_version_check
 
@@ -468,10 +465,7 @@
     - ["vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml"]
 
   roles:
-    # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
-      avc_major: "2"
-      avc_minor: "2"
       tags:
         - ansible_version_check
 
@@ -576,13 +570,13 @@
 
     # Uninstall etcd system container
     - role: atomic_system_uninstall
-      name: etcd
+      asu_name: etcd
       tags:
         - atomic_system_uninstall
 
     # Verify etcd system container uninstall
     - role: atomic_system_uninstall_verify
-      image: etcd
+      asuv_image: etcd
       tags:
         - atomic_system_uninstall_verify
 
@@ -596,7 +590,7 @@
 
     # Uninstall etcd system container
     - role: atomic_system_uninstall
-      name: etcd
+      asu_name: etcd
       tags:
         - atomic_system_uninstall
         - cloud_image
@@ -604,7 +598,7 @@
 
     # Verify etcd system container uninstall
     - role: atomic_system_uninstall_verify
-      image: etcd
+      asuv_image: etcd
       tags:
         - atomic_system_uninstall_verify
         - cloud_image
@@ -836,10 +830,7 @@
     - ["vars/{{ ansible_distribution|lower }}.yml", "vars/os_defaults.yml"]
 
   roles:
-    # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
-      avc_major: "2"
-      avc_minor: "2"
       tags:
         - ansible_version_check
 

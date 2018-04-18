@@ -59,10 +59,7 @@
         state: restarted
 
   roles:
-    # This playbook requires Ansible 2.2 and an Atomic Host
     - role: ansible_version_check
-      avc_major: "2"
-      avc_minor: "2"
       tags:
         - ansible_version_check
 
@@ -146,7 +143,7 @@
     # variable.  This can be set via the CLI like so:
     # ansible-playbook -e "cli_skipped_images=busybox_httpd,debian_httpd"
     #
-    - import_tasks: tasks/build_run_remove.yml
+    - include_tasks: tasks/build_run_remove.yml
       vars:
         base_dir: "{{ working_dir }}"
         image_name: "{{ item }}"
@@ -154,7 +151,7 @@
       with_items: "{{ image_names }}"
 
     - when: ansible_distribution == "RedHat"
-      import_tasks: tasks/build_run_remove.yml
+      include_tasks: tasks/build_run_remove.yml
       vars:
         base_dir: "{{ working_dir }}"
         image_name: "{{ item }}"
