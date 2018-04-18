@@ -1,2 +1,5 @@
 ---
 allow_duplicates: true
+
+dependencies:
+  - role: set_is_atomic

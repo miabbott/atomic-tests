@@ -14,12 +14,6 @@
   fail:
     msg: "deployment or expected is undefined"
 
-# We use 'include:' here instead of a 'meta' dependency because the meta
-# dependency will only be run once if this role is used multiple times in
-# a playbook.
-#- name: Pull in the 'rpm_ostree_status' role
-#  include: rpm_ostree_status.yml
-
 - name: Verify number of deployments
   when:
     - num_deployments is defined

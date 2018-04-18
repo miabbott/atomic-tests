@@ -21,80 +21,67 @@
 # Below we use string formatting to use a variable as the name of the file in
 # the lookup()
 # via http://stackoverflow.com/a/34239020
+- name: Get origin file
+  command: ostree admin --print-current-dir
+  register: origin_file
 
-  - name: Determine is_atomic True/False
-    include: '../../common/set_is_atomic.yml'
+- name: Get refspec from origin file
+  command: grep refspec {{ origin_file.stdout }}.origin
+  register: refspec
 
-  - block:
+- name: Fail if subscription_file is not defined
+  when: subscription_file is not defined
+  fail:
+    msg: "subscription_file is not defined!"
+  run_once: true
 
-    - name: Get origin file
-      command: ostree admin --print-current-dir
-      register: origin_file
+- name: Register with subscription-manager
+  command: >
+    subscription-manager register
+    --baseurl="{{ lookup('csvfile', 'baseurl file={} delimiter=,'.format(subscription_file)) }}"
+    --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
+    --username="$USERNAME"
+    --password="$PASSWORD"
+    {{ lookup('csvfile', 'extra file={} default='' delimiter=,'.format(subscription_file)) }}
+  environment:
+    USERNAME: "{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
+    PASSWORD: "{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
+  register: result
+  until: result|success
+  retries: 5
+  delay: 60
 
-    - name: Get refspec from origin file
-      command: grep refspec {{ origin_file.stdout }}.origin
-      register: refspec
+- name: disable all repos
+  command: subscription-manager repos --disable=*
+  register: result
+  until: result|success
+  retries: 5
+  delay: 60
 
-    when: is_atomic
+- name: enable server, optional, and extras repos
+  command: >
+    subscription-manager repos
+    --enable rhel-7-server-rpms
+    --enable rhel-7-server-optional-rpms
+    --enable rhel-7-server-extras-rpms
+  register: result
+  until: result|success
+  retries: 5
+  delay: 60
 
+- name: Mask and stop rhsmcertd
+  shell: >
+    systemctl mask rhsmcertd && systemctl stop rhsmcertd
 
-  - name: Fail if subscription_file is not defined
-    when: subscription_file is not defined
-    fail:
-      msg: "subscription_file is not defined!"
-    run_once: true
+- name: Revert refspec in origin after susbcription if it not the default refspec
+  when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
+  replace:
+    dest: "{{ origin_file.stdout }}.origin"
+    regexp: '^refspec.*$'
+    replace: "{{ refspec.stdout }}"
 
-  - name: Register with subscription-manager
-    command: >
-      subscription-manager register
-      --baseurl="{{ lookup('csvfile', 'baseurl file={} delimiter=,'.format(subscription_file)) }}"
-      --serverurl="{{ lookup('csvfile', 'serverurl file={} delimiter=,'.format(subscription_file)) }}"
-      --username="$USERNAME"
-      --password="$PASSWORD"
-      {{ lookup('csvfile', 'extra file={} default='' delimiter=,'.format(subscription_file)) }}
-    environment:
-      USERNAME: "{{ lookup('csvfile', 'username file={} delimiter=,'.format(subscription_file)) }}"
-      PASSWORD: "{{ lookup('csvfile', 'password file={} delimiter=,'.format(subscription_file)) }}"
-    register: result
-    until: result|success
-    retries: 5
-    delay: 60
-
-  - name: disable all repos
-    command: subscription-manager repos --disable=*
-    register: result
-    until: result|success
-    retries: 5
-    delay: 60
-
-  - name: enable server, optional, and extras repos
-    command: >
-      subscription-manager repos
-      --enable rhel-7-server-rpms
-      --enable rhel-7-server-optional-rpms
-      --enable rhel-7-server-extras-rpms
-    register: result
-    until: result|success
-    retries: 5
-    delay: 60
-
-  - name: Mask and stop rhsmcertd
-    shell: >
-      systemctl mask rhsmcertd && systemctl stop rhsmcertd
-
-  - block:
-
-    - name: Revert refspec in origin after susbcription if it not the default refspec
-      when: refspec.stdout.find("refspec=rhel-atomic-host") == -1
-      replace:
-        dest: "{{ origin_file.stdout }}.origin"
-        regexp: '^refspec.*$'
-        replace: "{{ refspec.stdout }}"
-
-    - name: Remove unconfigured state in origin file
-      lineinfile:
-        dest: "{{ origin_file.stdout }}.origin"
-        regexp: '^unconfigured-state.*$'
-        state: absent
-
-    when: is_atomic
+- name: Remove unconfigured state in origin file
+  lineinfile:
+    dest: "{{ origin_file.stdout }}.origin"
+    regexp: '^unconfigured-state.*$'
+    state: absent
