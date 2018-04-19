@@ -124,7 +124,7 @@
     - name: Start hello-world service
       command: systemctl start {{ g_hw_name }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_install_verify
       vars:
         asiv_image: "{{ g_hw_image }}"
@@ -159,12 +159,12 @@
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ g_hw_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ g_hw_image }}"
@@ -194,7 +194,7 @@
     - name: Start hello-world service
       command: systemctl start {{ g_hw_name }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_install_verify
       vars:
         asiv_image: "{{ g_hw_image }}"
@@ -210,12 +210,12 @@
           Expected: Hi foo is in curl output
           Actual: {{ c_output.stdout }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ g_hw_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ g_hw_image }}"
@@ -246,7 +246,7 @@
     - name: Start hello-world service
       command: systemctl start {{ g_hw_name }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_install_verify
       vars:
         asiv_image: "{{ g_hw_image }}"
@@ -290,12 +290,12 @@
           Expected: Hi bar is in curl output
           Actual: {{ c_output.stdout }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ g_hw_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify/
       vars:
         asuv_image: "{{ g_hw_image }}"
@@ -326,7 +326,7 @@
     - name: Start {{ g_hw_name }} service
       command: systemctl start {{ g_hw_name }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_install_verify
       vars:
         asiv_image: "{{ g_hw_image }}"
@@ -393,22 +393,22 @@
           Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
                   exists is {{ hwr.stat.exists }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ g_hw_name }}-remote"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ g_hw_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ g_hw_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ g_hw_name }}-remote"
@@ -425,11 +425,6 @@
 
   vars_files:
     - vars.yml
-
-  pre_tasks:
-    - name: Check the version of 'atomic'
-      import_role:
-        name: atomic_install_version_check
 
   tasks:
     - name: Check for etcd rpm
@@ -456,11 +451,9 @@
         state: stopped
         enabled: false
 
-    # The `aivc_atomic_install_cmd` is set by the required role:
-    # `atomic_install_version_check`
     - name: Install etcd
       command: >
-        {{ aivc_atomic_install_cmd }}
+        atomic install --system
         --name=etcd
         {{ etcd_image }}
       register: ai_etcd
@@ -486,11 +479,9 @@
         runc exec etcd etcdctl
         set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'
 
-    # The `aivc_atomic_install_cmd` is set by the required role:
-    # `atomic_install_version_check`
     - name: Install flannel
       command: >
-        {{ aivc_atomic_install_cmd }}
+        atomic install --system
         --name=flannel
         {{ flannel_image }}
       register: ai_flannel
@@ -506,12 +497,12 @@
       register: flannel_output
       failed_when: "'active' not in flannel_output.stdout"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ etcd_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ flannel_name }}"
@@ -522,12 +513,12 @@
       when: "'gscrivano' in etcd_image"
       command: systemctl start docker
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ etcd_image }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ flannel_image }}"
@@ -582,12 +573,12 @@
           Actual: STATE_DIRECTORY is set to
                   {{ info_json['values']['STATE_DIRECTORY'] }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ g_hw_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ g_hw_image }}"
@@ -644,12 +635,12 @@
                     DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID
           Actual: {{ info_output.stdout }}
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall
       vars:
         asu_name: "{{ g_hw_name }}"
 
-    - include_role:
+    - import_role:
         name: atomic_system_uninstall_verify
       vars:
         asuv_image: "{{ g_hw_image }}"

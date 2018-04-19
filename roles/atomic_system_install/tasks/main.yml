@@ -9,10 +9,8 @@
   fail:
     msg: "asi_image is undefined"
 
-# The `aivc_atomic_install_cmd` is set by the required role:
-# `atomic_install_version_check`
 - name: Install system container
-  command: "{{ aivc_atomic_install_cmd }} {{ asi_image }}"
+  command: "atomic install --system {{ asi_image }}"
   register: ais
   retries: 5
   delay: 60

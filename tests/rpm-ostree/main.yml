@@ -90,7 +90,7 @@
         name: reboot
 
     # verify version in deployment 0
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         deployment: 0
@@ -107,7 +107,7 @@
     - import_role:
         name: reboot
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         deployment: 0
@@ -119,7 +119,7 @@
       command: rpm-ostree cleanup -r
 
     # verify cleanup
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         deployment: 0
@@ -175,7 +175,7 @@
         name: reboot
 
     # verify booted checksum
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -193,7 +193,7 @@
         name: reboot
 
     # verify HEAD checksum is booted
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -206,7 +206,7 @@
       command: rpm-ostree cleanup -r
 
     # verify rollback cleanup
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 1
@@ -256,7 +256,7 @@
       until: ros_deploy|success
 
     # verify pending deployment info
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -266,7 +266,7 @@
           checksum: "{{ hmo_csum }}"
 
     # verify current deployment info
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -279,7 +279,7 @@
       command: rpm-ostree cleanup -p
 
     # verify origin deployment is still there and not deleted
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 1
@@ -358,7 +358,7 @@
         name: reboot
 
     # verify upgrade info
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -380,7 +380,7 @@
         name: reboot
 
     # verify rebase back to original refspec
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -392,7 +392,7 @@
       command: rpm-ostree cleanup -rpmb
 
     # verify cleanup
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 1
@@ -481,7 +481,7 @@
         name: reboot
 
     # verify upgrade info
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -491,7 +491,7 @@
           base-checksum: "{{ new_commit.stdout }}"
 
     # verify installation of {{ g_pkg }}
-    - include_role:
+    - import_role:
         name: rpm_ostree_install_verify
       vars:
         roiv_package_name: "{{ g_pkg }}"
@@ -505,7 +505,7 @@
         name: reboot
 
     # verify rebase info
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -515,7 +515,7 @@
           base-checksum: "{{ head_csum }}"
 
     # verify package is still layered
-    - include_role:
+    - import_role:
         name: rpm_ostree_install_verify
       vars:
         roiv_package_name: "{{ g_pkg }}"
@@ -537,14 +537,14 @@
         name: reboot
 
     # verify package is no longer installed
-    - include_role:
+    - import_role:
         name: rpm_ostree_uninstall_verify
       vars:
         rouv_package_name: "{{ g_pkg }}"
         rouv_binary_name: "{{ g_pkg }}"
 
     # verify deploy with uninstallation info
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -566,14 +566,14 @@
         name: reboot
 
     # verify package is still not installed
-    - include_role:
+    - import_role:
         name: rpm_ostree_uninstall_verify
       vars:
         rouv_package_name: "{{ g_pkg }}"
         rouv_binary_name: "{{ g_pkg }}"
 
     # verify upgrade info
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -586,7 +586,7 @@
       command: rpm-ostree cleanup -rpmb
 
     # verify cleanup
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 1
@@ -755,7 +755,7 @@
     - import_role:
         name: reboot
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status_verify
       vars:
         num_deployments: 2
@@ -977,7 +977,7 @@
           tags:
             - start
 
-        - include_role:
+        - import_role:
             name: rpm_ostree_rebase
           vars:
             refspec: '{{ rct_refspec[0] }}'
@@ -1002,7 +1002,7 @@
 
         # use the rpm_ostree_install_verify to ensure compose_pkg  was part
         # of the compose but do not check that it is layered
-        - include_role:
+        - import_role:
             name: rpm_ostree_install_verify
           vars:
             roiv_package_name: '{{ compose_pkg }}'
@@ -1040,7 +1040,7 @@
         dest: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
 
     # Set original {{ g_replace_pkg }} nevra
-    - include_role:
+    - import_role:
         name: rpm_nevra
       vars:
         rn_package: '{{ g_replace_pkg }}'
@@ -1050,7 +1050,7 @@
         original_nevra: '{{ rn_nevra }}'
 
     # Set new {{ g_replace_pkg }} nevra
-    - include_role:
+    - import_role:
         name: rpm_nevra
       vars:
         rn_package: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
@@ -1059,40 +1059,40 @@
       set_fact:
         new_nevra: '{{ rn_nevra }}'
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_override
       vars:
         roo_subcommand: 'replace'
         roo_packages: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
 
-    - include_role:
+    - import_role:
         name: reboot
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
-    - include_role:
+    - import_role:
         name: rpm_nevra_compare
       vars:
         rnc_tuple1: '{{ original_nevra }}'
         rnc_tuple2: '{{ ros_booted["base-local-replacements"][0][1] }}'
 
-    - include_role:
+    - import_role:
         name: rpm_nevra_compare
       vars:
         rnc_tuple1: '{{ new_nevra }}'
         rnc_tuple2: '{{ ros_booted["base-local-replacements"][0][0] }}'
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_override
       vars:
         roo_subcommand: 'reset'
         roo_packages: '{{ g_replace_pkg }}'
 
-    - include_role:
+    - import_role:
         name: reboot
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     - name: Fail if replaced packages are found in rpm-ostree status
@@ -1103,7 +1103,7 @@
           Actual:   {{ ros_booted["base-local-replacements"] }}
 
     # cleanup
-    - include_role:
+    - import_role:
         name: rpm_ostree_cleanup_all
 
 - name: rpm-ostree - override remove reset
@@ -1118,17 +1118,17 @@
 
   tasks:
     # remove the package
-    - include_role:
+    - import_role:
         name: rpm_ostree_override
       vars:
         roo_subcommand: 'remove'
         roo_packages: '{{ g_remove_pkg }}'
 
-    - include_role:
+    - import_role:
         name: reboot
 
     # run rpm-ostree status to get the json output for the removed packages
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     # base removals should contain the removed package
@@ -1142,22 +1142,22 @@
               {{ ros_booted['base-removals'] }}
 
     # verify the package has been removed by checking the rpm output
-    - include_role:
+    - import_role:
         name: rpm_ostree_uninstall_verify
       vars:
         rouv_package_name: '{{ g_remove_pkg }}'
 
     # cleanup by resetting package
-    - include_role:
+    - import_role:
         name: rpm_ostree_override
       vars:
         roo_subcommand: 'reset'
         roo_packages: '{{ g_remove_pkg }}'
 
-    - include_role:
+    - import_role:
         name: reboot
 
-    - include_role:
+    - import_role:
         name: rpm_ostree_status
 
     - name: Fail if removed package is in base-removals after rolling back
@@ -1168,7 +1168,7 @@
           Actual:   {{ ros_booted['base-removals'] }}
 
     # check that the base package is installed again
-    - include_role:
+    - import_role:
         name: rpm_ostree_install_verify
       vars:
         roiv_package_name: '{{ g_remove_pkg }}'
@@ -1176,7 +1176,7 @@
         roiv_binary_check: false
 
     # cleanup
-    - include_role:
+    - import_role:
         name: rpm_ostree_cleanup_all
 
 

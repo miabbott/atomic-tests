@@ -1,6 +1,0 @@
----
-allow_duplicates: true
-
-dependencies:
-  - role: rpm_version
-    rv_rpms: atomic

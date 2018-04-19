@@ -136,7 +136,7 @@
   tasks:
     # I would have used a 'block' of 'roles' here, but that is not
     # compatible with the 'with_items' loop control, so I stuck all
-    # the tasks into a single role file and used an 'import_tasks:'
+    # the tasks into a single role file and used an 'include_tasks:'
     # statement on that file.
     #
     # Added the ability to skip broken images with the 'cli_skipped_images'

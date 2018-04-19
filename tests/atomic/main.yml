@@ -322,7 +322,7 @@
         name: atomic_images_delete_all
 
     - name: Pull {{ fq_name }} using ostree
-      include_role:
+      import_role:
         name: atomic_pull
       vars:
         apl_image: "{{ fq_name }}"
@@ -342,7 +342,7 @@
       import_role:
         name: atomic_images_delete_all
 
-    - include_role:
+    - import_role:
         name: atomic_pull
       vars:
         apl_image: "{{ fq_name }}"

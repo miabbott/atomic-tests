@@ -22,11 +22,9 @@
     etcd_image: 'registry.fedoraproject.org/f27/etcd'
     etcd_name: 'etcd'
 
-# The `aivc_atomic_install_cmd` is set by the required role:
-# `atomic_install_version_check`
 - name: Install etcd
   command: >
-    {{ aivc_atomic_install_cmd }}
+    atomic install --system
     --name=etcd
     {{ etcd_image }}
   register: ai_etcd
