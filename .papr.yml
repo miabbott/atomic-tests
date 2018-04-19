@@ -17,7 +17,9 @@ packages:
   - rsync
 
 tests:
-  - ./.test_director
+  # permanently set g_docker_latest=false, since Fedora doesn't have
+  # a docker-latest
+  - ./.test_director -e g_docker_latest=false
 
 ---
 inherit: true
@@ -48,5 +50,8 @@ cluster:
 context: centos/7/atomic
 
 tests:
-  - ./.test_director --skip-tags kernel_avc_denied
+  # skipping kernel_avc_denied due to https://bugzilla.redhat.com/show_bug.cgi?id=1536991
+  #  - should be fixed in CentOS 7.5
+  # skipping 'default_t' checks until atomic 1.22 lands with (projectatomic/atomic#1185)
+  - ./.test_director --skip-tags kernel_avc_denied,default_file_label
 
