@@ -48,6 +48,10 @@
     - vars.yml
 
   tasks:
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1571264
+    - name: Run ostree admin status as a quick sanity check
+      command: ostree admin status
+
     - include_role:
         name: rpm_ostree_status
 
