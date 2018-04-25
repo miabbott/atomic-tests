@@ -23,7 +23,7 @@
 
 - name: Save refspec and checksum
   set_fact:
-    bdsf_saved_checksum: "{{ ros_booted['base-checksum'] if 'base-checksum' in ros_booted else ros_booted['checksum']}}"
+    bdsf_saved_checksum: "{{ ros_booted['base-checksum'] if 'base-checksum' in ros_booted else ros_booted['checksum'] }}"
     # If the host is on a local branch, we have to skip splitting the 'origin'
     # because there is no remote portion
     bdsf_saved_refspec: "{{ ros_booted['origin'].split(':')[1] if ':' in ros_booted['origin'] else ros_booted['origin'] }}"
