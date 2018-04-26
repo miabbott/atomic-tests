@@ -478,15 +478,13 @@
     - cleanup
 
   tasks:
-    - name: Check if 'atomic-registries' was layered in
-      shell: >
-        rpm-ostree status --json |
-        docker run -i docker.io/miabbott/aht-tools
-        jq '.deployments[0]["base-commit-meta"]["rpmostree.packages"]'
-      register: ros
+    # Run 'rpm-ostree status --json' to determine the current booted
+    # deployment and setup the 'ros_booted' variable
+    - import_role:
+        name: rpm_ostree_status
 
     - name: Indicate 'atomic-registries' is layered
-      when: "'atomic-registries' in ros.stdout"
+      when: "'atomic-registries' in ros_booted['base-commit-meta']['rpmostree.packages']"
       set_fact:
         ar_is_layered: true
 
@@ -495,7 +493,10 @@
 
     # If the 'atomic-registries' package was layered, we can rollback,
     # reboot, and cleanup to be back to pristine condition
-    - block:
+    - when:
+        - ar_is_layered is defined
+        - ar_is_layered
+      block:
         - import_role:
             name: rpm_ostree_rollback
 
@@ -504,9 +505,6 @@
 
         - name: Cleanup deployments
           command: rpm-ostree cleanup -rpmb
-      when:
-        - ar_is_layered is defined
-        - ar_is_layered
 
     - when: ansible_distribution == 'RedHat'
       import_role:
