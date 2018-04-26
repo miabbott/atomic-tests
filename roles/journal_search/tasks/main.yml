@@ -2,35 +2,42 @@
 # vim: set ft=ansible:
 #
 # This role will search the journal from the latest boot for the string
-# supplied as an argument.  It can optionally fail if the string is found.
+# supplied as an argument.  If the string is found, the found entries
+# are written out to a file.  The intent is that a higher-order system
+# will consume these files and make any pass/fail decisions as needed.
+# (Because let's face it, we are the only ones running these playbooks
+# anyways and we know exactly how they will be used)
 #
 # Parameters:
-#   search_string (string) - string to search the journal for
-#   extra_args (string) - free form string to pass to 'journalctl' (optional)
-#   fail_if_found (bool) - cause the role to fail if the string is found (optional)
+#   js_search_string (string) - string to search the journal for
+#   js_file_prefix (string) - prefix to the filename where found entries will be
+#                             written
+#   js_extra_args (string) - free form string to pass to 'journalctl' (optional)
 #
-- name: Fail if the 'search_string' is undefined
-  when: search_string is undefined
+- name: Fail if the 'js_search_string' or 'js_file_prefix' is undefined
+  when: js_search_string is undefined or
+        js_file_prefix is undefined
   fail:
-    msg: "The variable 'search_string' is undefined"
+    msg: "The variable 'js search_string' or 'js_filename' is undefined"
 
-- name: Setup "fail_if_found" and "extra_args" variable
+- name: Setup "js_extra_args" variable
   set_fact:
-    fif: "{{ fail_if_found | default(false) | bool }}"
-    ea: "{{ extra_args | default('') }}"
+    ea: "{{ js_extra_args | default('') }}"
 
 # The command has to built up by pieces in order to handle the possibility of
 # extra args that might be passed in to the 'journalctl' command.
 - name: Build command pieces
   set_fact:
     journal_cmd: "{{ 'journalctl -b --no-pager ' + ea if ea|length > 0 else 'journalctl -b --no-pager' }}"
-    grep_cmd: "{{ 'grep ' + search_string|quote }}"
+    grep_cmd: "{{ 'grep ' + js_search_string|quote }}"
 
 # An inverse 'grep' is used to filter our some of the journal entries that
-# can be created when using Ansible
+# can be created when using Ansible.  The 'full_cmd_hint' is used by the
+# template when recording any found entries.
 - name: Build full command
   set_fact:
     full_cmd: "{{ journal_cmd + ' | ' + grep_cmd + ' | grep -v ansible-command' }}"
+    full_cmd_hint: "{{ journal_cmd + ' | ' + grep_cmd }}"
 
 # The 'full_cmd' variable is not quoted when passed to the 'shell:' module
 # because doing so causes the module to return 'No such file or directory'
@@ -44,20 +51,9 @@
   set_fact:
     found_string: "{{ j.rc == 0 }}"
 
-- name: Fail if the string was not found in the journal
+- name: Write out the found entries to a file
   when:
-    - not fif
-    - not found_string
-  fail:
-    msg: "Unable to find string '{{ search_string }}' in the journal"
-
-- name: Fail if the string was found in the journal
-  when:
-    - fif
     - found_string
-  fail:
-    msg: |
-      Found the string '{{ search_string }}' in the journal
-
-      Matching entries:
-      {{ j.stdout }}
+  local_action:
+    template src=journal_found.j2 dest="{{ playbook_dir }}/{{ js_file_prefix }}_journal_found.txt"
+  become: false

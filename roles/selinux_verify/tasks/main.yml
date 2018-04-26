@@ -9,6 +9,10 @@
 # Additionally, the role verifies that no files on the host have either the
 # 'unlabeled_t' or 'default_t' label.
 #
+# If any "bad" labels are found on the host, the various failures will be
+# recorded to a file named 'failed_selinux_verify.txt' where a higher-order
+# system can consume it and make any pass/fail judgements or what not.
+#
 # If there is a known problem in some of the SELinux labels on the host, you
 # can use following tags to exclude parts of the role from running (the tags
 # should be self-describing):
@@ -48,8 +52,8 @@
   fail:
     msg: "The getfattr utility is not installed"
 
-  # Rather than use the more complicated 'with_subelements' approach, it is
-  # possible to just use a list of key,value pairs and iterate over them.
+# Rather than use the more complicated 'with_subelements' approach, it is
+# possible to just use a list of key,value pairs and iterate over them.
 - name: Retrieve the common SELinux file labels
   command: getfattr -n security.selinux {{ item.key }} --absolute-names --only-values
   register: common_selinux_file_labels
@@ -57,17 +61,17 @@
   tags:
     - common_selinux_file_labels
 
-  # The verification is slightly hacky.  The state of the previous play is
-  # registered in a variable; in this case 'common_selinux_file_labels'.
-  # That variable has a key in it called 'results' which contains the details
-  # of each time the 'command' was executed.  In each of those details there
-  # is another key named 'item' which contains the 'key' and 'value' from
-  # each item in 'common_files'.  We can compare the 'value' to the stdout
-  # and see if the label was correct.  If the values don't compare correctly,
-  # we can append them to a list of failed values to be read out later.
-  #
-  # This approach can be used for all other inspections of file labels or
-  # process labels.
+# The verification is slightly hacky.  The state of the previous play is
+# registered in a variable; in this case 'common_selinux_file_labels'.
+# That variable has a key in it called 'results' which contains the details
+# of each time the 'command' was executed.  In each of those details there
+# is another key named 'item' which contains the 'key' and 'value' from
+# each item in 'common_files'.  We can compare the 'value' to the stdout
+# and see if the label was correct.  If the values don't compare correctly,
+# we can append them to a list of failed values to be read out later.
+#
+# This approach can be used for all other inspections of file labels or
+# process labels.
 
 - name: Append failed common file labels to the list
   when: item.item.value not in item.stdout
@@ -95,23 +99,6 @@
   with_items: "{{ distro_selinux_file_labels.results }}"
   tags:
     - distro_selinux_file_labels
-
-  # If the list of failed labels has been appended to, the variable will
-  # register as defined and thus we fail out.
-  #
-  # To get a pretty-printed message about the files with incorrect labels
-  # we can use some Jinja2 templating hacks to iterate over the list of
-  # failed files.
-- name: Fail if any SELinux file labels were incorrect
-  when: sv_failed_file_labels is defined
-  fail:
-    msg: |
-      The following files had incorrect SELinux labels:
-
-      {%- print '\n\n' %}
-      {%- for i in sv_failed_file_labels %}
-      {%- print i + '\n' %}
-      {%- endfor %}
 
 - name: Run 'rpm-ostree status' to start daemon
   command: rpm-ostree status
@@ -150,17 +137,6 @@
   tags:
     - distro_selinux_proc_labels
 
-- name: Fail if any SELinux proc labels were incorrect
-  when: sv_failed_proc_labels is defined
-  fail:
-    msg: |
-      The following procs had incorrect SELinux labels:
-
-      {%- print '\n\n' %}
-      {%- for i in sv_failed_proc_labels %}
-      {%- print i + '\n' %}
-      {%- endfor %}
-
 - name: Look for files/dirs with 'default_t' label
   command: find {{ item }} -context '*:default_t:*'
   register: find_default_t
@@ -171,19 +147,6 @@
   set_fact:
     sv_default_files: "{{ sv_default_files|default([]) + [ item.stdout ] }}"
   with_items: "{{ find_default_t.results }}"
-  tags:
-    - default_file_label
-
-- name: Fail if any files have the default_t SELinux label
-  when: sv_default_files is defined
-  fail:
-    msg: |
-      The following files had the 'default_t' label:
-
-      {%- print '\n\n' %}
-      {%- for i in sv_default_files %}
-      {%- print i + '\n' %}
-      {%- endfor %}
   tags:
     - default_file_label
 
@@ -202,15 +165,14 @@
   tags:
     - unlabeled_file_label
 
-- name: Fail if any files have the unlabeled_t SELinux label
-  when: sv_unlabeled_files is defined
-  fail:
-    msg: |
-      The following files had the 'unlabeled_t' label:
+# Rather than failing when we found an SELinux problem, we just write out the
+# problems to a file that can be read by a higher-order tool.
+- name: Write out file with any SELinux failures
+  when: sv_failed_file_labels is defined or
+        sv_failed_proc_labels is defined or
+        sv_default_files is defined or
+        sv_unlabeled_files is defined
+  local_action:
+    template src=selinux_verify.j2 dest="{{ playbook_dir }}/failed_selinux_verify.txt"
+  become: false
 
-      {%- print '\n\n' %}
-      {%- for i in sv_unlabeled_files %}
-      {%- print i + '\n' %}
-      {%- endfor %}
-  tags:
-    - unlabeled_file_label

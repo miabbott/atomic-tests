@@ -1,0 +1,38 @@
+{% if sv_failed_file_labels is defined %}
+The following files had incorrect SELinux labels:
+
+   {%- print '\n\n' %}
+   {%- for i in sv_failed_file_labels %}
+   {%- print i + '\n' %}
+   {%- endfor %}
+{% endif %}
+
+{% if sv_failed_proc_labels is defined %}
+
+The following processes had incorrect SELinux labels:
+
+   {%- print '\n\n' %}
+   {%- for i in sv_failed_proc_labels %}
+   {%- print i + '\n' %}
+   {%- endfor %}
+{% endif %}
+
+{% if sv_default_files is defined %}
+
+The following files had the 'default_t' label:
+
+   {%- print '\n\n' %}
+   {%- for i in sv_default_files %}
+   {%- print i + '\n' %}
+   {%- endfor %}
+{% endif %}
+
+{% if sv_unlabeled_files is defined %}
+
+The following files had the 'unlabeled_t' label:
+
+   {%- print '\n\n' %}
+   {%- for i in sv_unlabeled_files %}
+   {%- print i + '\n' %}
+   {%- endfor %}
+{% endif %}
