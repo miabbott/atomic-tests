@@ -468,3 +468,46 @@
     - role: command
       cmd: atomic images update {{ local_name }}:latest
       output: "Writing manifest to image destination"
+
+
+- name: Atomic- Cleanup
+  hosts: all
+  become: true
+
+  tags:
+    - cleanup
+
+  tasks:
+    - name: Check if 'atomic-registries' was layered in
+      shell: >
+        rpm-ostree status --json |
+        docker run -i docker.io/miabbott/aht-tools
+        jq '.deployments[0]["base-commit-meta"]["rpmostree.packages"]'
+      register: ros
+
+    - name: Indicate 'atomic-registries' is layered
+      when: "'atomic-registries' in ros.stdout"
+      set_fact:
+        ar_is_layered: true
+
+    - import_role:
+        name: docker_remove_all
+
+    # If the 'atomic-registries' package was layered, we can rollback,
+    # reboot, and cleanup to be back to pristine condition
+    - block:
+        - import_role:
+            name: rpm_ostree_rollback
+
+        - import_role:
+            name: reboot
+
+        - name: Cleanup deployments
+          command: rpm-ostree cleanup -rpmb
+      when:
+        - ar_is_layered is defined
+        - ar_is_layered
+
+    - when: ansible_distribution == 'RedHat'
+      import_role:
+        name: redhat_unsubscribe
