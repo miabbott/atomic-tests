@@ -484,7 +484,7 @@
         name: rpm_ostree_status
 
     - name: Indicate 'atomic-registries' is layered
-      when: "'atomic-registries' in ros_booted['layered-commit-meta']['rpmostree.packages']"
+      when: "'atomic-registries' in ros_booted['packages']"
       set_fact:
         ar_is_layered: true
 
