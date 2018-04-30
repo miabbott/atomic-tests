@@ -16,7 +16,7 @@
 # (otherwise ansible will target the localhost)
 - set_fact:
     real_ansible_host: "{{ ansible_host }}"
-    timeout: "{{ cli_reboot_timeout | default('120') }}"
+    timeout: "{{ cli_reboot_timeout | default('300') }}"
 
 # Have to account for both because Fedora STR uses the old version of these
 # inventory values for some reason.
