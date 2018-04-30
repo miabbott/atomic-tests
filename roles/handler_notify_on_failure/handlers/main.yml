@@ -12,9 +12,11 @@
 
 # h_get_journal handler
 - name: Get playbook name
-  shell:  echo {{ playbook_dir }} | awk -F/ '{print $NF}'
+  local_action:
+    shell echo {{ playbook_dir | quote }} | awk -F/ '{print $NF}'
   register: playbook_name
   listen: h_get_journal
+  become: false
   when: aht_result == "1"
 
 - name: Set journal name
@@ -24,7 +26,7 @@
   when: aht_result == "1"
 
 - name: Get journal
-  shell: journalctl -r -b > /tmp/{{ journal_name }}
+  shell: journalctl -r -b > /tmp/{{ journal_name | quote }}
   listen: h_get_journal
   when: aht_result == "1"
 
