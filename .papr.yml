@@ -1,11 +1,11 @@
 cluster:
   hosts:
     - name: testnode
-      distro: fedora/27/atomic
+      distro: fedora/28/atomic
   container:
     image: registry.fedoraproject.org/fedora:27
 
-context: fedora/27/atomic
+context: fedora/28/atomic
 
 packages:
   - python-virtualenv
@@ -15,6 +15,25 @@ packages:
   - redhat-rpm-config
   - libselinux-python
   - rsync
+
+tests:
+  # permanently set g_docker_latest=false, since Fedora doesn't have
+  # a docker-latest
+  - ./.test_director -e g_docker_latest=false
+
+---
+inherit: true
+
+cluster:
+  hosts:
+    - name: testnode
+      distro: fedora/27/atomic
+      ostree:
+        branch: fedora/27/x86_64/updates/atomic-host
+  container:
+      image: registry.fedoraproject.org/fedora:27
+
+context: fedora/27/atomic
 
 tests:
   # permanently set g_docker_latest=false, since Fedora doesn't have
