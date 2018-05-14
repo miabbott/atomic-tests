@@ -196,7 +196,8 @@
 
     # TEST
     # Validate atomic scan command
-    - role: atomic_scan_verify
+    - when: ansible_distribution == 'RedHat'
+      role: atomic_scan_verify
       tags:
         - atomic_scan_verify
 
@@ -792,7 +793,8 @@
 
     # TEST
     # Validate atomic scan works
-    - role: atomic_scan_verify
+    - when: ansible_distribution == 'RedHat'
+      role: atomic_scan_verify
       tags:
         - atomic_scan_verify
 
