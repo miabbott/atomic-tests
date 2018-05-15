@@ -25,6 +25,7 @@
     - "'buildmaster' not in bdsf_saved_refspec"
     - "'continuous' not in bdsf_saved_refspec"
     - "'rawhide' not in bdsf_saved_refspec"
+    - "'openshift' not in bdsf_saved_refspec"
   set_fact:
     rsv_rpm_sig_supported: true
 
