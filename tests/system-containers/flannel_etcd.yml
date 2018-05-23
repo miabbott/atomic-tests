@@ -1,0 +1,99 @@
+---
+# vim: set ft=ansible:
+#
+
+- name: Check for etcd rpm
+  command: rpm -q etcd
+  register: rpm_etcd
+  ignore_errors: true
+
+- name: Check for flannel rpm
+  command: rpm -q flannel
+  register: rpm_flannel
+  ignore_errors: true
+
+- name: Stop flanneld server if flannel rpm present
+  when: rpm_flannel.rc == 0
+  service:
+    name: flanneld
+    state: stopped
+    enabled: false
+
+- name: Stop etcd service if etcd rpm present
+  when: rpm_etcd.rc == 0
+  service:
+    name: etcd
+    state: stopped
+    enabled: false
+
+- name: Install etcd
+  command: >
+    atomic install --system
+    --name=etcd
+    {{ etcd_image }}
+  register: ai_etcd
+  retries: 5
+  delay: 60
+  until: ai_etcd|success
+
+- name: Start etcd
+  command: systemctl start etcd
+
+- name: Verify etcd is active
+  command: systemctl is-active etcd
+  register: etcd_output
+  failed_when: "'active' not in etcd_output.stdout"
+
+- name: Wait for etcd port to open
+  wait_for:
+    port: 2379
+    timeout: 30
+
+- name: Configure etcd
+  command: >
+    runc exec etcd etcdctl
+    set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'
+
+- name: Install flannel
+  command: >
+    atomic install --system
+    --name=flannel
+    {{ flannel_image }}
+  register: ai_flannel
+  retries: 5
+  delay: 60
+  until: ai_flannel|success
+
+- name: Start flannel
+  command: systemctl start flannel
+
+- name: Verify flannel service is active
+  command: systemctl is-active flannel
+  register: flannel_output
+  failed_when: "'active' not in flannel_output.stdout"
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ etcd_name }}"
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ flannel_name }}"
+
+# Upstream issue with flannel container installation stopping docker
+# https://github.com/projectatomic/atomic-system-containers/issues/23
+- name: Start docker
+  when: "'gscrivano' in etcd_image"
+  command: systemctl start docker
+
+- import_role:
+    name: atomic_system_uninstall_verify
+  vars:
+    asuv_image: "{{ etcd_image }}"
+
+- import_role:
+    name: atomic_system_uninstall_verify
+  vars:
+    asuv_image: "{{ flannel_image }}"

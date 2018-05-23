@@ -1,0 +1,48 @@
+---
+# vim: set ft=ansible:
+#
+- name: Uninstall system container that does not exist
+  command: atomic uninstall foobar
+  register: auf_output
+  failed_when: auf_output.rc == 0
+
+- name: Install a system container that does not exist
+  command: atomic install xxfoobarxx
+  register: aif_output
+  failed_when: aif_output.rc == 0
+
+- name: >
+    Create container with DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID,
+    HOST_GID
+  command: >
+    atomic install
+    --system
+    --set=DESTDIR={{ g_invalid_value }}
+    --set=NAME={{ g_invalid_value }}
+    --set=EXEC_START={{ g_invalid_value }}
+    --set=EXEC_STOP={{ g_invalid_value }}
+    --set=HOST_UID={{ g_invalid_value }}
+    --set=HOST_GID={{ g_invalid_value }}
+    {{ g_hw_image }}
+
+- name: Get output of {{ g_hw_name }} info file
+  command: cat /var/lib/containers/atomic/{{ g_hw_name }}/info
+  register: info_output
+
+- name: Fail if {{ g_invalid_value }} in output
+  when: g_invalid_value in info_output.stdout
+  fail:
+    msg: |
+      Expected: Invalid value {{ g_invalid_value }} will not be set in
+                DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID
+      Actual: {{ info_output.stdout }}
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ g_hw_name }}"
+
+- import_role:
+    name: atomic_system_uninstall_verify
+  vars:
+    asuv_image: "{{ g_hw_image }}"

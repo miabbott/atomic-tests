@@ -32,636 +32,145 @@
 #       - Verify the system container persists through ostree upgrade
 #       - Verify the system container persists through ostree rollback
 #
-- name: System Containers - Setup
+- name: System Containers - Test Suite
   hosts: all
   become: true
-
-  tags:
-    - setup
 
   vars_files:
     - vars.yml
 
-  pre_tasks:
-    - name: Set facts
-      when: ansible_distribution == 'RedHat'
+  vars:
+    tests: []
+
+  tasks:
+    - name: Set logging
       set_fact:
-        etcd_image: 'registry.access.redhat.com/rhel7/etcd'
-        etcd_name: 'etcd'
-        flannel_image: 'registry.access.redhat.com/rhel7/flannel'
-        flannel_name: 'flannel'
-
-    - name: Set facts
-      when: ansible_distribution != 'RedHat'
-      set_fact:
-        etcd_image: 'registry.fedoraproject.org/f27/etcd'
-        etcd_name: 'etcd'
-        flannel_image: 'registry.fedoraproject.org/f27/flannel'
-        flannel_name: 'flannel'
-
-  roles:
-    - role: ansible_version_check
+        log_results: true
+        result_file: "{{ playbook_dir }}/system-containers-result.log"
       tags:
-        - ansible_version_check
+        - setup
 
-    # Subscribe if the system is RHEL
-    - when: ansible_distribution == 'RedHat'
-      role: redhat_subscription
+    - include_tasks: 'setup.yml'
       tags:
-        - redhat_subscription
-
-
-- name: System Containers - Install/Uninstall
-  hosts: all
-  become: true
-
-  #  - Verify system containers can be installed through atomic command
-  #  - Verify system containers can be uninstalled through the atomic command
-  #  - Verify user can specify name for system containers
-  #  - Verify system containers can be listed
-
-  tags:
-    - install_uninstall
-
-  vars_files:
-    - vars.yml
-
-  roles:
-    - role: atomic_system_install
-      asi_image: "{{ g_hw_image }}"
-
-    - role: atomic_system_install_verify
-      asiv_image: "{{ g_hw_image }}"
-
-    - role: atomic_system_uninstall
-      asu_name: "{{ g_hw_name }}"
-
-    # uninstall can only be done by name because multiple system containers can
-    #  use the same image https://github.com/projectatomic/atomic/issues/705
-    - role: atomic_system_uninstall_verify
-      asuv_image: "{{ g_hw_image }}"
-
-- name: System Containers - Reboot
-  hosts: all
-  become: true
-
-  tags:
-    - reboot
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Install system container and pass in variables
-      command: >
-        atomic install
-        --system
-        --name={{ g_hw_name }}
-        --set=PORT=8080
-        --set=RECEIVER=foo
-        {{ g_hw_image }}
-
-    - name: Start hello-world service
-      command: systemctl start {{ g_hw_name }}
-
-    - import_role:
-        name: atomic_system_install_verify
-      vars:
-        asiv_image: "{{ g_hw_image }}"
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8080
-      register: c_output
-
-    - name: Fail if output is incorrect
-      when: "'Hi foo' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi foo is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - import_role:
-        name: reboot
-
-    - name: Verify {{ g_hw_name }} service is active
-      command: systemctl is-active {{ g_hw_name }}
-      register: hw_output
-      failed_when: "'active' not in hw_output.stdout"
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8080
-      register: c_output
-
-    - name: Fail if output is incorrect
-      when: "'Hi foo' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi foo is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ g_hw_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ g_hw_image }}"
-
-- name: System Containers - Pass Variables
-  hosts: all
-  become: true
-
-  # - Verify environment variables can be pass to the container
-
-  tags:
-    - pass_variables
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Install system container and pass in variables
-      command: >
-        atomic install
-        --system
-        --name={{ g_hw_name }}
-        --set=PORT=8080
-        --set=RECEIVER=foo
-        {{ g_hw_image }}
-
-    - name: Start hello-world service
-      command: systemctl start {{ g_hw_name }}
-
-    - import_role:
-        name: atomic_system_install_verify
-      vars:
-        asiv_image: "{{ g_hw_image }}"
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8080
-      register: c_output
-
-    - name: Fail if output is incorrect
-      when: "'Hi foo' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi foo is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ g_hw_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ g_hw_image }}"
-
-
-- name: System Containers - Update/Rollback
-  hosts: all
-  become: true
-
-  # - Verify update/rollback of system containers
-
-  tags:
-    - update_rollback
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Install system container and pass in variables
-      command: >
-        atomic install
-        --system
-        --name={{ g_hw_name }}
-        --set=PORT=8080
-        --set=RECEIVER=foo
-        {{ g_hw_image }}
-
-    - name: Start hello-world service
-      command: systemctl start {{ g_hw_name }}
-
-    - import_role:
-        name: atomic_system_install_verify
-      vars:
-        asiv_image: "{{ g_hw_image }}"
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8080
-      register: c_output
-
-    - name: Fail if Hi foo is not in output
-      when: "'Hi foo' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi foo is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - name: Update system container
-      command: atomic containers update --set=RECEIVER=bar {{ g_hw_name }}
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8080
-      register: c_output
-
-    - name: Fail if Hi bar is not in output
-      when: "'Hi bar' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi bar is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - name: Rollback system container
-      command: atomic containers rollback {{ g_hw_name }}
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8080
-      register: c_output
-
-    - name: Fail if Hi foo is not in output
-      when: "'Hi foo' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi bar is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ g_hw_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify/
-      vars:
-        asuv_image: "{{ g_hw_image }}"
-
-
-- name: System Containers - Rootfs
-  hosts: all
-  become: true
-
-  # - Verify specification of rootfs for system containers.
-
-  tags:
-    - rootfs
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Install system container and pass in variables
-      command: >
-        atomic install
-        --system
-        --name={{ g_hw_name }}
-        --set=PORT=8080
-        --set=RECEIVER=foo
-        {{ g_hw_image }}
-
-    - name: Start {{ g_hw_name }} service
-      command: systemctl start {{ g_hw_name }}
-
-    - import_role:
-        name: atomic_system_install_verify
-      vars:
-        asiv_image: "{{ g_hw_image }}"
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8080
-      register: c_output
-
-    - name: Fail if Hi foo is not in output
-      when: "'Hi foo' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi foo is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - name: Create another container using the first container as the rootfs
-      command: atomic install
-        --system
-        --name={{ g_hw_name }}-remote
-        --rootfs=/var/lib/containers/atomic/{{ g_hw_name }}
-        --set=RECEIVER=remote
-        --set=PORT=8083
-        {{ g_hw_image }}
-
-    - name: Start the {{ g_hw_name }}-remote service
-      command: systemctl start {{ g_hw_name }}-remote
-
-    - name: Verify system container is running with the parameters passed in
-      command: curl http://localhost:8083
-      register: c_output
-
-    - name: Fail if Hi remote is not in output
-      when: "'Hi remote' not in c_output.stdout"
-      fail:
-        msg: |
-          Expected: Hi remote is in curl output
-          Actual: {{ c_output.stdout }}
-
-    - name: Verify first container has rootfs
-      stat:
-        path: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs
-      register: hw
-
-    - name: Verify first container has rootfs
-      stat:
-        path: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
-      register: hwr
-
-    - name: Fail when rootfs dir is missing from main container
-      when: hw.stat.exists == False
-      fail:
-        msg: |
-          Expected: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
-                    is True
-          Actual: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
-                  is {{ hw.stat.exists }}
-
-    - name: Fail when rootfs dir exists for rootfs container
-      when: hwr.stat.exists != True
-      fail:
-        msg: |
-          Expected: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
-                    exists is False
-          Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
-                  exists is {{ hwr.stat.exists }}
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ g_hw_name }}-remote"
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ g_hw_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ g_hw_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ g_hw_name }}-remote"
-
-
-- name: System Containers - Flannel & Etcd
-  hosts: all
-  become: true
-
-  #  Flannel & Etcd Tests
-
-  tags:
-    - flannel_etcd
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Check for etcd rpm
-      command: rpm -q etcd
-      register: rpm_etcd
-      ignore_errors: true
-
-    - name: Check for flannel rpm
-      command: rpm -q flannel
-      register: rpm_flannel
-      ignore_errors: true
-
-    - name: Stop flanneld server if flannel rpm present
-      when: rpm_flannel.rc == 0
-      service:
-        name: flanneld
-        state: stopped
-        enabled: false
-
-    - name: Stop etcd service if etcd rpm present
-      when: rpm_etcd.rc == 0
-      service:
-        name: etcd
-        state: stopped
-        enabled: false
-
-    - name: Install etcd
-      command: >
-        atomic install --system
-        --name=etcd
-        {{ etcd_image }}
-      register: ai_etcd
-      retries: 5
-      delay: 60
-      until: ai_etcd|success
-
-    - name: Start etcd
-      command: systemctl start etcd
-
-    - name: Verify etcd is active
-      command: systemctl is-active etcd
-      register: etcd_output
-      failed_when: "'active' not in etcd_output.stdout"
-
-    - name: Wait for etcd port to open
-      wait_for:
-        port: 2379
-        timeout: 30
-
-    - name: Configure etcd
-      command: >
-        runc exec etcd etcdctl
-        set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'
-
-    - name: Install flannel
-      command: >
-        atomic install --system
-        --name=flannel
-        {{ flannel_image }}
-      register: ai_flannel
-      retries: 5
-      delay: 60
-      until: ai_flannel|success
-
-    - name: Start flannel
-      command: systemctl start flannel
-
-    - name: Verify flannel service is active
-      command: systemctl is-active flannel
-      register: flannel_output
-      failed_when: "'active' not in flannel_output.stdout"
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ etcd_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ flannel_name }}"
-
-    # Upstream issue with flannel container installation stopping docker
-    # https://github.com/projectatomic/atomic-system-containers/issues/23
-    - name: Start docker
-      when: "'gscrivano' in etcd_image"
-      command: systemctl start docker
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ etcd_image }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ flannel_image }}"
-
-- name: System Containers - Set RUN_DIRECTORY & STATE_DIRECTORY
-  hosts: all
-  become: true
-
-  # - Verify setting RUN_DIRECTORY and STATE_DIRECTORY
-
-  tags:
-    - run_state_dir
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Set facts
-      set_fact:
-        run_dir: '/root'
-        state_dir: '/root'
-
-    - name: Create container with RUN_DIRECTORY and STATE_DIRECTORY
-      command: >
-        atomic install
-        --system
-        --set=RUN_DIRECTORY={{ run_dir }}
-        --set=STATE_DIRECTORY={{ state_dir }}
-        {{ g_hw_image }}
-
-    - name: Get output of {{ g_hw_name }} info file
-      command: cat /var/lib/containers/atomic/{{ g_hw_name }}/info
-      register: info_output
-
-    - name: Convert output to JSON
-      set_fact:
-        info_json: "{{ info_output.stdout|from_json }}"
-
-    - name: Verify RUN_DIRECTORY is set
-      when: run_dir not in info_json['values']['RUN_DIRECTORY']
-      fail:
-        msg: |
-          Expected: RUN_DIRECTORY is set to {{ run_dir }}
-          Actual: RUN_DIRECTORY is set to
-                  {{ info_json['values']['RUN_DIRECTORY'] }}
-
-    - name: Verify STATE_DIRECTORY is set
-      when: state_dir not in info_json['values']['STATE_DIRECTORY']
-      fail:
-        msg: |
-          Expected: STATE_DIRECTORY is set to {{ state_dir }}
-          Actual: STATE_DIRECTORY is set to
-                  {{ info_json['values']['STATE_DIRECTORY'] }}
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ g_hw_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ g_hw_image }}"
-
-- name: System Containers - Negative Testing
-  hosts: all
-  become: true
-
-  #  Negative Testing
-  #    - Verify uninstalling a system container that does not exist fails
-  #    - Verify installing a system container that does not exist fails
-  #    - Verify DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, and HOST_GID
-  #        cannot be set
-  tags:
-    - negative
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Uninstall system container that does not exist
-      command: atomic uninstall foobar
-      register: auf_output
-      failed_when: auf_output.rc == 0
-
-    - name: Install a system container that does not exist
-      command: atomic install xxfoobarxx
-      register: aif_output
-      failed_when: aif_output.rc == 0
-
-    - name: >
-        Create container with DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID,
-        HOST_GID
-      command: >
-        atomic install
-        --system
-        --set=DESTDIR={{ g_invalid_value }}
-        --set=NAME={{ g_invalid_value }}
-        --set=EXEC_START={{ g_invalid_value }}
-        --set=EXEC_STOP={{ g_invalid_value }}
-        --set=HOST_UID={{ g_invalid_value }}
-        --set=HOST_GID={{ g_invalid_value }}
-        {{ g_hw_image }}
-
-    - name: Get output of {{ g_hw_name }} info file
-      command: cat /var/lib/containers/atomic/{{ g_hw_name }}/info
-      register: info_output
-
-    - name: Fail if {{ g_invalid_value }} in output
-      when: g_invalid_value in info_output.stdout
-      fail:
-        msg: |
-          Expected: Invalid value {{ g_invalid_value }} will not be set in
-                    DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, or HOST_GID
-          Actual: {{ info_output.stdout }}
-
-    - import_role:
-        name: atomic_system_uninstall
-      vars:
-        asu_name: "{{ g_hw_name }}"
-
-    - import_role:
-        name: atomic_system_uninstall_verify
-      vars:
-        asuv_image: "{{ g_hw_image }}"
-
-
-- name: System Containers - Cleanup
-  hosts: all
-  become: true
-
-  tags:
-    - cleanup
-
-  vars_files:
-    - vars.yml
-
-  roles:
-    - role: atomic_images_delete_all
+        - setup
+
+    # TEST
+    # Verify that system containers can be installed/uninstalled
+    - block:
+        - include_tasks: 'install_uninstall.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Install/Uninstall System Containers', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Install/Uninstall System Containers', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
       tags:
-        - atomic_images_delete_all
+        - install_uninstall
 
-    - when: ansible_distribution == 'RedHat'
-      role: redhat_unsubscribe
+    # TEST
+    # Verify that system container is active/running after reboot
+    - block:
+        - include_tasks: 'reboot.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Running After Reboot', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Running After Reboot', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
       tags:
-        - redhat_unsubscribe
+        - reboot
+
+    # TEST
+    # Verify environment variables can be pass to the container
+    - block:
+        - include_tasks: 'pass_variables.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Pass Variables to System Container', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Pass Variables to System Container', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - pass_variables
+
+    # TEST
+    # Verify update/rollback of system containers
+    - block:
+        - include_tasks: 'update_rollback.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Update/Rollback of System Container', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Update/Rollback of System Container', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - update_rollback
+
+    # TEST
+    # Verify specification of rootfs for system containers.
+    - block:
+        - include_tasks: 'rootfs.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Specification of rootfs for System Container', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Specification of rootfs for System Container', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - rootfs
+
+    # TEST
+    # Verify install of flannel/etcd system container
+    - block:
+        - include_tasks: 'flannel_etcd.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Install flannel/etcd System Containers', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Install flannel/etcd System Containers', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - flannel_etcd
+
+    # TEST
+    # Verify setting RUN_DIRECTORY and STATE_DIRECTORY
+    - block:
+        - include_tasks: 'flannel_etcd.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Configure RUN_DIRECTORY and STATE_DIRECTORY', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Configure RUN_DIRECTORY and STATE_DIRECTORY', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - run_state_dir
+
+    # TEST
+    # Verify uninstalling a system container that does not exist fails
+    # Verify installing a system container that does not exist fails
+    # Verify DESTDIR, NAME, EXEC_START, EXEC_STOP, HOST_UID, and HOST_GID
+    # cannot be set
+    - block:
+        - include_tasks: 'negative.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Negative Testing', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Negative Testing', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - negative
+
+
+    # Cleanup
+    - block:
+        - include_tasks: 'cleanup.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cleanup', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cleanup', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      always:
+        # WRITE RESULTS TO FILE
+        - name: Remove existing log files
+          local_action: file path={{ result_file }} state=absent
+          become: false
+
+        - name: Save result to file
+          when: log_results
+          local_action: copy content={{ tests | to_nice_yaml(indent=2) }} dest={{ result_file }}
+          become: false
+      tags:
+        - cleanup

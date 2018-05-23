@@ -1,0 +1,59 @@
+---
+# vim: set ft=ansible:
+#
+- name: Install system container and pass in variables
+  command: >
+    atomic install
+    --system
+    --name={{ g_hw_name }}
+    --set=PORT=8080
+    --set=RECEIVER=foo
+    {{ g_hw_image }}
+
+- name: Start hello-world service
+  command: systemctl start {{ g_hw_name }}
+
+- import_role:
+    name: atomic_system_install_verify
+  vars:
+    asiv_image: "{{ g_hw_image }}"
+
+- name: Verify system container is running with the parameters passed in
+  command: curl http://localhost:8080
+  register: c_output
+
+- name: Fail if output is incorrect
+  when: "'Hi foo' not in c_output.stdout"
+  fail:
+    msg: |
+      Expected: Hi foo is in curl output
+      Actual: {{ c_output.stdout }}
+
+- import_role:
+    name: reboot
+
+- name: Verify {{ g_hw_name }} service is active
+  command: systemctl is-active {{ g_hw_name }}
+  register: hw_output
+  failed_when: "'active' not in hw_output.stdout"
+
+- name: Verify system container is running with the parameters passed in
+  command: curl http://localhost:8080
+  register: c_output
+
+- name: Fail if output is incorrect
+  when: "'Hi foo' not in c_output.stdout"
+  fail:
+    msg: |
+      Expected: Hi foo is in curl output
+      Actual: {{ c_output.stdout }}
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ g_hw_name }}"
+
+- import_role:
+    name: atomic_system_uninstall_verify
+  vars:
+    asuv_image: "{{ g_hw_image }}"

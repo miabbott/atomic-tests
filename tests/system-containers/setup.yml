@@ -1,0 +1,29 @@
+---
+# vim: set ft=ansible:
+#
+- name: Set facts
+  when: ansible_distribution == 'RedHat'
+  set_fact:
+    etcd_image: 'registry.access.redhat.com/rhel7/etcd'
+    etcd_name: 'etcd'
+    flannel_image: 'registry.access.redhat.com/rhel7/flannel'
+    flannel_name: 'flannel'
+
+- name: Set facts
+  when: ansible_distribution != 'RedHat'
+  set_fact:
+    etcd_image: 'registry.fedoraproject.org/f27/etcd'
+    etcd_name: 'etcd'
+    flannel_image: 'registry.fedoraproject.org/f27/flannel'
+    flannel_name: 'flannel'
+
+- import_role:
+    name: ansible_version_check
+  tags:
+      - ansible_version_check
+
+- when: ansible_distribution == 'RedHat'
+  import_role:
+    name: redhat_subscription
+  tags:
+    - redhat_subscription

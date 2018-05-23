@@ -1,0 +1,102 @@
+---
+# vim: set ft=ansible:
+#
+- name: Install system container and pass in variables
+  command: >
+    atomic install
+    --system
+    --name={{ g_hw_name }}
+    --set=PORT=8080
+    --set=RECEIVER=foo
+    {{ g_hw_image }}
+
+- name: Start {{ g_hw_name }} service
+  command: systemctl start {{ g_hw_name }}
+
+- import_role:
+    name: atomic_system_install_verify
+  vars:
+    asiv_image: "{{ g_hw_image }}"
+
+- name: Verify system container is running with the parameters passed in
+  command: curl http://localhost:8080
+  register: c_output
+
+- name: Fail if Hi foo is not in output
+  when: "'Hi foo' not in c_output.stdout"
+  fail:
+    msg: |
+      Expected: Hi foo is in curl output
+      Actual: {{ c_output.stdout }}
+
+- name: Create another container using the first container as the rootfs
+  command: atomic install
+    --system
+    --name={{ g_hw_name }}-remote
+    --rootfs=/var/lib/containers/atomic/{{ g_hw_name }}
+    --set=RECEIVER=remote
+    --set=PORT=8083
+    {{ g_hw_image }}
+
+- name: Start the {{ g_hw_name }}-remote service
+  command: systemctl start {{ g_hw_name }}-remote
+
+- name: Verify system container is running with the parameters passed in
+  command: curl http://localhost:8083
+  register: c_output
+
+- name: Fail if Hi remote is not in output
+  when: "'Hi remote' not in c_output.stdout"
+  fail:
+    msg: |
+      Expected: Hi remote is in curl output
+      Actual: {{ c_output.stdout }}
+
+- name: Verify first container has rootfs
+  stat:
+    path: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs
+  register: hw
+
+- name: Verify first container has rootfs
+  stat:
+    path: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
+  register: hwr
+
+- name: Fail when rootfs dir is missing from main container
+  when: hw.stat.exists == False
+  fail:
+    msg: |
+      Expected: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
+                is True
+      Actual: /var/lib/containers/atomic/{{ g_hw_name }}/rootfs exists
+              is {{ hw.stat.exists }}
+
+- name: Fail when rootfs dir exists for rootfs container
+  when: hwr.stat.exists != True
+  fail:
+    msg: |
+      Expected: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
+                exists is False
+      Actual: /var/lib/containers/atomic/{{ g_hw_name }}-remote/rootfs
+              exists is {{ hwr.stat.exists }}
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ g_hw_name }}-remote"
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ g_hw_name }}"
+
+- import_role:
+    name: atomic_system_uninstall_verify
+  vars:
+    asuv_image: "{{ g_hw_name }}"
+
+- import_role:
+    name: atomic_system_uninstall_verify
+  vars:
+    asuv_image: "{{ g_hw_name }}-remote"
+

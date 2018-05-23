@@ -1,0 +1,13 @@
+---
+# vim: set ft=ansible:
+#
+- import_role:
+    name: atomic_images_delete_all
+  tags:
+    - atomic_images_delete_all
+
+- when: ansible_distribution == 'RedHat'
+  import_role:
+    name: redhat_unsubscribe
+  tags:
+    - redhat_unsubscribe

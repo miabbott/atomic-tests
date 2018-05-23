@@ -1,0 +1,29 @@
+---
+# vim: set ft=ansible:
+#
+#  - Verify system containers can be installed through atomic command
+#  - Verify system containers can be uninstalled through the atomic command
+#  - Verify user can specify name for system containers
+#  - Verify system containers can be listed
+
+- import_role:
+    name: atomic_system_install
+  vars:
+    asi_image: "{{ g_hw_image }}"
+
+- import_role:
+    name: atomic_system_install_verify
+  vars:
+    asiv_image: "{{ g_hw_image }}"
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ g_hw_name }}"
+
+# uninstall can only be done by name because multiple system containers can
+#  use the same image https://github.com/projectatomic/atomic/issues/705
+- import_role:
+    name: atomic_system_uninstall_verify
+  vars:
+    asuv_image: "{{ g_hw_image }}"

@@ -1,0 +1,69 @@
+---
+# vim: set ft=ansible:
+#
+
+- name: Install system container and pass in variables
+  command: >
+    atomic install
+    --system
+    --name={{ g_hw_name }}
+    --set=PORT=8080
+    --set=RECEIVER=foo
+    {{ g_hw_image }}
+
+- name: Start hello-world service
+  command: systemctl start {{ g_hw_name }}
+
+- import_role:
+    name: atomic_system_install_verify
+  vars:
+    asiv_image: "{{ g_hw_image }}"
+
+- name: Verify system container is running with the parameters passed in
+  command: curl http://localhost:8080
+  register: c_output
+
+- name: Fail if Hi foo is not in output
+  when: "'Hi foo' not in c_output.stdout"
+  fail:
+    msg: |
+      Expected: Hi foo is in curl output
+      Actual: {{ c_output.stdout }}
+
+- name: Update system container
+  command: atomic containers update --set=RECEIVER=bar {{ g_hw_name }}
+
+- name: Verify system container is running with the parameters passed in
+  command: curl http://localhost:8080
+  register: c_output
+
+- name: Fail if Hi bar is not in output
+  when: "'Hi bar' not in c_output.stdout"
+  fail:
+    msg: |
+      Expected: Hi bar is in curl output
+      Actual: {{ c_output.stdout }}
+
+- name: Rollback system container
+  command: atomic containers rollback {{ g_hw_name }}
+
+- name: Verify system container is running with the parameters passed in
+  command: curl http://localhost:8080
+  register: c_output
+
+- name: Fail if Hi foo is not in output
+  when: "'Hi foo' not in c_output.stdout"
+  fail:
+    msg: |
+      Expected: Hi bar is in curl output
+      Actual: {{ c_output.stdout }}
+
+- import_role:
+    name: atomic_system_uninstall
+  vars:
+    asu_name: "{{ g_hw_name }}"
+
+- import_role:
+    name: atomic_system_uninstall_verify/
+  vars:
+    asuv_image: "{{ g_hw_image }}"
