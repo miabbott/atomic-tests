@@ -32,6 +32,11 @@
         base_json: 'centos-atomic-host.json'
         json_file: 'centos-atomic-host-continuous.json'
 
+    - name: Wipe base dir
+      file:
+        state: 'absent'
+        path: '{{ base_dir }}/'
+
     # CentOS Atomic Host runs out of space in the root partition when
     # creating a tree and rebasing to it so the root partition needs
     # to be increased
@@ -59,22 +64,19 @@
           "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
            cd {{ base_dir }}/{{ repo_name }};"
 
-    - name: Create repo directory
+    - name: Create repo + cache directory
       file:
-        path: '{{ repo_dir }}'
+        path: '{{ item }}'
         state: directory
         mode: 0755
+      with_items:
+        - '{{ repo_dir }}'
+        - '{{ cache_dir }}'
 
     - name: Initialize repo directory
       command: ostree --repo=repo init --mode=archive-z2
       args:
         chdir: '{{ base_dir }}'
-
-    - name: Create cache directory
-      file:
-        path: '{{ cache_dir }}'
-        state: directory
-        mode: 0755
 
     # base_json is required because the CAHC json file uses the centos
     # atomic host base json which contains the package list that needs
@@ -120,6 +122,12 @@
       poll: 0
       tags:
         - start
+
+    - name: Wait for port 80 to be open
+      wait_for:
+        port: 80
+        delay: 5
+        timeout: 60
 
     - import_role:
         name: rpm_ostree_rebase
