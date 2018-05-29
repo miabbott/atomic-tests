@@ -9,3 +9,4 @@ inventory*
 # ignore test artifacts
 *bdsf_archive.yml
 *journal
+*.log
