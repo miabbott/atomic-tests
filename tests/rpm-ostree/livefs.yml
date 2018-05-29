@@ -7,7 +7,7 @@
 - import_role:
     name: rpm_ostree_install
   vars:
-    roi_packages: "{{ pkg_name }}"
+    roi_packages: "{{ g_pkg }}"
     roi_reboot: false
 
 - import_role:
@@ -16,7 +16,7 @@
 - import_role:
     name: rpm_ostree_install_verify
   vars:
-    roiv_package_name: "{{ pkg_name }}"
+    roiv_package_name: "{{ g_pkg }}"
     roiv_status_check: false
 
 # rol_base_commit and rol_livefs_commit come from the rpm_ostree_livefs role
@@ -39,7 +39,7 @@
       booted: false
       checksum: "{{ rol_livefs_commit }}"
       packages:
-        - "{{ pkg_name }}"
+        - "{{ g_pkg }}"
 
 - import_role:
     name: rpm_ostree_status_verify
@@ -58,7 +58,7 @@
 - import_role:
     name: rpm_ostree_install_verify
   vars:
-    roiv_package_name: "{{ pkg_name }}"
+    roiv_package_name: "{{ g_pkg }}"
     roiv_status_check: false
 
 - import_role:
@@ -70,7 +70,7 @@
       base-checksum: "{{ rol_base_commit }}"
       checksum: "{{ rol_livefs_commit }}"
       packages:
-        - "{{ pkg_name }}"
+        - "{{ g_pkg }}"
 
 - import_role:
     name: rpm_ostree_status_verify
@@ -105,7 +105,7 @@
 - import_role:
     name: rpm_ostree_uninstall_verify
   vars:
-    rouv_package_name: "{{ pkg_name }}"
+    rouv_package_name: "{{ g_pkg }}"
     rouv_status_check: false
 
 - import_role:
@@ -135,7 +135,7 @@
       base-checksum: "{{ rol_base_commit }}"
       checksum: "{{ rol_livefs_commit }}"
       packages:
-       - "{{ pkg_name }}"
+       - "{{ g_pkg }}"
 
 - import_role:
     name: rpm_ostree_cleanup_all
