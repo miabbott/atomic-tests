@@ -1,0 +1,103 @@
+---
+# vim: set ft=ansible:
+#
+- name: Create initramfs file
+  file:
+    path: /etc/rpmostree-file
+    state: touch
+
+- name: Modify initramfs file
+  lineinfile:
+    dest: /etc/rpmostree-file
+    line: "rpm-ostree-test"
+
+- name: Enable initramfs
+  command: >
+    rpm-ostree initramfs --enable --arg="-I"
+    --arg="/etc/rpmostree-file"
+
+- import_role:
+    name: reboot
+
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: true
+      regenerate-initramfs: true
+
+- name: Fail if initramfs does not have two arguments
+  when: ros_booted['initramfs-args']|length != 2
+  fail:
+    msg: |
+      Expected: 2 arguments
+      Actual: {{ ros_booted['initramfs-args'] | length }}
+
+- name: Fail if first initramfs argument is not set
+  when: "'-I' not in ros_booted['initramfs-args'][0]"
+  fail:
+    msg: |
+      Expected: -I in initramfs args
+      Actual:  {{ ros_booted['initramfs-args'][0] }}
+
+- name: Fail if second initramfs argument is not set
+  when: "'/etc/rpmostree-file' not in ros_booted['initramfs-args'][1]"
+  fail:
+    msg: |
+      Expected: /etc/rpmostree-file in rpm-ostree initramfs-args
+      Actual: {{ ros_booted['initramfs-args'][1] }}
+
+- name: set osname
+  set_fact:
+    osname: "{{ ros_booted['osname'] }}"
+
+- name: Get bootloader entry
+  shell: >
+    grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf |
+    sed -e 's,initrd ,/boot/,'
+  register: initrd
+
+- name: Check initramfs file
+  command: test -n {{ initrd.stdout }}
+
+- name: Get contents of initrd
+  command: lsinitrd {{ initrd.stdout }} -f /etc/rpmostree-file
+  register: lsinitrd
+
+- name: Fail if contents of initrd is incorrect
+  when: "'rpm-ostree-test' not in lsinitrd.stdout"
+  fail:
+    msg: |
+      Expected: lsinitrd of /etc/rpm-ostree-file contains rpm-ostree-test
+      Actual: {{ lsinitrd.stdout }}
+
+- name: Disable initramfs
+  command: rpm-ostree initramfs --disable
+
+- import_role:
+    name: reboot
+
+- name: Get bootloader entry
+  shell: >
+    grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf |
+    sed -e 's,initrd ,/boot/,'
+  register: initrd_disabled
+
+- name: Check initramfs file
+  command: test -n {{ initrd_disabled.stdout }}
+
+- name: Get contents of initrd
+  command: lsinitrd {{ initrd_disabled.stdout }} -f /etc/rpmostree-file
+  register: lsinitrd_disabled
+
+- name: Fail if contents of initramfs is incorrect
+  when: "'rpm-ostree-test' in lsinitrd_disabled.stdout"
+  fail:
+    msg: |
+      Expected: initramfs of /etc/rpmostree-file contains rpm-ostree-test
+      Actual: {{ lsinitrd_disabled.stdout }}
+
+- name: Clean up deployments
+  command: rpm-ostree cleanup -rpmb

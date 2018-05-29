@@ -1,0 +1,8 @@
+---
+# vim: set ft=ansible:
+#
+- import_role:
+    name: docker_remove_all
+
+- import_role:
+    name: rpm_ostree_cleanup_all

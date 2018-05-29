@@ -1,0 +1,14 @@
+---
+# vim: set ft=ansible:
+#
+- import_role:
+    name: ansible_version_check
+  tags:
+    - ansible_version_check
+
+# Subscribe if the system is RHEL
+- when: ansible_distribution == 'RedHat'
+  import_role:
+    name: redhat_subscription
+  tags:
+    - redhat_subscription

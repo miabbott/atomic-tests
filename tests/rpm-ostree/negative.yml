@@ -1,0 +1,63 @@
+---
+# vim: set ft=ansible:
+#
+# TEST
+# Attempt to remove a package that is not in the base layer
+- name: Attempt to remove a package that is not in base layer
+  command: rpm-ostree override remove foobar
+  register: roor_foobar
+  ignore_errors: true
+
+- name: Fail if removal was successful
+  when: roor_foobar|success
+  fail:
+    msg: |
+      Expected: Unable to remove a package that is not in the base layer
+      Actual:   rpm-ostree returned success for removing a package that
+                does not exist in the base layer
+
+# TEST
+# Attempt to remove a package that is a dependency
+- name: Attempt to remove a package with dependency
+  command: rpm-ostree override remove curl
+  register: roor_curl
+  ignore_errors: true
+
+- name: Fail if removal was successful
+  when: roor_curl|success
+  fail:
+    msg: |
+      Expected: User should not be able to remove a package that is a
+                dependency of another package
+      Actual:   User was able to remove a package that is a dependency
+
+# TEST
+# Attempt to reset a package that does not exist
+- name: Attempt to reset a package that does not exist
+  command: rpm-ostree override reset foobar
+  register: roor_ne_foobar
+  ignore_errors: true
+
+- name: Fail if reset of non-existent package is successful
+  when: roor_ne_foobar|success
+  fail:
+    msg: |
+      Expected: User cannot reset a package that does not exist in the base
+                layer
+      Actual:   User reset a package that does not exist in the base layer
+
+# TEST
+# Attempt to reset a package that was not replaced/removed
+- name: Attempt to reset a package that was not replaced or removed
+  command: rpm-ostree override reset bash
+  register: roor_bash
+  ignore_errors: true
+
+- name: Fail if reset of an untouched base layer package is successful
+  when: roor_bash|success
+  fail:
+    msg: |
+      Expected: User cannot reset a package that has not been removed or
+                replaced
+      Actual:   User reset a package that has not been removed or replaced
+

@@ -1,0 +1,69 @@
+---
+# vim: set ft=ansible:
+#
+- import_role:
+    name: rpm_ostree_status
+
+# Get the parent of the deployed commit, which we will use as HEAD-1
+# in case the remote gets updated while testing
+- name: Get parent of deployed commit
+  command: ostree rev-parse {{ ros_booted['checksum'] }}^
+  register: orp
+
+# the rpm_ostree_status above sets the ros_booted variable used below
+- name: Set current commit version and refspec
+  set_fact:
+    head_csum: "{{ ros_booted['checksum'] }}"
+    hmo_csum: "{{ orp.stdout }}"
+    refspec: "{{ ros_booted['origin'] }}"
+
+- name: Deploy HEAD-1
+  command: rpm-ostree deploy {{ hmo_csum }}
+  register: ros_deploy
+  retries: 5
+  delay: 60
+  until: ros_deploy|success
+
+# reboot
+- import_role:
+    name: reboot
+
+# verify booted checksum
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: true
+      checksum: "{{ hmo_csum }}"
+
+- name: Rollback to HEAD
+  import_role:
+    name: rpm_ostree_rollback
+
+# reboot
+- import_role:
+    name: reboot
+
+# verify HEAD checksum is booted
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: true
+      checksum: "{{ head_csum }}"
+
+- name: Cleanup rollback
+  command: rpm-ostree cleanup -r
+
+# verify rollback cleanup
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 1
+    deployment: 0
+    expected:
+      checksum: "{{ head_csum }}"

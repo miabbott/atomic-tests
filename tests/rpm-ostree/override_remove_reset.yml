@@ -1,0 +1,67 @@
+---
+# vim: set ft=ansible:
+#
+# remove the package
+- import_role:
+    name: rpm_ostree_override
+  vars:
+    roo_subcommand: 'remove'
+    roo_packages: '{{ g_remove_pkg }}'
+
+- import_role:
+    name: reboot
+
+# run rpm-ostree status to get the json output for the removed packages
+- import_role:
+    name: rpm_ostree_status
+
+# base removals should contain the removed package
+- name: Fail if removed package is not in base-removals
+  when: g_remove_pkg != ros_booted['base-removals'][0][1]
+  fail:
+    msg: |
+      Expected: {{ g_remove_pkg }} is in base-removals
+      Actual:
+        base-removals:
+          {{ ros_booted['base-removals'] }}
+
+# verify the package has been removed by checking the rpm output
+- import_role:
+    name: rpm_ostree_uninstall_verify
+  vars:
+    rouv_package_name: '{{ g_remove_pkg }}'
+
+# cleanup by resetting package
+- import_role:
+    name: rpm_ostree_override
+  vars:
+    roo_subcommand: 'reset'
+    roo_packages: '{{ g_remove_pkg }}'
+
+- import_role:
+    name: reboot
+
+- import_role:
+    name: rpm_ostree_status
+
+- name: Fail if removed package is in base-removals after rolling back
+  when: ros_booted['base-removals']|length > 0
+  fail:
+    msg: |
+      Expected: No packages in base-removals
+      Actual:   {{ ros_booted['base-removals'] }}
+
+# check that the base package is installed again
+# We should be able to use import_role here but for some reason the
+# roiv_package_name is being populated by g_pkg instead of g_remove_pkg
+- include_role:
+    name: rpm_ostree_install_verify
+  vars:
+    roiv_package_name: '{{ g_remove_pkg }}'
+    roiv_status_check: false
+    roiv_binary_check: false
+
+# cleanup
+- import_role:
+    name: rpm_ostree_cleanup_all
+

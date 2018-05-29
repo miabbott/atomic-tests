@@ -1,0 +1,58 @@
+---
+# vim: set ft=ansible:
+#
+- import_role:
+    name: rpm_ostree_status
+
+# Get the parent of the deployed commit, which we will use as HEAD-1
+# in case the remote gets updated while testing
+- name: Get parent of deployed commit
+  command: ostree rev-parse {{ ros_booted['checksum'] }}^
+  register: orp
+
+# the rpm_ostree_status above sets the ros_booted variable used below
+- name: Set current commit version and refspec
+  set_fact:
+    head_csum: "{{ ros_booted['checksum'] }}"
+    hmo_csum: "{{ orp.stdout }}"
+    refspec: "{{ ros_booted['origin'] }}"
+
+- name: Deploy HEAD-1 checksum
+  command: rpm-ostree deploy {{ hmo_csum }}
+  register: ros_deploy
+  retries: 5
+  delay: 60
+  until: ros_deploy|success
+
+# verify pending deployment info
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: false
+      checksum: "{{ hmo_csum }}"
+
+# verify current deployment info
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 1
+    expected:
+      booted: true
+      checksum: "{{ head_csum }}"
+
+- name: Delete pending deployment
+  command: rpm-ostree cleanup -p
+
+# verify origin deployment is still there and not deleted
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 1
+    deployment: 0
+    expected:
+      booted: true
+      checksum: "{{ head_csum }}"

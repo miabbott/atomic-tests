@@ -1,0 +1,87 @@
+---
+# vim: set ft=ansible:
+#
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1571264
+- name: Run ostree admin status as a quick sanity check
+  command: ostree admin status
+  tags:
+    - ostree_admin_status
+
+- import_role:
+    name: rpm_ostree_status
+
+# It's possible that the test could be run against a commit that is older
+# that what HEAD is on the remote.  So let's just get all the commit
+# metadata to be safe.
+- name: Pull all the commit data
+  command: >
+    ostree pull --commit-metadata-only --depth=-1 {{ ros_booted['origin'] }}
+  register: osp
+  retries: 5
+  delay: 60
+  until: osp|success
+
+# Use the parent of the deployed commit as HEAD-1, in case the remote
+# is updated during the test.
+- name: Get parent of deployed commit
+  shell: >
+    ostree show $(ostree rev-parse {{ ros_booted['checksum'] }}^)
+    --print-metadata-key version | tr -d \'
+  register: ostree_show
+
+# the rpm_ostree_status above sets the ros_booted variable used below
+- name: Set current version and refspec
+  set_fact:
+    head_version: "{{ ros_booted['version'] }}"
+    hmo_version: "{{ ostree_show.stdout }}"
+    refspec: "{{ ros_booted['origin'] }}"
+
+- name: Deploy HEAD-1
+  command: rpm-ostree deploy {{ hmo_version }}
+  register: ros_deploy
+  retries: 5
+  delay: 60
+  until: ros_deploy|success
+
+# reboot
+- import_role:
+    name: reboot
+
+# verify version in deployment 0
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    deployment: 0
+    num_deployments: 2
+    expected:
+      booted: true
+      version: "{{ hmo_version }}"
+
+# rollback to head
+- import_role:
+    name: rpm_ostree_rollback
+
+# reboot
+- import_role:
+    name: reboot
+
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    deployment: 0
+    num_deployments: 2
+    expected:
+      version: "{{ head_version }}"
+
+- name: Cleanup deployments
+  command: rpm-ostree cleanup -r
+
+# verify cleanup
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    deployment: 0
+    num_deployments: 1
+    expected:
+      version: "{{ head_version }}"

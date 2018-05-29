@@ -1,0 +1,78 @@
+---
+# vim: set ft=ansible:
+#
+- name: Create temp directory
+  command: mktemp -d
+  register: temp_dir
+
+- name: Get {{ g_replace_pkg }}
+  get_url:
+    url: '{{ g_replace_pkg_url }}'
+    dest: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
+
+# Set original {{ g_replace_pkg }} nevra
+- import_role:
+    name: rpm_nevra
+  vars:
+    rn_package: '{{ g_replace_pkg }}'
+
+- name: Set original nevra facts from rpm
+  set_fact:
+    original_nevra: '{{ rn_nevra }}'
+
+# Set new {{ g_replace_pkg }} nevra
+- import_role:
+    name: rpm_nevra
+  vars:
+    rn_package: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
+
+- name: Set new nevra facts
+  set_fact:
+    new_nevra: '{{ rn_nevra }}'
+
+- import_role:
+    name: rpm_ostree_override
+  vars:
+    roo_subcommand: 'replace'
+    roo_packages: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
+
+- import_role:
+    name: reboot
+
+- import_role:
+    name: rpm_ostree_status
+
+- import_role:
+    name: rpm_nevra_compare
+  vars:
+    rnc_tuple1: '{{ original_nevra }}'
+    rnc_tuple2: '{{ ros_booted["base-local-replacements"][0][1] }}'
+
+- import_role:
+    name: rpm_nevra_compare
+  vars:
+    rnc_tuple1: '{{ new_nevra }}'
+    rnc_tuple2: '{{ ros_booted["base-local-replacements"][0][0] }}'
+
+- import_role:
+    name: rpm_ostree_override
+  vars:
+    roo_subcommand: 'reset'
+    roo_packages: '{{ g_replace_pkg }}'
+
+- import_role:
+    name: reboot
+
+- import_role:
+    name: rpm_ostree_status
+
+- name: Fail if replaced packages are found in rpm-ostree status
+  when: ros_booted["base-local-replacements"]|length > 0
+  fail:
+    msg: |
+      Expected: No replaced base packages
+      Actual:   {{ ros_booted["base-local-replacements"] }}
+
+# cleanup
+- import_role:
+    name: rpm_ostree_cleanup_all

@@ -1,0 +1,165 @@
+---
+# vim: set ft=ansible:
+#
+- import_role:
+    name: rpm_ostree_status
+
+# Get the parent of the deployed commit, which we will use as HEAD-1
+# in case the remote gets updated while testing
+- name: Get parent of deployed commit
+  command: ostree rev-parse {{ ros_booted['checksum'] }}^
+  register: orp
+
+# the rpm_ostree_status above sets the ros_booted variable used below
+- name: Set current commit version and refspec
+  set_fact:
+    head_csum: "{{ ros_booted['checksum'] }}"
+    hmo_csum: "{{ orp.stdout }}"
+    refspec: "{{ ros_booted['origin'] }}"
+
+- name: Set origin file
+  command: ostree admin --print-current-dir
+  register: current_dir
+
+- name: Create local branch
+  command: ostree refs --create local-branch {{ head_csum }}
+
+# update refspec in origin file so rpm-ostree upgrade uses local-branch
+- name: Update origin file
+  command: >
+    sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g'
+    {{ current_dir.stdout }}.origin
+
+- name: Commit new local branch
+  command: >
+    ostree commit -b local-branch --tree=ref=local-branch
+    --add-metadata-string version=test
+  register: new_commit
+
+- name: rpm-ostree reload
+  command: rpm-ostree reload
+
+- name: Upgrade
+  command: rpm-ostree upgrade --install {{ g_pkg }}
+  register: ros_upgrade
+  retries: 5
+  delay: 60
+  until: ros_upgrade|success
+
+# reboot
+- import_role:
+    name: reboot
+
+# verify upgrade info
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: true
+      base-checksum: "{{ new_commit.stdout }}"
+
+# verify installation of {{ g_pkg }}
+- import_role:
+    name: rpm_ostree_install_verify
+  vars:
+    roiv_package_name: "{{ g_pkg }}"
+    roiv_binary_name: "{{ g_pkg }}"
+
+- name: Rebase back to original deployment
+  command: rpm-ostree rebase {{ refspec }} {{ head_csum }}
+
+# reboot
+- import_role:
+    name: reboot
+
+# verify rebase info
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: true
+      base-checksum: "{{ head_csum }}"
+
+# verify package is still layered
+- import_role:
+    name: rpm_ostree_install_verify
+  vars:
+    roiv_package_name: "{{ g_pkg }}"
+    roiv_binary_name: "{{ g_pkg }}"
+
+# refresh rpm-ostree status variables
+- import_role:
+    name: rpm_ostree_status
+
+- name: Deploy HEAD-1
+  command: rpm-ostree deploy {{ hmo_csum }} --uninstall {{ g_pkg }}
+  register: ros_deploy
+  retries: 5
+  delay: 60
+  until: ros_deploy|success
+
+# reboot
+- import_role:
+    name: reboot
+
+# verify package is no longer installed
+- import_role:
+    name: rpm_ostree_uninstall_verify
+  vars:
+    rouv_package_name: "{{ g_pkg }}"
+    rouv_binary_name: "{{ g_pkg }}"
+
+# verify deploy with uninstallation info
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: true
+      checksum: "{{ hmo_csum }}"
+
+# Deploy back to original commit
+- name: Deploy original commit
+  command: rpm-ostree deploy {{ head_csum }}
+  register: rosd_head
+  retries: 5
+  delay: 60
+  until: rosd_head|success
+
+# reboot
+- import_role:
+    name: reboot
+
+# verify package is still not installed
+- import_role:
+    name: rpm_ostree_uninstall_verify
+  vars:
+    rouv_package_name: "{{ g_pkg }}"
+    rouv_binary_name: "{{ g_pkg }}"
+
+# verify upgrade info
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 2
+    deployment: 0
+    expected:
+      booted: true
+      checksum: "{{ head_csum }}"
+
+- name: Cleanup
+  command: rpm-ostree cleanup -rpmb
+
+# verify cleanup
+- import_role:
+    name: rpm_ostree_status_verify
+  vars:
+    num_deployments: 1
+    deployment: 0
+    expected:
+      checksum: "{{ head_csum }}"

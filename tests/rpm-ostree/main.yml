@@ -9,1249 +9,172 @@
   hosts: all
   become: true
 
-  tags:
-    - setup
-
   vars_files:
     - vars.yml
 
-  roles:
-    - role: ansible_version_check
+  vars:
+    tests: []
+
+  tasks:
+    - name: Set logging
+      set_fact:
+        log_results: true
+        result_file: "{{ playbook_dir }}/rpm-ostree-result.log"
       tags:
-        - ansible_version_check
+        - setup
 
-    # Subscribe if the system is RHEL
-    - when: ansible_distribution == 'RedHat'
-      role: redhat_subscription
+    - include_tasks: 'setup.yml'
       tags:
-        - redhat_subscription
+        - setup
 
-#####################################################################################
-#
-# rpm-ostree deploy version
-#   - validates deploying by version string
-#   - validates cleanup of rollback deployment
-#
-#####################################################################################
-
-- name: rpm-ostree - deploy by version
-  hosts: all
-  become: true
-
-  tags:
-    - deploy_version
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    # https://bugzilla.redhat.com/show_bug.cgi?id=1571264
-    - name: Run ostree admin status as a quick sanity check
-      command: ostree admin status
+    # TEST
+    # Verify deploying via version string
+    - block:
+        - include_tasks: 'deploy_version.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Deploy via Version String', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Deploy via Version String', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
       tags:
-        - ostree_admin_status
-
-    - import_role:
-        name: rpm_ostree_status
-
-    # It's possible that the test could be run against a commit that is older
-    # that what HEAD is on the remote.  So let's just get all the commit
-    # metadata to be safe.
-    - name: Pull all the commit data
-      command: >
-        ostree pull --commit-metadata-only --depth=-1 {{ ros_booted['origin'] }}
-      register: osp
-      retries: 5
-      delay: 60
-      until: osp|success
-
-    # Use the parent of the deployed commit as HEAD-1, in case the remote
-    # is updated during the test.
-    - name: Get parent of deployed commit
-      shell: >
-        ostree show $(ostree rev-parse {{ ros_booted['checksum'] }}^)
-        --print-metadata-key version | tr -d \'
-      register: ostree_show
-
-    # the rpm_ostree_status above sets the ros_booted variable used below
-    - name: Set current version and refspec
-      set_fact:
-        head_version: "{{ ros_booted['version'] }}"
-        hmo_version: "{{ ostree_show.stdout }}"
-        refspec: "{{ ros_booted['origin'] }}"
-
-    - name: Deploy HEAD-1
-      command: rpm-ostree deploy {{ hmo_version }}
-      register: ros_deploy
-      retries: 5
-      delay: 60
-      until: ros_deploy|success
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify version in deployment 0
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        deployment: 0
-        num_deployments: 2
-        expected:
-          booted: true
-          version: "{{ hmo_version }}"
-
-    # rollback to head
-    - import_role:
-        name: rpm_ostree_rollback
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        deployment: 0
-        num_deployments: 2
-        expected:
-          version: "{{ head_version }}"
-
-    - name: Cleanup deployments
-      command: rpm-ostree cleanup -r
-
-    # verify cleanup
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        deployment: 0
-        num_deployments: 1
-        expected:
-          version: "{{ head_version }}"
-
-
-#####################################################################################
-#
-# rpm-ostree deploy commit id
-#   - validates deploying by commit id
-#   - validates cleanup of rollback deployment
-#
-#####################################################################################
-
-- name: rpm-ostree - deploy by commit
-  hosts: all
-  become: true
-
-  tags:
-    - deploy_commit
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - import_role:
-        name: rpm_ostree_status
-
-    # Get the parent of the deployed commit, which we will use as HEAD-1
-    # in case the remote gets updated while testing
-    - name: Get parent of deployed commit
-      command: ostree rev-parse {{ ros_booted['checksum'] }}^
-      register: orp
-
-    # the rpm_ostree_status above sets the ros_booted variable used below
-    - name: Set current commit version and refspec
-      set_fact:
-        head_csum: "{{ ros_booted['checksum'] }}"
-        hmo_csum: "{{ orp.stdout }}"
-        refspec: "{{ ros_booted['origin'] }}"
-
-    - name: Deploy HEAD-1
-      command: rpm-ostree deploy {{ hmo_csum }}
-      register: ros_deploy
-      retries: 5
-      delay: 60
-      until: ros_deploy|success
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify booted checksum
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: true
-          checksum: "{{ hmo_csum }}"
-
-    - name: Rollback to HEAD
-      import_role:
-        name: rpm_ostree_rollback
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify HEAD checksum is booted
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: true
-          checksum: "{{ head_csum }}"
-
-    - name: Cleanup rollback
-      command: rpm-ostree cleanup -r
-
-    # verify rollback cleanup
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 1
-        deployment: 0
-        expected:
-          checksum: "{{ head_csum }}"
-
-#####################################################################################
-#
-# rpm-ostree cleanup test
-#   - validates cleanup of pending deployments
-#
-#####################################################################################
-
-- name: rpm-ostree - cleanup
-  hosts: all
-  become: true
-
-  tags:
-    - cleanup_pending
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - import_role:
-        name: rpm_ostree_status
-
-    # Get the parent of the deployed commit, which we will use as HEAD-1
-    # in case the remote gets updated while testing
-    - name: Get parent of deployed commit
-      command: ostree rev-parse {{ ros_booted['checksum'] }}^
-      register: orp
-
-    # the rpm_ostree_status above sets the ros_booted variable used below
-    - name: Set current commit version and refspec
-      set_fact:
-        head_csum: "{{ ros_booted['checksum'] }}"
-        hmo_csum: "{{ orp.stdout }}"
-        refspec: "{{ ros_booted['origin'] }}"
-
-    - name: Deploy HEAD-1 checksum
-      command: rpm-ostree deploy {{ hmo_csum }}
-      register: ros_deploy
-      retries: 5
-      delay: 60
-      until: ros_deploy|success
-
-    # verify pending deployment info
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: false
-          checksum: "{{ hmo_csum }}"
-
-    # verify current deployment info
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 1
-        expected:
-          booted: true
-          checksum: "{{ head_csum }}"
-
-    - name: Delete pending deployment
-      command: rpm-ostree cleanup -p
-
-    # verify origin deployment is still there and not deleted
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 1
-        deployment: 0
-        expected:
-          booted: true
-          checksum: "{{ head_csum }}"
-
-#####################################################################################
-#
-# rpm-ostree upgrade + rebase
-#   - simulates an upgrade and rebases to origin
-#
-#####################################################################################
-
-- name: rpm-ostree - upgrade and rebase
-  hosts: all
-  become: true
-
-  tags:
-    - upgrade_rebase
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - import_role:
-        name: rpm_ostree_status
-
-    # the rpm_ostree_status above sets the ros_booted variable used below
-    - name: Set current commit version and refspec
-      set_fact:
-        head_csum: "{{ ros_booted['checksum'] }}"
-        refspec: "{{ ros_booted['origin'] }}"
-
-    - name: Get origin dir
-      command: ostree admin --print-current-dir
-      register: current_dir
-
-    - name: Create local branch
-      command: ostree refs --create local-branch {{ head_csum }}
-
-    # update refspec in origin file so rpm-ostree upgrade uses local-branch
-    - name: Update origin file
-      command: >
-        sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g'
-        {{ current_dir.stdout }}.origin
-
-    - name: Commit new local branch
-      command: >
-        ostree commit -b local-branch --tree=ref=local-branch
-        --add-metadata-string version=test
-      register: new_commit
-
-    # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
-    - name: rpm-ostree reload
-      when:
-        - ansible_distribution != 'Fedora'
-        - ansible_distribution_major_version != '26'
-      command: rpm-ostree reload
-
-    - name: restart rpm-ostreed
-      when:
-        - ansible_distribution == 'Fedora'
-        - ansible_distribution_major_version == '26'
-      service:
-        name: rpm-ostreed
-        state: restarted
-
-    # rpm-ostree upgrade
-    - import_role:
-        name: rpm_ostree_upgrade
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify upgrade info
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          checksum: "{{ new_commit.stdout }}"
-          version: "test"
-          origin: "local-branch"
-
-    - name: Rebase back to original deployment
-      command: rpm-ostree rebase {{ refspec }} {{ head_csum }}
-      register: ros_rebase
-      retries: 5
-      delay: 60
-      until: ros_rebase|success
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify rebase back to original refspec
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          checksum: "{{ head_csum }}"
-
-    - name: Cleanup
-      command: rpm-ostree cleanup -rpmb
-
-    # verify cleanup
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 1
-        deployment: 0
-        expected:
-          checksum: "{{ head_csum }}"
-
-
-#####################################################################################
-#
-# rpm-ostree upgrade + rebase + install + uninstall
-#   - simulates an upgrade and rebases to origin with install/uninstall
-#
-#####################################################################################
-
-- name: rpm-ostree - upgrade and rebase + install and uninstall
-  hosts: all
-  become: true
-
-  tags:
-    - upgrade_rebase_install_uninstall
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - import_role:
-        name: rpm_ostree_status
-
-    # Get the parent of the deployed commit, which we will use as HEAD-1
-    # in case the remote gets updated while testing
-    - name: Get parent of deployed commit
-      command: ostree rev-parse {{ ros_booted['checksum'] }}^
-      register: orp
-
-    # the rpm_ostree_status above sets the ros_booted variable used below
-    - name: Set current commit version and refspec
-      set_fact:
-        head_csum: "{{ ros_booted['checksum'] }}"
-        hmo_csum: "{{ orp.stdout }}"
-        refspec: "{{ ros_booted['origin'] }}"
-
-    - name: Set origin file
-      command: ostree admin --print-current-dir
-      register: current_dir
-
-    - name: Create local branch
-      command: ostree refs --create local-branch {{ head_csum }}
-
-    # update refspec in origin file so rpm-ostree upgrade uses local-branch
-    - name: Update origin file
-      command: >
-        sed -i 's/^\(.*refspec\)=.*$/\1=local-branch/g'
-        {{ current_dir.stdout }}.origin
-
-    - name: Commit new local branch
-      command: >
-        ostree commit -b local-branch --tree=ref=local-branch
-        --add-metadata-string version=test
-      register: new_commit
-
-    # TODO: revert this conditional once F26 picks up rpm-ostree 2017.9
-    - name: rpm-ostree reload
-      when:
-        - ansible_distribution != 'Fedora'
-        - ansible_distribution_major_version != '26'
-      command: rpm-ostree reload
-
-    - name: restart rpm-ostreed
-      when:
-        - ansible_distribution == 'Fedora'
-        - ansible_distribution_major_version == '26'
-      service:
-        name: rpm-ostreed
-        state: restarted
-
-    - name: Upgrade
-      command: rpm-ostree upgrade --install {{ g_pkg }}
-      register: ros_upgrade
-      retries: 5
-      delay: 60
-      until: ros_upgrade|success
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify upgrade info
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: true
-          base-checksum: "{{ new_commit.stdout }}"
-
-    # verify installation of {{ g_pkg }}
-    - import_role:
-        name: rpm_ostree_install_verify
-      vars:
-        roiv_package_name: "{{ g_pkg }}"
-        roiv_binary_name: "{{ g_pkg }}"
-
-    - name: Rebase back to original deployment
-      command: rpm-ostree rebase {{ refspec }} {{ head_csum }}
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify rebase info
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: true
-          base-checksum: "{{ head_csum }}"
-
-    # verify package is still layered
-    - import_role:
-        name: rpm_ostree_install_verify
-      vars:
-        roiv_package_name: "{{ g_pkg }}"
-        roiv_binary_name: "{{ g_pkg }}"
-
-    # refresh rpm-ostree status variables
-    - import_role:
-        name: rpm_ostree_status
-
-    - name: Deploy HEAD-1
-      command: rpm-ostree deploy {{ hmo_csum }} --uninstall {{ g_pkg }}
-      register: ros_deploy
-      retries: 5
-      delay: 60
-      until: ros_deploy|success
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify package is no longer installed
-    - import_role:
-        name: rpm_ostree_uninstall_verify
-      vars:
-        rouv_package_name: "{{ g_pkg }}"
-        rouv_binary_name: "{{ g_pkg }}"
-
-    # verify deploy with uninstallation info
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: true
-          checksum: "{{ hmo_csum }}"
-
-    # Deploy back to original commit
-    - name: Deploy original commit
-      command: rpm-ostree deploy {{ head_csum }}
-      register: rosd_head
-      retries: 5
-      delay: 60
-      until: rosd_head|success
-
-    # reboot
-    - import_role:
-        name: reboot
-
-    # verify package is still not installed
-    - import_role:
-        name: rpm_ostree_uninstall_verify
-      vars:
-        rouv_package_name: "{{ g_pkg }}"
-        rouv_binary_name: "{{ g_pkg }}"
-
-    # verify upgrade info
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: true
-          checksum: "{{ head_csum }}"
-
-    - name: Cleanup
-      command: rpm-ostree cleanup -rpmb
-
-    # verify cleanup
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 1
-        deployment: 0
-        expected:
-          checksum: "{{ head_csum }}"
-
-#####################################################################################
-#
-# rpm-ostree livefs
-#   - simple test for test livefs
-#
-#####################################################################################
-- name: rpm-ostree livefs
-  hosts: all
-  become: true
-
-  tags:
-    - livefs
-
-  pre_tasks:
-    - name: Set pkg name
-      set_fact:
-        pkg_name: "wget"
-
-  roles:
-    - role: rpm_ostree_cleanup_all
-
-    - role: rpm_ostree_install
-      roi_packages: "{{ pkg_name }}"
-      roi_reboot: false
-
-    - role: rpm_ostree_livefs
-
-    - role: rpm_ostree_install_verify
-      roiv_package_name: "{{ pkg_name }}"
-      roiv_status_check: false
-
-    # rol_base_commit and rol_livefs_commit come from the rpm_ostree_livefs role
-    # deployment information
-    - role: rpm_ostree_status_verify
-      num_deployments: 3
-      deployment: 1
-      expected:
-        booted: true
-        checksum: "{{ rol_base_commit }}"
-        live-replaced: "{{ rol_livefs_commit }}"
-
-    - role: rpm_ostree_status_verify
-      deployment: 0
-      expected:
-        booted: false
-        checksum: "{{ rol_livefs_commit }}"
-        packages:
-          - "{{ pkg_name }}"
-
-    - role: rpm_ostree_status_verify
-      deployment: 2
-      expected:
-        booted: false
-        checksum: "{{ rol_base_commit }}"
-        packages: []
-
-    # Reboot and check that the deployment is now a typical package layered
-    # deployment
-    - role: reboot
-
-    - role: rpm_ostree_install_verify
-      roiv_package_name: "{{ pkg_name }}"
-      roiv_status_check: false
-
-    - role: rpm_ostree_status_verify
-      deployment: 0
-      expected:
-        booted: true
-        base-checksum: "{{ rol_base_commit }}"
-        checksum: "{{ rol_livefs_commit }}"
-        packages:
-          - "{{ pkg_name }}"
-
-    - role: rpm_ostree_status_verify
-      deployment: 1
-      expected:
-        booted: false
-        checksum: "{{ rol_base_commit }}"
-        live-replaced: "{{ rol_livefs_commit }}"
-
-    - role: rpm_ostree_status_verify
-      deployment: 2
-      expected:
-        booted: false
-        checksum: "{{ rol_base_commit }}"
-        packages: []
-
-    # Rollback twice to get to the original deployment
-    - role: rpm_ostree_rollback
-
-    - role: rpm_ostree_rollback
-
-    # Reboot and verify that the system is back to the original deployment
-    # without livefs or layered packages
-    - role: reboot
-
-    - role: rpm_ostree_uninstall_verify
-      rouv_package_name: "{{ pkg_name }}"
-      rouv_status_check: false
-
-    - role: rpm_ostree_status_verify
-      deployment: 0
-      expected:
-        booted: true
-        checksum: "{{ rol_base_commit }}"
-        packages: []
-
-    - role: rpm_ostree_status_verify
-      deployment: 1
-      expected:
-        booted: false
-        checksum: "{{ rol_base_commit }}"
-        live-replaced: "{{ rol_livefs_commit }}"
-
-    - role: rpm_ostree_status_verify
-      deployment: 2
-      expected:
-        booted: false
-        base-checksum: "{{ rol_base_commit }}"
-        checksum: "{{ rol_livefs_commit }}"
-        packages:
-          - "{{ pkg_name }}"
-
-    - role: rpm_ostree_cleanup_all
-
-#####################################################################################
-#
-# rpm-ostree initramfs
-#   - test client side initramfs
-#
-#####################################################################################
-
-- name: rpm-ostree - client side initramfs
-  hosts: all
-  become: true
-
-  tags:
-    - initramfs
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Create initramfs file
-      file:
-        path: /etc/rpmostree-file
-        state: touch
-
-    - name: Modify initramfs file
-      lineinfile:
-        dest: /etc/rpmostree-file
-        line: "rpm-ostree-test"
-
-    - name: Enable initramfs
-      command: >
-        rpm-ostree initramfs --enable --arg="-I"
-        --arg="/etc/rpmostree-file"
-
-    - import_role:
-        name: reboot
-
-    - import_role:
-        name: rpm_ostree_status_verify
-      vars:
-        num_deployments: 2
-        deployment: 0
-        expected:
-          booted: true
-          regenerate-initramfs: true
-
-    - name: Fail if initramfs does not have two arguments
-      when: ros_booted['initramfs-args']|length != 2
-      fail:
-        msg: |
-          Expected: 2 arguments
-          Actual: {{ ros_booted['initramfs-args'] | length }}
-
-    - name: Fail if first initramfs argument is not set
-      when: "'-I' not in ros_booted['initramfs-args'][0]"
-      fail:
-        msg: |
-          Expected: -I in initramfs args
-          Actual:  {{ ros_booted['initramfs-args'][0] }}
-
-    - name: Fail if second initramfs argument is not set
-      when: "'/etc/rpmostree-file' not in ros_booted['initramfs-args'][1]"
-      fail:
-        msg: |
-          Expected: /etc/rpmostree-file in rpm-ostree initramfs-args
-          Actual: {{ ros_booted['initramfs-args'][1] }}
-
-    - name: set osname
-      set_fact:
-        osname: "{{ ros_booted['osname'] }}"
-
-    - name: Get bootloader entry
-      shell: >
-        grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf |
-        sed -e 's,initrd ,/boot/,'
-      register: initrd
-
-    - name: Check initramfs file
-      command: test -n {{ initrd.stdout }}
-
-    - name: Get contents of initrd
-      command: lsinitrd {{ initrd.stdout }} -f /etc/rpmostree-file
-      register: lsinitrd
-
-    - name: Fail if contents of initrd is incorrect
-      when: "'rpm-ostree-test' not in lsinitrd.stdout"
-      fail:
-        msg: |
-          Expected: lsinitrd of /etc/rpm-ostree-file contains rpm-ostree-test
-          Actual: {{ lsinitrd.stdout }}
-
-    - name: Disable initramfs
-      command: rpm-ostree initramfs --disable
-
-    - import_role:
-        name: reboot
-
-    - name: Get bootloader entry
-      shell: >
-        grep ^initrd /boot/loader/entries/ostree-{{ osname }}-0.conf |
-        sed -e 's,initrd ,/boot/,'
-      register: initrd_disabled
-
-    - name: Check initramfs file
-      command: test -n {{ initrd_disabled.stdout }}
-
-    - name: Get contents of initrd
-      command: lsinitrd {{ initrd_disabled.stdout }} -f /etc/rpmostree-file
-      register: lsinitrd_disabled
-
-    - name: Fail if contents of initramfs is incorrect
-      when: "'rpm-ostree-test' in lsinitrd_disabled.stdout"
-      fail:
-        msg: |
-          Expected: initramfs of /etc/rpmostree-file contains rpm-ostree-test
-          Actual: {{ lsinitrd_disabled.stdout }}
-
-    - name: Clean up deployments
-      command: rpm-ostree cleanup -rpmb
-
-
-#####################################################################################
-#
-# rpm-ostree compose
-#   - test creating custom composes
-#
-#####################################################################################
-
-- name: rpm-ostree compose
-  hosts: all
-  become: true
-
-  tags:
-    - compose
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    # Only run this test on Fedora and CentOS Atomic Host Continuous
-    # RHEL Atomic Host and CentOS do not have compose abilities enabled
-    - when: >
-        ansible_distribution == "Fedora" or
-        ansible_distribution == "CentOSDev"
-      block:
-        - name: Set base dir
-          set_fact:
-            base_dir: '/var/srv'
-
-        - name: Set common facts
-          set_fact:
-            compose_pkg: 'wget'
-            cache_dir: '{{ base_dir }}/cache'
-            repo_dir: '{{ base_dir }}/repo'
-
-        - name: Set Fedora facts
-          when: ansible_distribution == "Fedora"
-          set_fact:
-            repo_url: 'https://pagure.io/fedora-atomic.git'
-            repo_name: 'fedora-atomic'
-            json_file: 'fedora-atomic-host-base.json'
-
-        - name: Set CentOS Continuous facts
-          when: ansible_distribution == "CentOSDev"
-          set_fact:
-            repo_url: 'https://github.com/CentOS/sig-atomic-buildscripts.git'
-            repo_name: 'centos'
-            base_json: 'centos-atomic-host.json'
-            json_file: 'centos-atomic-host-continuous.json'
-
-        # CentOS Atomic Host runs out of space in the root partition when
-        # creating a tree and rebasing to it so the root partition needs
-        # to be increased
-        - name: Resize partition for CentOS
-          when: ansible_distribution == "CentOSDev"
-          import_role:
-            name: resize_lv
-          vars:
-            rl_lvname: 'root'
-            rl_lvsize: '6'
-
-        - name: Clone fedora 27 repo
-          when: ansible_distribution == "Fedora"
-          command: >
-            docker run -v {{ base_dir }}:{{ base_dir }}:z
-              docker.io/miabbott/aht-tools /bin/bash -c
-              "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
-               cd {{ base_dir }}/{{ repo_name }}; git checkout f27"
-
-        - name: Clone sig-atomic-buildscripts repo
-          when: ansible_distribution == "CentOSDev"
-          command: >
-            docker run -v {{ base_dir }}:{{ base_dir }}:z
-              docker.io/miabbott/aht-tools /bin/bash -c
-              "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
-               cd {{ base_dir }}/{{ repo_name }};"
-
-        - name: Create repo directory
-          file:
-            path: '{{ repo_dir }}'
-            state: directory
-            mode: 0755
-
-        - name: Initialize repo directory
-          command: ostree --repo=repo init --mode=archive-z2
-          args:
-            chdir: '{{ base_dir }}'
-
-        - name: Create cache directory
-          file:
-            path: '{{ cache_dir }}'
-            state: directory
-            mode: 0755
-
-        # base_json is required because the CAHC json file uses the centos
-        # atomic host base json which contains the package list that needs
-        # to be modified
-        - name: Modify base package json for CAHC
-          when: base_json is defined
-          lineinfile:
-            dest: '{{ base_dir }}/{{ repo_name }}/{{ base_json }}'
-            state: present
-            insertafter: '"docker",$'
-            line: '         "{{ compose_pkg }}",'
-
-        - name: Modify base package json for Fedora
-          when: base_json is undefined
-          lineinfile:
-            dest: '{{ base_dir }}/{{ repo_name }}/{{ json_file }}'
-            state: present
-            insertafter: '"docker",$'
-            line: '         "{{ compose_pkg }}",'
-
-        - name: Compose new tree
-          command: >
-            rpm-ostree compose tree
-              --cachedir={{ cache_dir }}
-              --repo={{ repo_dir }}
-              {{ base_dir }}/{{ repo_name }}/{{ json_file }}
-          register: rct_output
-
-        - name: Set refspec and commit id
-          set_fact:
-            rct_refspec: "{{ rct_output.stdout | regex_search(regexp, '\\1') }}"
-            rct_commit_id: "{{ rct_output.stdout | regex_search(regexp, '\\2') }}"
-          vars:
-            regexp: '(.*)\s=>\s(.*)'
-
-        # Fire the http server and forget about it using the async option
-        # This http server will die when the system is rebooted after rebase
-        - name: Start http server and keep it running
-          command: python -m SimpleHTTPServer 80
-          args:
-            chdir: '{{ base_dir }}'
-          async: 1000
-          poll: 0
-          tags:
-            - start
-
-        - import_role:
-            name: rpm_ostree_rebase
-          vars:
-            ror_refspec: '{{ rct_refspec[0] }}'
-            ror_remote_name: local
-            ror_remote_url: http://localhost:80/repo
-
-        - import_role:
-            name: reboot
-
-        - import_role:
-            name: rpm_ostree_status
-
-        - name: Fail if booted commit is incorrect
-          when:
-            - rct_commit_id[0] != booted_checksum
-          fail:
-            msg: |
-              Expected: booted commit is {{ rct_commit_id[0] }}
-              Actual: booted commit is {{ booted_checksum }}
-          vars:
-            booted_checksum: '{{ ros_booted["checksum"] }}'
-
-        # use the rpm_ostree_install_verify to ensure compose_pkg  was part
-        # of the compose but do not check that it is layered
-        - import_role:
-            name: rpm_ostree_install_verify
-          vars:
-            roiv_package_name: '{{ compose_pkg }}'
-            roiv_binary_name: '{{ compose_pkg }}'
-            roiv_status_check: false
-
-        - import_role:
-            name: rpm_ostree_rollback
-
-        - import_role:
-            name: reboot
-
-        - name: Clean up deployments
-          command: rpm-ostree cleanup -rpmb
-
-
-- name: rpm-ostree - override replace reset
-  hosts: all
-  become: true
-
-  tags:
-    - override_replace_reset
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    - name: Create temp directory
-      command: mktemp -d
-      register: temp_dir
-
-    - name: Get {{ g_replace_pkg }}
-      get_url:
-        url: '{{ g_replace_pkg_url }}'
-        dest: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
-
-    # Set original {{ g_replace_pkg }} nevra
-    - import_role:
-        name: rpm_nevra
-      vars:
-        rn_package: '{{ g_replace_pkg }}'
-
-    - name: Set original nevra facts from rpm
-      set_fact:
-        original_nevra: '{{ rn_nevra }}'
-
-    # Set new {{ g_replace_pkg }} nevra
-    - import_role:
-        name: rpm_nevra
-      vars:
-        rn_package: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
-
-    - name: Set new nevra facts
-      set_fact:
-        new_nevra: '{{ rn_nevra }}'
-
-    - import_role:
-        name: rpm_ostree_override
-      vars:
-        roo_subcommand: 'replace'
-        roo_packages: '{{ temp_dir.stdout }}/{{ g_replace_pkg }}.rpm'
-
-    - import_role:
-        name: reboot
-
-    - import_role:
-        name: rpm_ostree_status
-
-    - import_role:
-        name: rpm_nevra_compare
-      vars:
-        rnc_tuple1: '{{ original_nevra }}'
-        rnc_tuple2: '{{ ros_booted["base-local-replacements"][0][1] }}'
-
-    - import_role:
-        name: rpm_nevra_compare
-      vars:
-        rnc_tuple1: '{{ new_nevra }}'
-        rnc_tuple2: '{{ ros_booted["base-local-replacements"][0][0] }}'
-
-    - import_role:
-        name: rpm_ostree_override
-      vars:
-        roo_subcommand: 'reset'
-        roo_packages: '{{ g_replace_pkg }}'
-
-    - import_role:
-        name: reboot
-
-    - import_role:
-        name: rpm_ostree_status
-
-    - name: Fail if replaced packages are found in rpm-ostree status
-      when: ros_booted["base-local-replacements"]|length > 0
-      fail:
-        msg: |
-          Expected: No replaced base packages
-          Actual:   {{ ros_booted["base-local-replacements"] }}
-
-    # cleanup
-    - import_role:
-        name: rpm_ostree_cleanup_all
-
-- name: rpm-ostree - override remove reset
-  hosts: all
-  become: true
-
-  tags:
-    - override_remove_reset
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    # remove the package
-    - import_role:
-        name: rpm_ostree_override
-      vars:
-        roo_subcommand: 'remove'
-        roo_packages: '{{ g_remove_pkg }}'
-
-    - import_role:
-        name: reboot
-
-    # run rpm-ostree status to get the json output for the removed packages
-    - import_role:
-        name: rpm_ostree_status
-
-    # base removals should contain the removed package
-    - name: Fail if removed package is not in base-removals
-      when: g_remove_pkg != ros_booted['base-removals'][0][1]
-      fail:
-        msg: |
-          Expected: {{ g_remove_pkg }} is in base-removals
-          Actual:
-            base-removals:
-              {{ ros_booted['base-removals'] }}
-
-    # verify the package has been removed by checking the rpm output
-    - import_role:
-        name: rpm_ostree_uninstall_verify
-      vars:
-        rouv_package_name: '{{ g_remove_pkg }}'
-
-    # cleanup by resetting package
-    - import_role:
-        name: rpm_ostree_override
-      vars:
-        roo_subcommand: 'reset'
-        roo_packages: '{{ g_remove_pkg }}'
-
-    - import_role:
-        name: reboot
-
-    - import_role:
-        name: rpm_ostree_status
-
-    - name: Fail if removed package is in base-removals after rolling back
-      when: ros_booted['base-removals']|length > 0
-      fail:
-        msg: |
-          Expected: No packages in base-removals
-          Actual:   {{ ros_booted['base-removals'] }}
-
-    # check that the base package is installed again
-    # We should be able to use import_role here but for some reason the
-    # roiv_package_name is being populated by g_pkg instead of g_remove_pkg
-    - include_role:
-        name: rpm_ostree_install_verify
-      vars:
-        roiv_package_name: '{{ g_remove_pkg }}'
-        roiv_status_check: false
-        roiv_binary_check: false
-
-    # cleanup
-    - import_role:
-        name: rpm_ostree_cleanup_all
-
-
-- name: rpm-ostree - negative testing
-  hosts: all
-  become: true
-
-  tags:
-    - override_negative
-
-  vars_files:
-    - vars.yml
-
-  tasks:
-    # TEST
-    # Attempt to remove a package that is not in the base layer
-    - name: Attempt to remove a package that is not in base layer
-      command: rpm-ostree override remove foobar
-      register: roor_foobar
-      ignore_errors: true
-
-    - name: Fail if removal was successful
-      when: roor_foobar|success
-      fail:
-        msg: |
-          Expected: Unable to remove a package that is not in the base layer
-          Actual:   rpm-ostree returned success for removing a package that
-                    does not exist in the base layer
+        - deploy_version
 
     # TEST
-    # Attempt to remove a package that is a dependency
-    - name: Attempt to remove a package with dependency
-      command: rpm-ostree override remove curl
-      register: roor_curl
-      ignore_errors: true
-
-    - name: Fail if removal was successful
-      when: roor_curl|success
-      fail:
-        msg: |
-          Expected: User should not be able to remove a package that is a
-                    dependency of another package
-          Actual:   User was able to remove a package that is a dependency
+    # Verify deploying via commit ID
+    - block:
+        - include_tasks: 'deploy_commit.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Deploy via Commit ID', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Deploy via Commit ID', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - deploy_commit
 
     # TEST
-    # Attempt to reset a package that does not exist
-    - name: Attempt to reset a package that does not exist
-      command: rpm-ostree override reset foobar
-      register: roor_ne_foobar
-      ignore_errors: true
-
-    - name: Fail if reset of non-existent package is successful
-      when: roor_ne_foobar|success
-      fail:
-        msg: |
-          Expected: User cannot reset a package that does not exist in the base
-                    layer
-          Actual:   User reset a package that does not exist in the base layer
+    # Verify cleanup of pending deployments
+    - block:
+        - include_tasks: 'cleanup_pending.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cleanup Pending Deployment', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cleanup Pending Deployment', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - cleanup_pending
 
     # TEST
-    # Attempt to reset a package that was not replaced/removed
-    - name: Attempt to reset a package that was not replaced or removed
-      command: rpm-ostree override reset bash
-      register: roor_bash
-      ignore_errors: true
+    # Verify upgrade + rebase
+    - block:
+        - include_tasks: 'upgrade_rebase.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Upgrade + Rebase', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Upgrade + Rebase', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - upgrade_rebase
 
-    - name: Fail if reset of an untouched base layer package is successful
-      when: roor_bash|success
-      fail:
-        msg: |
-          Expected: User cannot reset a package that has not been removed or
-                    replaced
-          Actual:   User reset a package that has not been removed or replaced
+    # TEST
+    # Verify upgrade + rebase + install + uninstall
+    - block:
+        - include_tasks: 'upgrade_rebase_install_uninstall.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Upgrade + Rebase + Install + Uninstall', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Upgrade + Rebase + Install + Uninstall', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - upgrade_rebase_install_uninstall
 
+    # TEST
+    # Verify livefs functionality
+    - block:
+        - include_tasks: 'livefs.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Livefs Functionality', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Livefs Functionality', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - livefs
+
+    # TEST
+    # Verify initramfs functionality
+    - block:
+        - include_tasks: 'initramfs.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Initramfs Functionality', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Initramfs Functionality', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - initramfs
+
+    # TEST
+    # Verify compose functionality
+    - block:
+        - include_tasks: 'compose.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Compose Functionality', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Compose Functionality', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - compose
+
+    # TEST
+    # Verify override replace + reset functionality
+    - block:
+        - include_tasks: 'override_replace_reset.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Override Replace + Reset Functionality', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Override Replace + Reset Functionality', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - override_replace_reset
+
+    # TEST
+    # Verify override Remove + reset functionality
+    - block:
+        - include_tasks: 'override_remove_reset.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Override Remove + Reset Functionality', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Verify Override Remove + Reset Functionality', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - override_remove_reset
+
+    # TEST
+    # Negative testing
+    - block:
+        - include_tasks: 'negative.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Negative Testing', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Negative Testing', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - negative
+
+    # CLEANUP
+    - block:
+        - include_tasks: 'cleanup.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name': 'Cleanup', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cleanup', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      always:
+        # WRITE RESULTS TO FILE
+        - name: Remove existing log files
+          local_action: file path={{ result_file }} state=absent
+          become: false
+
+        - name: Save result to file
+          when: log_results
+          local_action: copy content={{ tests | to_nice_yaml(indent=2) }} dest={{ result_file }}
+          become: false
+      tags: cleanup
