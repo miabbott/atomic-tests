@@ -178,3 +178,13 @@
           local_action: copy content={{ tests | to_nice_yaml(indent=2) }} dest={{ result_file }}
           become: false
       tags: cleanup
+
+
+    # Handled exceptions show up as failures in Ansible but the playbook
+    # itself does not return 0, so explicitly fail the test by checking
+    # the test results
+    - name: Explicitly fail based on test results
+      when: item['result']|lower == "failed"
+      fail:
+        msg: "Failure found in test"
+      with_items: "{{ tests }}"
