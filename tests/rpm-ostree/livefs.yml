@@ -13,7 +13,8 @@
 - import_role:
     name: rpm_ostree_livefs
 
-- import_role:
+# use include_role to get right variable values
+- include_role:
     name: rpm_ostree_install_verify
   vars:
     roiv_package_name: "{{ g_pkg }}"
@@ -55,7 +56,8 @@
 - import_role:
     name: reboot
 
-- import_role:
+# use include_role to get right variable values
+- include_role:
     name: rpm_ostree_install_verify
   vars:
     roiv_package_name: "{{ g_pkg }}"
