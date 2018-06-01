@@ -65,6 +65,12 @@
         - journal_fatal_msgs
         - rhcos
 
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1571264
+    - role: ostree_admin_status
+      tags:
+        - ostree_admin_status
+        - rhcos
+
     # Check RPM signatures
     - role: rpm_signature_verify
       tags:
@@ -537,6 +543,12 @@
       tags:
         - journal_fatal_msgs_second_boot
         - journal_fatal_msgs
+        - rhcos
+
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1571264
+    - role: ostree_admin_status
+      tags:
+        - ostree_admin_status_again
         - rhcos
 
     # We remove any subscriptions after the upgrade to verify that

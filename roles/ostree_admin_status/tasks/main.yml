@@ -1,0 +1,5 @@
+---
+# vim: set ft=ansible:
+#
+- name: Check 'ostree admin status'
+  command: ostree admin status
