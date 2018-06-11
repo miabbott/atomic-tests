@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 g_hw_image: 'docker.io/gscrivano/hello-world'
 g_hw_name: 'hello-world'
 g_invalid_value: 'xxfoobarxx'

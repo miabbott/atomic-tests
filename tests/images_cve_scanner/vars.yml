@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 registry: registry.access.redhat.com
 
 image_name_list:

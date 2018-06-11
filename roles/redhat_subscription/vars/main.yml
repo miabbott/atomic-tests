@@ -1,2 +1,3 @@
 ---
+# vim: set ft=ansible:
 subscription_file: "subscription_data.csv"

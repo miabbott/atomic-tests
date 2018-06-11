@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 g_pkg: 'wget'
 g_remove_pkg: 'bash-completion'
 g_replace_pkg: 'tzdata'

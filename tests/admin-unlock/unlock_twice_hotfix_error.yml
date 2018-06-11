@@ -1,5 +1,5 @@
 ---
-# vim: set ft=ansible
+# vim: set ft=ansible:
 
 - name: Unlock system with hotfix
   command: ostree admin unlock --hotfix

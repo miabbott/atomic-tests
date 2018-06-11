@@ -1,3 +1,5 @@
+---
+# vim: set ft=ansible:
 kind: "ReplicationController"
 apiVersion: "v1"
 metadata:

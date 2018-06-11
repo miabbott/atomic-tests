@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 #
 # This file is a collection of generic handlers that could be used in multiple
 # playbooks.  Please use the h_get_journal handler as a template for other

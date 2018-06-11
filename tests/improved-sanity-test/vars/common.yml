@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 g_uid1: '2001'
 g_file1: 'commit1'
 g_dir1: 'qe1'

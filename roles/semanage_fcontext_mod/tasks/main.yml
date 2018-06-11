@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 - name: Fail if variables are not defined
   when: test_dir_match is undefined or
         test_context is undefined

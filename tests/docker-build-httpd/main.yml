@@ -1,3 +1,5 @@
+---
+# vim: set ft=ansible:
 - name: Docker Build HTTPD - Test Suite
   hosts: all
   become: true

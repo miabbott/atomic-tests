@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 #
 #  Commit a change to an image
 #

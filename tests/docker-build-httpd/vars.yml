@@ -1,3 +1,5 @@
+---
+# vim: set ft=ansible:
 base_images:
   - docker.io/alpine
   - docker.io/busybox

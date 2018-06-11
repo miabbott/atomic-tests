@@ -1,2 +1,3 @@
 ---
+# vim: set ft=ansible:
 driver: 'overlay2'

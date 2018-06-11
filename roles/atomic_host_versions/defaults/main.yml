@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 ahv_rpms:
   - atomic
   - docker

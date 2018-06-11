@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 #
 #  Disables docker live-restore
 #

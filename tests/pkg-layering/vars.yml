@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 g_pkg1: 'wget'
 g_pkg2: 'ltrace'
 g_invalid_pkg: 'foobar'

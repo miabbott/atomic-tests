@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 cockpit_short_name: "cockpit/ws"
 cockpit_fq_name: "docker.io/cockpit/ws"
 cockpit_cname: "registry.fedoraproject.org/f27/cockpit"

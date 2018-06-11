@@ -1,2 +1,3 @@
 ---
+# vim: set ft=ansible:
 g_docker_latest: true

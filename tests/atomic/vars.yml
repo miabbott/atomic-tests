@@ -1,3 +1,4 @@
 ---
+# vim: set ft=ansible:
 g_container_name: etcd
 g_container_fq_name: registry.access.redhat.com/rhel7/etcd

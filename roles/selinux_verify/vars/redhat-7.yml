@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 distro_files:
   - { key: '/usr/bin/docker', value: 'system_u:object_r:container_runtime_exec_t:s0' }
   - { key: '/usr/bin/docker-containerd', value: 'system_u:object_r:container_runtime_exec_t:s0' }

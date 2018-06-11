@@ -1,5 +1,5 @@
 ---
-# vim: set ft=ansible
+# vim: set ft=ansible:
 #
 # !!!NOTE!!! This playbook was tested using Ansible 2.2; it is recommended
 # that the same version is used.

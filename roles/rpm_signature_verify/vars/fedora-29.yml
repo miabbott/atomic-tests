@@ -1,2 +1,3 @@
 ---
+# vim: set ft=ansible:
 rsv_gpg_key: 'a20aa56b429476b4'

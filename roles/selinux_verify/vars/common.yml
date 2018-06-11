@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 # Until RHBZ #1428112 is fixed, we are removing the `/sysroot` entry from
 # this list.
 mountpoints:

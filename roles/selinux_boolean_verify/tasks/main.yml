@@ -1,5 +1,5 @@
 ---
-# vim: set ft=ansible
+# vim: set ft=ansible:
 #
 - name: Fail if 'g_seboolean' is undefined
   when: g_seboolean is undefined

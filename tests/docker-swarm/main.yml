@@ -1,3 +1,5 @@
+---
+# vim: set ft=ansible:
 - name: Docker Swarm - Test Suite
   hosts: all
   become: true

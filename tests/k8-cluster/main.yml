@@ -1,3 +1,5 @@
+---
+# vim: set ft=ansible:
 - name: Kubernetes Cluster - Test Suite
   hosts: all
   become: true

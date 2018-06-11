@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 #
 # This role creates the docker webserver and database images, then tags and
 # pushes the images to a private registry that is setup in another role.

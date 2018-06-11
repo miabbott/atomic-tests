@@ -1,5 +1,5 @@
 ---
-# vim: set ft=ansible
+# vim: set ft=ansible:
 #
 - name: Atomic CLI Test Suite
   hosts: all

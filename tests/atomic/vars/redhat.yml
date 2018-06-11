@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 cockpit_short_name: "rhel7/cockpit-ws"
 cockpit_fq_name: "registry.access.redhat.com/rhel7/cockpit-ws"
 cockpit_cname: "registry.access.redhat.com/rhel7/cockpit-ws"

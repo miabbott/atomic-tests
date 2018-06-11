@@ -1,4 +1,5 @@
 ---
+# vim: set ft=ansible:
 dependencies:
   - { role: atomic_pull, image: "{{ image }}" }
   - { role: atomic_scan, image: "{{ image }}" }
