@@ -6,5 +6,5 @@ popular_images:
   - docker.io/busybox
   - docker.io/ubuntu
   - registry.fedoraproject.org/fedora
-  - registry.centos.org/centos
+  - registry.centos.org/centos/centos
   - registry.access.redhat.com/rhel
