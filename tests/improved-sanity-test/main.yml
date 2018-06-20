@@ -205,6 +205,13 @@
         - rhcos
 
     # TEST
+    # Verify that basic `podman` operations are successful.
+    - role: podman_pull_run_remove
+      tags:
+        - podman_pull_run_remove
+        - rhcos
+
+    # TEST
     # Validate 'atomic pull', 'atomic scan' works correctly.
     # Remove images after test of each command.
     # Do this ahead of 'ostree admin unlock' because of overlay + SELinux
@@ -614,6 +621,11 @@
     - role: docker_pull_run_remove
       tags:
         - docker_pull_run_remove
+        - rhcos
+
+    - role: podman_pull_run_remove
+      tags:
+        - podman_pull_run_remove
         - rhcos
 
     # Check layered package is still installed
