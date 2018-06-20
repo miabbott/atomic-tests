@@ -1,0 +1,56 @@
+---
+# vim: set ft=ansible:
+#
+# This is a copy of the `docker_pull_run_remove` role which has been adapted
+# to use `podman`.  There are some minor changes that expand on the original
+# role to make this more comprehensive.
+#
+# `popular_images` is defined in roles/podman_pull_run_remove/vars/main.yml
+# It is a dict using image names as a key and the value is a command that
+# can be run.
+#
+
+# Check to see if the host has podman, but don't fail if it is not installed
+- name: Check if podman is installed
+  command: rpm -q podman
+  register: podman
+  ignore_errors: true
+
+- when: podman.rc == 0
+  block:
+    - name: Disable the docker daemon
+      service:
+        name: docker
+        state: stopped
+
+    - name: Pull the popular container images
+      command: "podman pull {{ item.key }}"
+      with_dict: "{{ popular_images }}"
+      register: podman_pull
+      retries: 5
+      delay: 60
+      until: podman_pull is success
+
+    - name: Run the popular container images
+      command: "podman run --rm {{ item.key }} echo 'hello'"
+      with_dict: "{{ popular_images }}"
+
+    # Test for https://bugzilla.redhat.com/show_bug.cgi?id=1585735
+    - name: Run the popular container images with cpu-shares flag
+      command: "podman run --cpu-shares 2 --rm {{ item.key }} echo 'hello'"
+      with_dict: "{{ popular_images }}"
+
+    # Test for https://bugzilla.redhat.com/show_bug.cgi?id=1592932
+    #          https://bugzilla.redhat.com/show_bug.cgi?id=1593419
+    - name: Run the popular container images testing for network access
+      command: "podman run --rm {{ item.key }} {{ item.value }}"
+      with_dict: "{{ popular_images }}"
+
+    - name: Remove the popular container images
+      command: "podman rmi {{ item.key }}"
+      with_dict: "{{ popular_images }}"
+
+    - name: Re-enable docker
+      service:
+        name: docker
+        state: started

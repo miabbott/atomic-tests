@@ -1,0 +1,10 @@
+---
+# vim: set ft=ansible:
+#
+popular_images:
+  docker.io/alpine: 'ping -c 3 1.1.1.1'
+  docker.io/busybox: 'ping -c 3 1.1.1.1'
+  docker.io/ubuntu: 'bash -c "apt-get update && apt-get -y install iputils-ping && ping -c 3 1.1.1.1"'
+  registry.fedoraproject.org/fedora: 'bash -c "dnf -y install iputils && ping -c 3 1.1.1.1"'
+  registry.centos.org/centos/centos/centos: 'ping -c 3 1.1.1.1'
+  registry.access.redhat.com/rhel: 'curl --fail -o /dev/null -I https://1.1.1.1'
