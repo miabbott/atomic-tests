@@ -8,3 +8,13 @@ popular_images:
   - registry.fedoraproject.org/fedora
   - registry.centos.org/centos/centos
   - registry.access.redhat.com/rhel
+
+# Until https://github.com/CentOS/sig-atomic-buildscripts/issues/329
+# is resolved, we will use a different list of images for CentOS AH
+# streams
+centos_popular_images:
+  - docker.io/alpine
+  - docker.io/busybox
+  - docker.io/ubuntu
+  - registry.fedoraproject.org/fedora
+  - registry.centos.org/centos/centos
