@@ -4,54 +4,26 @@
 # This role confirms that the 'firewalld' package/service is correctly
 # installed (or not installed) on the host under test.
 #
-- name: Default to firewalld being uninstalled
-  set_fact:
-    firewalld_installed: false
+- name: Verify firewalld package is installed
+  command: rpm -q firewalld
 
-- name: Determine if firewalld should be installed
-  when: (ansible_distribution == 'Fedora' and
-         ansible_distribution_major_version | version_compare('26', '>')) or
-        (ansible_distribution == 'RedHat' and
-         ansible_distribution_version | version_compare('7.4', '>'))
-  set_fact:
-    firewalld_installed: true
+- name: Verify firewalld is disabled by default
+  command: systemctl is-enabled -q firewalld
+  register: is_enabled
+  failed_when: is_enabled|success
 
-- when: firewalld_installed
-  block:
-    - name: Verify firewalld package is installed
-      command: rpm -q firewalld
+# Because of the declarative nature of Ansible, we don't have to perform
+# a second check to see if the service was successfully enabled/started.
+# If either of those conditions were not met, the task will fail
+- name: Verify firewalld can be started/enabled successfully
+  service:
+    name: firewalld
+    enabled: true
+    state: 'started'
 
-    - name: Verify firewalld is disabled by default
-      command: systemctl is-enabled -q firewalld
-      register: is_enabled
-      failed_when: is_enabled|success
+- name: Revert firewalld back to stopped/disabled
+  service:
+    name: firewalld
+    enabled: false
+    state: 'stopped'
 
-    # Because of the declarative nature of Ansible, we don't have to perform
-    # a second check to see if the service was successfully enabled/started.
-    # If either of those conditions were not met, the task will fail
-    - name: Verify firewalld can be started/enabled successfully
-      service:
-        name: firewalld
-        enabled: true
-        state: 'started'
-
-    - name: Revert firewalld back to stopped/disabled
-      service:
-        name: firewalld
-        enabled: false
-        state: 'stopped'
-
-- when: not firewalld_installed
-  block:
-    - name: Verify firewalld package is not installed
-      command: rpm -q firewalld
-      register: rpmq
-      failed_when: rpmq|success
-
-    - name: Verify firewalld cannot be enabled/started
-      service:
-        name: firewalld
-        enabled: true
-        state: 'started'
-      register: enable_start
-      failed_when: enable_start|success
