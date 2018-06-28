@@ -5,8 +5,8 @@
   set_fact:
     storage_driver: 'overlay2'
 
-- when: ansible_distribution == 'CentOSDev'
-  name: Set storage driver for CAHC
+- name: Set storage driver for CAHC
+  when: ansible_distribution == 'CentOSDev'
   set_fact:
     storage_driver: 'devicemapper'
 
