@@ -1,0 +1,14 @@
+---
+# vim: set ft=ansible:
+#
+- name: Start the local cluster
+  command: "{{ oc_binary }} cluster up --version=v3.9"
+
+- name: Login as the admin
+  command: "{{ oc_binary }} login -u system:admin"
+
+- name: Switch project
+  command: "{{ oc_binary }} project default"
+
+- name: Check the status
+  command: "{{ oc_binary }} status"

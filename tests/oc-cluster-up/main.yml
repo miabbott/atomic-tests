@@ -1,0 +1,63 @@
+---
+# vim: set ft=ansible:
+#
+- name: oc cluster up
+  hosts: all
+  become: true
+
+  vars:
+    tests: []
+
+  tasks:
+    - name: Set logging
+      set_fact:
+        log_results: true
+        result_file: "{{ playbook_dir }}/oc-cluster-up-result.log"
+      tags:
+        - setup
+
+    - include_tasks: 'setup.yml'
+      tags:
+        - setup
+
+    # TEST
+    # Verify starting cluster
+    - block:
+        - include_tasks: 'cluster_up.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cluster Up', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cluster Up', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      tags:
+        - cluster_up
+
+    # CLEANUP
+    - block:
+        - include_tasks: 'cleanup.yml'
+        - set_fact:
+            tests: "{{ tests + [ { 'name': 'Cleanup', 'result':'Passed', 'result_details': '' } ] }}"
+      rescue:
+        - set_fact:
+            tests: "{{ tests + [ { 'name':'Cleanup', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
+      always:
+        # WRITE RESULTS TO FILE
+        - name: Remove existing log files
+          local_action: file path={{ result_file }} state=absent
+          become: false
+
+        - name: Save result to file
+          when: log_results
+          local_action: copy content={{ tests | to_nice_yaml(indent=2) }} dest={{ result_file }}
+          become: false
+      tags: cleanup
+
+
+    # Handled exceptions show up as failures in Ansible but the playbook
+    # itself does not return 0, so explicitly fail the test by checking
+    # the test results
+    - name: Explicitly fail based on test results
+      when: item['result']|lower == "failed"
+      fail:
+        msg: "Failure found in test"
+      with_items: "{{ tests }}"

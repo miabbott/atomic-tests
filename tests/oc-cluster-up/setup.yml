@@ -1,0 +1,73 @@
+---
+# vim: set ft=ansible:
+#
+- import_role:
+    name: ansible_version_check
+  tags:
+    - ansible_version_check
+
+- name: Configure binary name
+  set_fact:
+    oc_binary: "{{ '/usr/local/bin/oc' if ansible_distribution == 'RedHat' else 'oc' }}"
+
+- name: Configure insecure registries
+  replace:
+    regexp: "\\[registries.insecure\\]\nregistries = \\[\\]"
+    replace: "[registries.insecure]\nregistries = ['172.30.0.0/16']"
+    dest: /etc/containers/registries.conf
+
+- name: Restart registries + docker
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: restarted
+  with_items:
+    - registries
+    - docker
+
+# Drop in the openshift-release repo + key for CentOS
+- when: "'CentOS' in ansible_distribution"
+  block:
+    - name: Grab the OpenShift Origin repo
+      command: curl -LO https://raw.githubusercontent.com/CentOS-PaaS-SIG/centos-release-openshift-origin/master/CentOS-OpenShift-Origin.repo
+      args:
+        chdir: /etc/yum.repos.d/
+
+    - name: Grab the CentOS SIG PaaS GPG key
+      command: curl -LO https://raw.githubusercontent.com/CentOS-PaaS-SIG/centos-release-paas-common/master/RPM-GPG-KEY-CentOS-SIG-PaaS
+      args:
+        chdir: /etc/pki/rpm-gpg/
+
+- when: ansible_distribution != "RedHat"
+  block:
+    - import_role:
+        name: rpm_ostree_install
+      vars:
+        roi_packages: "origin-clients"
+        roi_reboot: false
+
+    - import_role:
+        name: reboot
+
+# I couldn't find a straight-forward way to get a copy of `origin-clients`
+# for RHEL, so I'm just going to use the binary from GitHub
+- when: ansible_distribution == "RedHat"
+  block:
+    - name: Create temp directory
+      command: mktemp -d
+      register: oso_temp
+
+    - name: Grab OpenShift Origin binary
+      command: curl -LO https://github.com/openshift/origin/releases/download/v3.9.0/openshift-origin-client-tools-v3.9.0-191fece-linux-64bit.tar.gz
+      args:
+        chdir: "{{ oso_temp.stdout }}"
+
+    - name: Extract binary
+      command: tar zxvf openshift-origin-client-tools-v3.9.0-191fece-linux-64bit.tar.gz
+      args:
+        chdir: "{{ oso_temp.stdout }}"
+
+    - name: Copy oc binary to /usr/local/bin
+      command: cp openshift-origin-client-tools-v3.9.0-191fece-linux-64bit/oc /usr/local/bin/oc
+      args:
+        chdir: "{{ oso_temp.stdout }}"

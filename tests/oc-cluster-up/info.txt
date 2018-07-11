@@ -1,0 +1,7 @@
+Test Cases
+  - install oc binaries
+  - oc cluster up
+  - oc login
+  - oc project
+  - oc status
+  - oc cluster down

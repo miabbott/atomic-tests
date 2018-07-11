@@ -1,0 +1,49 @@
+---
+# vim: set ft=ansible:
+#
+
+- name: Down the cluster
+  command: "{{ oc_binary }} cluster down"
+
+- when: ansible_distribution != "RedHat"
+  block:
+    - import_role:
+        name: rpm_ostree_rollback
+
+    - import_role:
+        name: reboot
+
+    - name: Cleanup deployments
+      command: rpm-ostree cleanup -rpmb
+
+- when: ansible_distribution == "RedHat"
+  file:
+    path: "/usr/local/bin/oc"
+    state: absent
+
+# Remove insecure registry
+- name: Remove the insecure registry
+  replace:
+    regexp: "^registries = \\['172.30.0.0/16'\\]"
+    replace: "registries = []"
+    dest: /etc/containers/registries.conf
+
+- name: Restart docker daemon
+  service:
+    name: docker
+    state: restarted
+
+- import_role:
+    name: docker_remove_all
+  tags:
+    - docker_remove_all
+
+# Remove repo + GPG key for CentOS
+- when: "'CentOS' in ansible_distribution"
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/etc/yum.repos.d/CentOS-OpenShift-Origin.repo"
+    - "/etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS"
+
