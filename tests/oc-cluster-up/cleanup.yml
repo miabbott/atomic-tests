@@ -28,10 +28,13 @@
     replace: "registries = []"
     dest: /etc/containers/registries.conf
 
-- name: Restart docker daemon
+- name: Restart registries + docker
   service:
-    name: docker
+    name: "{{ item }}"
     state: restarted
+  with_items:
+    - registries
+    - docker
 
 - import_role:
     name: docker_remove_all
