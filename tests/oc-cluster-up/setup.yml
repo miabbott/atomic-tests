@@ -29,14 +29,14 @@
 - when: "'CentOS' in ansible_distribution"
   block:
     - name: Grab the OpenShift Origin repo
-      command: curl -LO https://raw.githubusercontent.com/CentOS-PaaS-SIG/centos-release-openshift-origin/master/CentOS-OpenShift-Origin.repo
-      args:
-        chdir: /etc/yum.repos.d/
+      get_url:
+        url: https://raw.githubusercontent.com/CentOS-PaaS-SIG/centos-release-openshift-origin/master/CentOS-OpenShift-Origin.repo
+        dest: /etc/yum.repos.d/
 
     - name: Grab the CentOS SIG PaaS GPG key
-      command: curl -LO https://raw.githubusercontent.com/CentOS-PaaS-SIG/centos-release-paas-common/master/RPM-GPG-KEY-CentOS-SIG-PaaS
-      args:
-        chdir: /etc/pki/rpm-gpg/
+      get_url:
+        url: https://raw.githubusercontent.com/CentOS-PaaS-SIG/centos-release-paas-common/master/RPM-GPG-KEY-CentOS-SIG-PaaS
+        dest: /etc/pki/rpm-gpg/
 
 - when: ansible_distribution != "RedHat"
   block:
@@ -58,16 +58,19 @@
       register: oso_temp
 
     - name: Grab OpenShift Origin binary
-      command: curl -LO https://github.com/openshift/origin/releases/download/v3.9.0/openshift-origin-client-tools-v3.9.0-191fece-linux-64bit.tar.gz
-      args:
-        chdir: "{{ oso_temp.stdout }}"
+      get_url:
+        url: https://github.com/openshift/origin/releases/download/v3.9.0/openshift-origin-client-tools-v3.9.0-191fece-linux-64bit.tar.gz
+        dest: "{{ oso_temp.stdout }}"
 
     - name: Extract binary
-      command: tar zxvf openshift-origin-client-tools-v3.9.0-191fece-linux-64bit.tar.gz
-      args:
-        chdir: "{{ oso_temp.stdout }}"
+      unarchive:
+        src: "{{ oso_temp.stdout }}/openshift-origin-client-tools-v3.9.0-191fece-linux-64bit.tar.gz"
+        dest: "{{ oso_temp.stdout }}"
+        remote_src: yes
 
     - name: Copy oc binary to /usr/local/bin
-      command: cp openshift-origin-client-tools-v3.9.0-191fece-linux-64bit/oc /usr/local/bin/oc
-      args:
-        chdir: "{{ oso_temp.stdout }}"
+      copy:
+        src: "{{ oso_temp.stdout }}/openshift-origin-client-tools-v3.9.0-191fece-linux-64bit/oc"
+        dest: "/usr/local/bin/oc"
+        mode: 0744
+        remote_src: yes
