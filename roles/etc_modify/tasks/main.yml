@@ -16,7 +16,7 @@
 - name: Copy EPEL repo into /etc/yum.repos.d
   copy:
     src: epel.repo
-    dest: /etc/yum.repos.d/epel.repo
+    dest: /etc/yum.repos.d/
     owner: root
     group: root
     mode: 0644
@@ -24,7 +24,7 @@
 - name: Copy EPEL GPG Key into /etc/pki/rpm-gpg
   copy:
     src: RPM-GPG-KEY-EPEL-7
-    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+    dest: /etc/pki/rpm-gpg/
     owner: root
     group: root
     mode: 0644
