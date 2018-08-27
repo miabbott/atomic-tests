@@ -60,9 +60,8 @@
 - name: Delete the cockpit container
   command: atomic --assumeyes containers delete {{ cockpit_cid.stdout }}
 
-# use -n until centos has https://github.com/projectatomic/atomic/issues/1219
 - name: Uninstall cockpit container
-  shell: atomic uninstall -n cockpit {{ cockpit_cname }}
+  shell: atomic uninstall {{ cockpit_cname }}
 
 - name: Check for /etc/pam.d/cockpit file
   stat:
@@ -108,9 +107,8 @@
 - name: Delete container
   command: atomic --assumeyes containers delete {{ cockpit_cid.stdout }}
 
-# use -n until centos has https://github.com/projectatomic/atomic/issues/1219
 - name: Uninstall cockpit container without tag
-  shell: atomic uninstall -n cockpit {{ cockpit_cname }}
+  shell: atomic uninstall {{ cockpit_cname }}
 
 - name: Check for /etc/pam.d/cockpit file
   stat:
