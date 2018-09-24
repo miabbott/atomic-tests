@@ -61,7 +61,7 @@
   command: atomic --assumeyes containers delete {{ cockpit_cid.stdout }}
 
 - name: Uninstall cockpit container
-  shell: atomic uninstall {{ cockpit_cname }}
+  shell: atomic uninstall -n cockpit {{ cockpit_cname }}
 
 - name: Check for /etc/pam.d/cockpit file
   stat:
