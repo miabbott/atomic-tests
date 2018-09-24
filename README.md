@@ -1,3 +1,17 @@
+# Sunset
+With Red Hat's acquisition of CoreOS, it has been announced that Red Hat Atomic Host
+will eventually be sunset and cease to be supported.  This impacts not only CentOS
+and Fedora Atomic Host, but also the support for the tests contained in this repo.
+
+These tests will be maintained in a bug fix only mode, until the support for all
+variants of Atomic Host has run out.  We will communicate relevant dates for the
+end of support, once they have been made publicly available.
+
+Going forward, the team that has contributed to these tests will be working on
+the [Red Hat](https://github.com/openshift/os) and [Fedora](https://coreos.fedoraproject.org)
+variants of CoreOS.  We will be using the [kola](https://github.com/coreos/mantle)
+test framework to test those new variants.
+
 # Atomic Host Tests
 This repo contains a number of Ansible playbooks that can be used to run
 tests against an Atomic Host.
