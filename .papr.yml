@@ -3,7 +3,7 @@ cluster:
     - name: testnode
       distro: fedora/28/atomic
   container:
-    image: registry.fedoraproject.org/fedora:27
+    image: registry.fedoraproject.org/fedora:28
 
 context: fedora/28/atomic
 
@@ -27,13 +27,14 @@ inherit: true
 cluster:
   hosts:
     - name: testnode
-      distro: fedora/27/atomic
+      # TODO: switch this to 'stable' F29AH when it releases
+      distro: fedora/29/atomic/pungi
       ostree:
-        branch: fedora/27/x86_64/updates/atomic-host
+        branch: fedora/29/x86_64/testing/atomic-host
   container:
-      image: registry.fedoraproject.org/fedora:27
+      image: registry.fedoraproject.org/fedora:28
 
-context: fedora/27/atomic
+context: fedora/29/atomic
 
 tests:
   # permanently set g_docker_latest=false, since Fedora doesn't have
@@ -48,7 +49,7 @@ cluster:
     - name: testnode
       distro: centos/7/atomic/continuous
   container:
-      image: registry.fedoraproject.org/fedora:27
+      image: registry.fedoraproject.org/fedora:28
 
 context: centos/7/atomic/continuous
 
@@ -63,7 +64,7 @@ cluster:
     - name: testnode
       distro: centos/7/atomic
   container:
-      image: registry.fedoraproject.org/fedora:27
+      image: registry.fedoraproject.org/fedora:28
 
 context: centos/7/atomic
 
