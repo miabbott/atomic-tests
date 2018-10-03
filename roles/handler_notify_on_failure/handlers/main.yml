@@ -31,6 +31,11 @@
   listen: h_get_journal
   when: aht_result == "1"
 
+- name: Get previous boot journal
+  shell: journalctl -r -b -1 >> /tmp/{{ journal_name | quote }}
+  listen: h_get_journal
+  when: aht_result == "1"
+
 - name: Retrieve journal
   synchronize:
     mode: pull
