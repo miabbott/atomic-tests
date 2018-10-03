@@ -21,6 +21,9 @@ tests:
   # a docker-latest
   - ./.test_director -e g_docker_latest=false
 
+artifacts:
+  - tests/improved-sanity-test/improved-sanity-test-testnode-journal
+
 ---
 inherit: true
 
