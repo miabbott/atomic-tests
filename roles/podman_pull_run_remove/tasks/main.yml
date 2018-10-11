@@ -16,6 +16,14 @@
   register: podman
   ignore_errors: true
 
+- when: "'CentOS' not in ansible_distribution"
+  set_fact:
+    pull_images: "{{ popular_images | combine(rhel_images) }}"
+
+- when: "'CentOS' in ansible_distribution"
+  set_fact:
+    pull_images: "{{ popular_images }}"
+
 - when: podman.rc == 0
   block:
     - name: Disable the docker daemon
@@ -25,7 +33,7 @@
 
     - name: Pull the popular container images
       command: "podman pull {{ item.key }}"
-      with_dict: "{{ popular_images }}"
+      with_dict: "{{ pull_images }}"
       register: podman_pull
       retries: 5
       delay: 60
@@ -33,22 +41,22 @@
 
     - name: Run the popular container images
       command: "podman run --rm {{ item.key }} echo 'hello'"
-      with_dict: "{{ popular_images }}"
+      with_dict: "{{ pull_images }}"
 
     # Test for https://bugzilla.redhat.com/show_bug.cgi?id=1585735
     - name: Run the popular container images with cpu-shares flag
       command: "podman run --cpu-shares 2 --rm {{ item.key }} echo 'hello'"
-      with_dict: "{{ popular_images }}"
+      with_dict: "{{ pull_images }}"
 
     # Test for https://bugzilla.redhat.com/show_bug.cgi?id=1592932
     #          https://bugzilla.redhat.com/show_bug.cgi?id=1593419
     - name: Run the popular container images testing for network access
       command: "podman run --rm {{ item.key }} {{ item.value }}"
-      with_dict: "{{ popular_images }}"
+      with_dict: "{{ pull_images }}"
 
     - name: Remove the popular container images
       command: "podman rmi {{ item.key }}"
-      with_dict: "{{ popular_images }}"
+      with_dict: "{{ pull_images }}"
 
     - name: Re-enable docker
       service:
