@@ -30,15 +30,15 @@
 
 # Test for https://bugzilla.redhat.com/show_bug.cgi?id=1655214
 - name: Run popular images as detatched
-  command: "docker run --name test-{{ item.split('/')[1] }} -d --rm {{ item }} sleep 1000"
+  command: "docker run --name test-{{ item.split('/')[-1] }} -d --rm {{ item }} sleep 1000"
   with_items: "{{ dprr_images }}"
 
 - name: Exec into the daemon containers
-  command: "docker exec test-{{ item.split('/')[1] }} date"
+  command: "docker exec test-{{ item.split('/')[-1] }} date"
   with_items: "{{ dprr_images }}"
 
 - name: Cleanup containers
-  command: "docker rm -f test-{{ item.split('/')[1] }}"
+  command: "docker rm -f test-{{ item.split('/')[-1] }}"
   with_items: "{{ dprr_images }}"
 
 - name: Remove the popular container images

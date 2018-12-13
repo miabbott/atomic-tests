@@ -56,15 +56,15 @@
 
     # Test for https://bugzilla.redhat.com/show_bug.cgi?id=1650512
     - name: Run popular images as detached
-      command: "podman run --name test-{{ item.split('/')[1] }} -d {{ item }} sleep 1000"
+      command: "podman run --name test-{{ item.split('/')[-1] }} -d {{ item }} sleep 1000"
       with_items: "{{ pull_images }}"
 
     - name: Exec into the daemon containers
-      command: "podman exec test-{{ item.split('/')[1] }} date"
+      command: "podman exec test-{{ item.split('/')[-1] }} date"
       with_items: "{{ pull_images }}"
 
     - name: Cleanup containers
-      command: "podman rm -f test-{{ item.split('/')[1] }}"
+      command: "podman rm -f test-{{ item.split('/')[-1] }}"
       with_items: "{{ pull_images }}"
 
     - name: Remove the popular container images
