@@ -1,8 +1,28 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Determine rpm-ostree version
+  block:
+    - command: rpm-ostree --version
+      register: ros_out
+
+    - set_fact:
+        ros_yaml: "{{ ros_out.stdout | from_yaml }}"
+
+    - set_fact:
+        ros_version: "{{ ros_yaml['rpm-ostree']['Version'] }}"
+
+- name: Set old livefs command
+  set_fact:
+    ros_livefs_cmd: "rpm-ostree ex livefs"
+
+- name: Set new livefs command
+  when: ros_version | version_compare('2018.9', '>=')
+  set_fact:
+    ros_livefs_cmd: "rpm-ostree ex livefs --i-like-danger"
+
 - name: Enable livefs
-  command: rpm-ostree ex livefs --i-like-danger
+  command: "{{ ros_livefs_cmd }}"
   register: ros_lfs
 
 # Regex to find all the sha256 checksums in the output
