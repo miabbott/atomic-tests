@@ -88,18 +88,6 @@
         - upgrade_rebase_install_uninstall
 
     # TEST
-    # Verify livefs functionality
-    - block:
-        - include_tasks: 'livefs.yml'
-        - set_fact:
-            tests: "{{ tests + [ { 'name':'Verify Livefs Functionality', 'result':'Passed', 'result_details': '' } ] }}"
-      rescue:
-        - set_fact:
-            tests: "{{ tests + [ { 'name':'Verify Livefs Functionality', 'result':'Failed', 'result_details': ansible_failed_result } ] }}"
-      tags:
-        - livefs
-
-    # TEST
     # Verify initramfs functionality
     - block:
         - include_tasks: 'initramfs.yml'

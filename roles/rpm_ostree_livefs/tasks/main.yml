@@ -1,6 +1,10 @@
 ---
 # vim: set ft=ansible:
 #
+- name: Fatally fail because this is not supported
+  fail:
+    msg: "The livefs functionality is not supported by this test framework"
+
 - name: Enable livefs
   command: rpm-ostree ex livefs --i-like-danger
   register: ros_lfs
