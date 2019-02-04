@@ -6,8 +6,12 @@
   fail:
     msg: "uvp_uid variable is undefined"
 
+- name: Set regex pattern
+  set_fact:
+    regex_pattern: "^atomic-user-{{ g_uid1 }}:x:{{ g_uid1 }}:{{ g_uid1 }}::{{ '\\(/var\\)\\?' | regex_escape() }}/home/atomic-user-{{ g_uid1 }}:/bin/bash"
+
 - name: Verify users in /etc/passwd
-  command: "grep atomic-user-{{ uvp_uid }}:x:{{ uvp_uid }}:{{ uvp_uid }}::/home/atomic-user-{{ uvp_uid }}:/bin/bash /etc/passwd"
+  command: "grep -e {{ regex_pattern }} /etc/passwd"
 
 - name: Verify password is a SHA-512 hash
   command: "grep '^atomic-user-{{ uvp_uid }}:$6$.*' /etc/shadow"
