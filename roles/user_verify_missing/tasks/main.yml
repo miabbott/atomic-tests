@@ -8,7 +8,7 @@
 
 - name: Set regex pattern
   set_fact:
-    regex_pattern: "^atomic-user-{{ g_uid1 }}:x:{{ g_uid1 }}:{{ g_uid1 }}::{{ '\\(/var\\)\\?' | regex_escape() }}/home/atomic-user-{{ g_uid1 }}:/bin/bash"
+    regex_pattern: "^atomic-user-{{ uvm_uid }}:x:{{ uvm_uid }}:{{ uvm_uid }}::{{ '\\(/var\\)\\?' | regex_escape() }}/home/atomic-user-{{ uvm_uid }}:/bin/bash"
 
 - name: Check to see if the user is in /etc/passwd
   command: "grep -e {{ regex_pattern }} /etc/passwd"
