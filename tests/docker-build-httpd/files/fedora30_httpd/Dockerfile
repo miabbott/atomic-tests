@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:27
+FROM registry.fedoraproject.org/fedora:30
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.0
@@ -13,7 +13,7 @@ RUN /root/makecache.sh && \
     dnf -y install httpd && \
     dnf clean all
 
-RUN echo "SUCCESS fedora27_httpd" > /var/www/html/index.html
+RUN echo "SUCCESS fedora30_httpd" > /var/www/html/index.html
 EXPOSE 80
 
 ENTRYPOINT [ "/usr/sbin/httpd" ]

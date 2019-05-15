@@ -6,8 +6,8 @@ base_images:
   - docker.io/centos
   - docker.io/debian
   - docker.io/httpd
-  - registry.fedoraproject.org/fedora:26
-  - registry.fedoraproject.org/fedora:27
+  - registry.fedoraproject.org/fedora:29
+  - registry.fedoraproject.org/fedora:30
   - docker.io/nginx
   - docker.io/ubuntu
 rhel_base_images:
@@ -20,8 +20,8 @@ image_names:
   - busybox_httpd
   - centos_httpd
   - debian_httpd
-  - fedora26_httpd
-  - fedora27_httpd
+  - fedora29_httpd
+  - fedora30_httpd
   - nginx_httpd
   - ubuntu_httpd
 rhel_image_names:
