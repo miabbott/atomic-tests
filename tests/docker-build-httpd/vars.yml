@@ -3,11 +3,11 @@
 base_images:
   - docker.io/alpine
   - docker.io/busybox
-  - docker.io/centos
+  - registry.centos.org/centos
   - docker.io/debian
   - docker.io/httpd
-  - registry.fedoraproject.org/fedora:29
-  - registry.fedoraproject.org/fedora:30
+  - registry.fedoraproject.org/fedora:31
+  - registry.fedoraproject.org/fedora:32
   - docker.io/nginx
   - docker.io/ubuntu
 rhel_base_images:

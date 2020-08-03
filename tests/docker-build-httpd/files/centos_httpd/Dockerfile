@@ -1,4 +1,4 @@
-FROM docker.io/centos
+FROM registry.centos.org/centos
 MAINTAINER Micah Abbott <micah@redhat.com>
 
 LABEL Version=1.2

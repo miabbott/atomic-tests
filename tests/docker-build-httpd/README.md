@@ -12,11 +12,11 @@ removed.
 The following base images are tested:
   - docker.io/alpine
   - docker.io/busybox
-  - docker.io/centos
+  - registry.centos.org/centos
   - docker.io/debian
   - docker.io/httpd
-  - registry.fedoraproject.org/fedora24
-  - registry.fedoraproject.org/fedora25
+  - registry.fedoraproject.org/fedora:31
+  - registry.fedoraproject.org/fedora:32
   - docker.io/nginx
   - registry.access.redhat.com/rhel6 (RHEL only)
   - registry.access.redhat.com/rhel7 (RHEL only)
