@@ -12,7 +12,7 @@
 - name: Get rpm-ostree status output
   shell: >
     rpm-ostree status --json |
-    docker run --rm -i docker.io/miabbott/aht-tools
+    docker run --rm -i quay.io/miabbott/aht-tools
     jq 'del(.deployments[]["layered-commit-meta"]["rpmostree.rpmdb.pkglist"],
             .deployments[]["base-commit-meta"]["rpmostree.rpmdb.pkglist"])'
   register: ros

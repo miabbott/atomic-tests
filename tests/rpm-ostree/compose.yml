@@ -52,7 +52,7 @@
       when: ansible_distribution == "Fedora"
       command: >
         docker run -v {{ base_dir }}:{{ base_dir }}:z
-          docker.io/miabbott/aht-tools /bin/bash -c
+          quay.io/miabbott/aht-tools /bin/bash -c
           "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
            cd {{ base_dir }}/{{ repo_name }}; git checkout f27"
 
@@ -60,7 +60,7 @@
       when: ansible_distribution == "CentOSDev"
       command: >
         docker run -v {{ base_dir }}:{{ base_dir }}:z
-          docker.io/miabbott/aht-tools /bin/bash -c
+          quay.io/miabbott/aht-tools /bin/bash -c
           "git clone {{ repo_url }} {{ base_dir }}/{{ repo_name }};
            cd {{ base_dir }}/{{ repo_name }};"
 

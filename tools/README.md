@@ -8,8 +8,8 @@ As of 22-Mar-2018, the following utilities/packages are installed
 
 To run the container:
 
-`# docker run -i docker.io/miabbott/aht-tools <command> <cmd_args>`
+`# docker run -i quay.io/miabbott/aht-tools <command> <cmd_args>`
 
 For example:
 
-`# rpm-ostree status --json | docker run -i docker.io/miabbott/aht-tools jq '.'`
+`# rpm-ostree status --json | docker run -i quay.io/miabbott/aht-tools jq '.'`

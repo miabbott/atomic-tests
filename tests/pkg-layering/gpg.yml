@@ -40,7 +40,7 @@
      docker run -d -p 80:80
      -v /srv/localrepo:/srv/localrepo:z
      -w /srv/localrepo
-     docker.io/miabbott/aht-tools
+     quay.io/miabbott/aht-tools
      /bin/bash -c 'createrepo_c .; python -m SimpleHTTPServer 80'
 
 - name: Wait for port 80 to open
