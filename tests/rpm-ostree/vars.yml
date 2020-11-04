@@ -3,4 +3,4 @@
 g_pkg: 'wget'
 g_remove_pkg: 'bash-completion'
 g_replace_pkg: 'tzdata'
-g_replace_pkg_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/30/Everything/x86_64/os/Packages/t/tzdata-2019a-1.fc30.noarch.rpm'
+g_replace_pkg_url: 'https://download.fedoraproject.org/pub/fedora/linux/releases/32/Everything/x86_64/os/Packages/t/tzdata-2019c-3.fc32.noarch.rpm'
